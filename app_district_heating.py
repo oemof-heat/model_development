@@ -8,6 +8,7 @@ __author__ = "c-moeller, jnnr"
 
 from oemof.tools import logger
 import oemof.solph as solph
+from oemof.outputlib import processing, views
 import logging
 import pandas as pd
 import numpy as np
