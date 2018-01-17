@@ -63,7 +63,8 @@ energysystem.add(solph.Sink(label='demand_heat',
     inputs={bth: solph.Flow(
         actual_value=data['demand_heat']*1e-2,
         fixed=True,
-        nominal_value=69e6)}))
+        nominal_value=69e6,
+        summed_min=1)}))
 
 energysystem.add(solph.components.GenericStorage(label='heat_storage',
     nominal_capacity=600000,
