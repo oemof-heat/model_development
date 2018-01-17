@@ -7,12 +7,15 @@ __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
 
 from oemof.tools import logger
+from oemof.tools import helpers
 import oemof.solph as solph
 from oemof.outputlib import processing, views
 import logging
+import os
 import pandas as pd
 import numpy as np
 
+debug = True
 
 logger.define_logging()
 
@@ -20,15 +23,20 @@ logger.define_logging()
 logging.info('Initialize the energy system')
 #####################################################################
 
-number_timesteps = 8760
+if debug:
+    number_timesteps = 2
+else:
+    number_timesteps = 8760
+
 date_time_index = pd.date_range('1/1/2012', periods=number_timesteps,
                                 freq='H')
 
 energysystem = solph.EnergySystem(timeindex=date_time_index)
 
 # random data
-data = pd.DataFrame(np.random.randint(0, 100, size=(8760, 3)),
-        columns=['natural_gas', 'demand_heat', 'demand_el'])
+data = pd.DataFrame(np.random.randint(0, 100,
+    size=(number_timesteps, 3)),
+    columns=['natural_gas', 'demand_heat', 'demand_el'])
 
 
 #####################################################################
@@ -86,6 +94,13 @@ logging.info('Solve the optimization problem')
 
 om = solph.Model(energysystem)
 om.solve(solver='cbc', solve_kwargs={'tee': True})
+
+if debug:
+    filename = os.path.join(
+        helpers.extend_basic_path('lp_files'),
+        'app_district_heating.lp')
+    logging.info('Store lp-file in {0}.'.format(filename))
+    om.write(filename, io_options={'symbolic_solver_labels': True})
 
 
 #####################################################################
