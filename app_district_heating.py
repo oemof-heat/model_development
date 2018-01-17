@@ -1,5 +1,14 @@
-""" This is the docstring for the app_district_heating.py application.
-This application models a district heating system with a natural gas fired gas turbine supplying to the main network and decentralized power-to-heat supplying to the sub network.
+""" This is the docstring for the app_district_heating.py
+application. This application models a district heating system with
+a natural gas fired gas turbine supplying to the main network and
+decentralized power-to-heat supplying to the sub network.
+
+Usage: app_district_heating.py [options]
+
+Options:
+
+  -d, --debug              Sets timesteps to 2 and writes the lp file
+
 """
 
 __copyright__ = "Reiner Lemoine Institut"
@@ -14,16 +23,18 @@ import logging
 import os
 import pandas as pd
 import numpy as np
-
-debug = True
+from docopt import docopt
 
 logger.define_logging()
+
+arguments = docopt(__doc__)
+print(arguments)
 
 #####################################################################
 logging.info('Initialize the energy system')
 #####################################################################
 
-if debug:
+if arguments['--debug']:
     number_timesteps = 2
 else:
     number_timesteps = 8760
@@ -95,7 +106,7 @@ logging.info('Solve the optimization problem')
 om = solph.Model(energysystem)
 om.solve(solver='cbc', solve_kwargs={'tee': True})
 
-if debug:
+if arguments['--debug']:
     filename = os.path.join(
         helpers.extend_basic_path('lp_files'),
         'app_district_heating.lp')
