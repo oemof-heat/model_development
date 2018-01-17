@@ -25,6 +25,7 @@ date_time_index = pd.date_range('1/1/2012', periods=number_timesteps,
 
 energysystem = solph.EnergySystem(timeindex=date_time_index)
 
+# random data
 data = pd.DataFrame(np.random.randint(0, 100, size=(8760, 3)),
         columns=['natural_gas', 'demand_heat', 'demand_el'])
 
@@ -40,16 +41,21 @@ bel = solph.Bus(label="electricity")
 energysystem.add(bgas, bth, bel)
 
 energysystem.add(solph.Source(label='rgas',
-    outputs={bgas: solph.Flow()}))
+    outputs={bgas: solph.Flow(
+        variable_costs=0)}))
 
 energysystem.add(solph.Transformer(label='gasturbine',
     inputs={bgas: solph.Flow()},
-    outputs={bth: solph.Flow()},
+    outputs={bth: solph.Flow(
+        nominal_value=23000,
+        variable_costs=0)},
     conversion_factors={bth: 0.5}))
 
 energysystem.add(solph.Transformer(label='power-to-heat',
     inputs={bel: solph.Flow()},
-    outputs={bth: solph.Flow()},
+    outputs={bth: solph.Flow(
+        nominal_value=5000,
+        variable_costs=0)},
     conversion_factors={bth: 1}))
 
 energysystem.add(solph.Sink(label='demand_heat',
@@ -59,10 +65,15 @@ energysystem.add(solph.Sink(label='demand_heat',
         nominal_value=1)}))
 
 energysystem.add(solph.components.GenericStorage(label='heat_storage',
-    inputs={bth: solph.Flow()},
+    nominal_capacity=600000,
+    inputs={bth: solph.Flow(
+        variable_costs=0)},
     outputs={bth: solph.Flow()},
     capacity_loss=0.00,
     initial_capacity=0,
+    capacity_max=1,
+    nominal_input_capacity_ratio=1,
+    nominal_output_capacity_ratio=1,
     inflow_conversion_factor=1,
     outflow_conversion_factor=1))
 
