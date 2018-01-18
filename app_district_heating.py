@@ -56,15 +56,15 @@ data = pd.DataFrame(np.random.randint(0, 100,
 logging.info('Create oemof objects')
 #####################################################################
 
-bgas = solph.Bus(label="natural_gas")
+bgas = solph.Bus(label="natural_gas", balanced=False)
+bel = solph.Bus(label="electricity", balanced=False)
 bth = solph.Bus(label="heat")
-bel = solph.Bus(label="electricity")
 
 energysystem.add(bgas, bth, bel)
 
-energysystem.add(solph.Source(label='rgas',
-    outputs={bgas: solph.Flow(
-        variable_costs=0)}))
+# energysystem.add(solph.Source(label='rgas',
+#     outputs={bgas: solph.Flow(
+#         variable_costs=0)}))
 
 energysystem.add(solph.Transformer(label='gasturbine',
     inputs={bgas: solph.Flow()},
