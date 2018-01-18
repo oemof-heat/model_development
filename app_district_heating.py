@@ -62,6 +62,12 @@ bth = solph.Bus(label="heat")
 
 energysystem.add(bgas, bth, bel)
 
+# energysystem.add(solph.Sink(label='excess_heat',
+    # inputs={bth: solph.Flow()}))
+
+energysystem.add(solph.Source(label='shortage_heat',
+    outputs={bth: solph.Flow()}))
+
 # energysystem.add(solph.Source(label='rgas',
 #     outputs={bgas: solph.Flow(
 #         variable_costs=0)}))
