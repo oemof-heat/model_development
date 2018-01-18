@@ -8,6 +8,8 @@ Usage: app_district_heating.py [options]
 Options:
 
   -d, --debug              Sets timesteps to 2 and writes the lp file
+  -o, --solver=SOLVER      The solver to use. Should be one of
+                           "glpk", "cbc" or "gurobi". [default: cbc]
 
 """
 
@@ -104,7 +106,7 @@ logging.info('Solve the optimization problem')
 #####################################################################
 
 om = solph.Model(energysystem)
-om.solve(solver='cbc', solve_kwargs={'tee': True})
+om.solve(solver=arguments['--solver'], solve_kwargs={'tee': True})
 
 if arguments['--debug']:
     filename = os.path.join(
