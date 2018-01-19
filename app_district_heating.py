@@ -10,6 +10,8 @@ Options:
   -d, --debug              Sets timesteps to 2 and writes the lp file
   -o, --solver=SOLVER      The solver to use. Should be one of
                            "glpk", "cbc" or "gurobi". [default: cbc]
+      --invest-pth         Invest optimize the power-to-heat plant.
+      --invest-chp         Invest optimize the gas turbine.
 
 """
 
@@ -17,8 +19,7 @@ __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
 
-from oemof.tools import logger
-from oemof.tools import helpers
+from oemof.tools import logger, helpers, economics
 import oemof.solph as solph
 from oemof.outputlib import processing, views
 import logging
@@ -72,19 +73,41 @@ energysystem.add(solph.Source(label='shortage_heat',
 #     outputs={bgas: solph.Flow(
 #         variable_costs=0)}))
 
-energysystem.add(solph.Transformer(label='gasturbine',
-    inputs={bgas: solph.Flow()},
-    outputs={bth: solph.Flow(
-        nominal_value=23000,
-        variable_costs=0)},
-    conversion_factors={bth: 0.5}))
+if arguments['--invest-chp']:
+    energysystem.add(solph.Transformer(label='gasturbine',
+        inputs={bgas: solph.Flow()},
+        outputs={bth: solph.Flow(
+            investment=solph.Investment(
+                ep_costs=economics.annuity(
+                    capex=1000, n=20, wacc=0.05)),
+            variable_costs=0)},
+        conversion_factors={bth: 0.5}))
 
-energysystem.add(solph.Transformer(label='power-to-heat',
-    inputs={bel: solph.Flow()},
-    outputs={bth: solph.Flow(
-        nominal_value=5000,
-        variable_costs=0)},
-    conversion_factors={bth: 1}))
+else:
+    energysystem.add(solph.Transformer(label='gasturbine',
+        inputs={bgas: solph.Flow()},
+        outputs={bth: solph.Flow(
+            nominal_value=23000,
+            variable_costs=0)},
+        conversion_factors={bth: 0.5}))
+
+if arguments['--invest-pth']:
+    energysystem.add(solph.Transformer(label='power-to-heat',
+        inputs={bel: solph.Flow()},
+        outputs={bth: solph.Flow(
+            investment=solph.Investment(
+                ep_costs=economics.annuity(
+                    capex=1000, n=20, wacc=0.05)),
+            variable_costs=0)},
+        conversion_factors={bth: 1}))
+
+else:
+    energysystem.add(solph.Transformer(label='power-to-heat',
+        inputs={bel: solph.Flow()},
+        outputs={bth: solph.Flow(
+            nominal_value=5000,
+            variable_costs=0)},
+        conversion_factors={bth: 1}))
 
 energysystem.add(solph.Sink(label='demand_heat',
     inputs={bth: solph.Flow(
