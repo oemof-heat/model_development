@@ -71,7 +71,7 @@ energysystem.add(bgas, bth, bel)
     # inputs={bth: solph.Flow()}))
 
 energysystem.add(solph.Source(label='shortage_heat',
-    outputs={bth: solph.Flow()}))
+    outputs={bth: solph.Flow(variable_costs=5000)}))
 
 # energysystem.add(solph.Source(label='rgas',
 #     outputs={bgas: solph.Flow(
