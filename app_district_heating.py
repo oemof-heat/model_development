@@ -49,8 +49,12 @@ energysystem = solph.EnergySystem(timeindex=date_time_index)
 
 # random data
 data = pd.DataFrame(np.random.randint(0, 100,
-    size=(number_timesteps, 3)),
-    columns=['natural_gas', 'demand_heat', 'demand_el'])
+    size=(number_timesteps, 1)),
+    columns=['demand_heat'])*1e-2
+
+# full_filename = os.path.join(os.path.dirname(__file__),
+#     'heat_demand.csv')
+# data = pd.read_csv(full_filename, sep=",")
 
 
 #####################################################################
@@ -111,7 +115,7 @@ else:
 
 energysystem.add(solph.Sink(label='demand_heat',
     inputs={bth: solph.Flow(
-        actual_value=data['demand_heat']*1e-2,
+        actual_value=data['demand_heat'],
         fixed=True,
         nominal_value=69e6,
         summed_min=1)}))
