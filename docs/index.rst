@@ -10,6 +10,7 @@ Welcome to oemof_heat's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   Postprocessing
 
 
 Indices and tables
