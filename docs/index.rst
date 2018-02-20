@@ -12,7 +12,7 @@ Contents:
    :maxdepth: 2
    :caption: Contents:
 
-   Postprocessing
+   postprocessing
 
 
 Indices and tables
