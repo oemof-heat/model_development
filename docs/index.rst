@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to oemof_heat's documentation!
-======================================
+oemof_heat
+==========
 
 .. toctree::
    :maxdepth: 2
