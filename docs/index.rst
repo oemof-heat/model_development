@@ -6,6 +6,9 @@
 oemof_heat
 ==========
 
+This documentation contains definitions of components, parameters and postprocessing
+routines for the project oemof_heat. It serves as a common reference and a document to cooperate.
+It does not aim to represent a final product, as the project is in progress.
 
 .. toctree::
    :maxdepth: 2
