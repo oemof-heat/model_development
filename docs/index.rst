@@ -16,6 +16,8 @@ It does not aim to represent a final product, as the project is in progress.
 
    postprocessing
 
+Other references
+=================
 
 A good reference is the `openmod glossary <https://wiki.openmod-initiative.org/wiki/Category:Glossary>`_ which collects terms that are relevant in energy system modeling.
 
