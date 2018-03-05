@@ -139,7 +139,7 @@ om.solve(solver='cbc', solve_kwargs={'tee': True})
 
 logging.info('Modell erstellt')
 
-results = outputlib.processing.results(om) 
+results = outputlib.processing.results(om)
 water_bus = outputlib.views.node(results, 'water')
 electricity_bus = outputlib.views.node(results, 'electricity')
 
@@ -148,6 +148,8 @@ logging.info('Ergebnisse erhalten')
 #########################
 # Ergebnisse darstellen #
 #########################
+
+### Plot ###
 
 def shape_legend(node, reverse=False, **kwargs):
     handels = kwargs['handles']
@@ -182,7 +184,7 @@ def shape_legend(node, reverse=False, **kwargs):
     axes.legend(**parameter)
     return axes
 
-
+#Farben festlegen
 cdict = {
     (('electricity', 'excess'), 'flow'): '#555555',
     (('electricity', 'storageel'), 'flow'): '#42c77a',
@@ -196,57 +198,87 @@ cdict = {
     (('storagewat', 'water'), 'flow'): '#42c77a',    
     (('water', 'storagewat'), 'flow'): '#42c77a',}
 
+#Reihenfolge der Balken festlegen - Linien funktionieren nicht. Warum???
 inorder = [(('pvel', 'electricity'), 'flow'),
            (('storageel', 'electricity'), 'flow'),
-           (('shortage', 'electricity'), 'flow')]
+           (('shortage', 'electricity'), 'flow'),
+           (('electricity', 'pp_wat'), 'flow'),
+           (('electricity', 'storageel'), 'flow'),
+           (('electricity', 'excess'), 'flow'),]
 
-fig = plt.figure(figsize=(10, 5))
-electricity_seq = outputlib.views.node(results, 'electricity')['sequences']
-plot_slice = oev.plot.slice_df(electricity_seq,
-                               date_from=pd.datetime(2017, 1, 1))
-my_plot = oev.plot.io_plot('electricity', plot_slice, cdict=cdict,
-                           inorder=inorder, ax=fig.add_subplot(1, 1, 1),
+#Electricity Plot: electricity_seq und plot_slice ist das gleiche. Daher hier mal rausgenommen, beim Wasser nicht. Original behalten und auskommentiert, falls mal nötig.
+fig = plt.figure(figsize=(10, 10))
+electricity_seq = electricity_bus['sequences']
+#plot_slice = oev.plot.slice_df(electricity_seq,
+#                               date_from=pd.datetime(2017, 1, 1))
+#my_plot = oev.plot.io_plot('electricity', plot_slice, cdict=cdict,
+#                           inorder=inorder, ax=fig.add_subplot(2, 1, 1),
+#                           smooth=False)
+my_plot = oev.plot.io_plot('electricity', electricity_seq, cdict=cdict,
+                           inorder=inorder, ax=fig.add_subplot(2, 1, 1),
                            smooth=False)
-ax = shape_legend('electricity', **my_plot)
-oev.plot.set_datetime_ticks(ax, plot_slice.index, tick_distance=48,
+
+ax_elec = shape_legend('electricity', **my_plot)
+#oev.plot.set_datetime_ticks(ax, plot_slice.index, tick_distance=48,
+#                            date_format='%d-%m-%H', offset=12)
+oev.plot.set_datetime_ticks(ax_elec, electricity_seq.index, tick_distance=48,
                             date_format='%d-%m-%H', offset=12)
 
-ax.set_ylabel('Power in kW')
-ax.set_xlabel('2017')
-ax.set_title("Electricity bus")
+
+ax_elec.set_ylabel('Power in kW')
+ax_elec.set_xlabel('2017')
+ax_elec.set_title("Electricity bus")
 
 
+#Water Plot
 inorder = [(('pp_wat', 'water'), 'flow'),
            (('storagewat', 'water'), 'flow')]
 
-fig = plt.figure(figsize=(10, 5))
-water_seq = outputlib.views.node(results, 'water')['sequences']
-plot_slice = oev.plot.slice_df(water_seq,
+water_seq = water_bus['sequences']
+plot_slice_wat = oev.plot.slice_df(water_seq,
                                date_from=pd.datetime(2017, 1, 1))
-my_plot = oev.plot.io_plot('water', plot_slice, cdict=cdict,
-                           inorder=inorder, ax=fig.add_subplot(1, 1, 1),
+my_plot_wat = oev.plot.io_plot('water', plot_slice_wat, cdict=cdict,
+                           inorder=inorder, ax=fig.add_subplot(2, 1, 2),
                            smooth=False)
-ax = shape_legend('water', **my_plot)
-oev.plot.set_datetime_ticks(ax, plot_slice.index, tick_distance=48,
+ax = shape_legend('water', **my_plot_wat)
+oev.plot.set_datetime_ticks(ax, plot_slice_wat.index, tick_distance=48,
                             date_format='%d-%m-%H', offset=12)
 
 ax.set_ylabel('Water in m3/h')
 ax.set_xlabel('2017')
 ax.set_title("Water bus") 
 
-print("HIER ANFANG")
+plt.tight_layout()
+
+### Zahlenwerte ### 
+
+results_water = water_bus['scalars']
+results_electricity = electricity_bus['scalars']
+
+# add installed capacity of storages to the results
+results_water['storage_invest_m3'] = (results[(storage_wat, None)]
+                            ['scalars']['invest'])
+results_electricity['storage_invest_MWh'] = (results[(storage_el,None)]
+                            ['scalars']['invest']/1e3)
+
+pp.pprint(results_water)
+pp.pprint(results_electricity)
+
 results_strings=outputlib.views.convert_keys_to_strings(results)
-#print(results_strings.keys())
-x=results_strings[('pvel', 'electricity')]['sequences'].sum()
-y=x+10000000
-print(y)
-print("HIER ENDE")
+grid=results_strings[('shortage', 'electricity')]['sequences'].sum()
+sold_electricity=results_strings[('electricity', 'excess')]['sequences'].sum()
+water_excess=results_strings[('water', 'excesswat')]['sequences'].sum()
+water_demand=results_strings[('water', 'demand')]['sequences'].sum()
+portion_water_excess=water_excess/(water_excess+water_demand)
 
-my_results = water_bus['scalars']
+print("zugekaufter Strom: %i" % grid)
+print("verkaufter Strom: %i" % sold_electricity)
+print("Überschüssiges Wasser: %i" % water_excess)
+print("Wasserbedarf: %i" % water_demand)
+print("Anteil des überschüssigen Wassers: %f" % portion_water_excess)
 
-# installed capacity of storage in GWh
-my_results['storage_invest_GWh'] = (results[(storage_wat, None)]
-                            ['scalars']['invest']/1e6)
+### Schreiben in Ergebnisdatei  ###
 
+water_seq.to_csv('data_output/RO_PV_results_wat.csv') 
+electricity_seq.to_csv('data_output/RO_PV_results_electricity.csv')   
 
-pp.pprint(my_results)
