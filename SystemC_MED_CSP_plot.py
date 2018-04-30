@@ -31,10 +31,10 @@ except ImportError:
 
 energysystem = solph.EnergySystem()
 energysystem.restore(dpath="C:\Git_clones\oemof_heat\Dumps",
-                     filename="MED_CSP_8760h.oemof")
+                     filename="MED_CSP_20180430-1417.oemof")
 
-start_of_plot = 4500
-end_of_plot = 5000
+start_of_plot = 000
+end_of_plot = 500
 sp = start_of_plot
 ep = end_of_plot
 
@@ -44,7 +44,8 @@ water_bus = outputlib.views.node(energysystem.results['main'], 'water')
 electricity_bus = outputlib.views.node(energysystem.results['main'], 'electricity')
 thermalh_bus = outputlib.views.node(energysystem.results['main'], 'thermal_high')
 thermall_bus = outputlib.views.node(energysystem.results['main'], 'thermal_low')
-solar_bus = outputlib.views.node(energysystem.results['main'], 'solarenergy')
+Speicher_bus = outputlib.views.node(energysystem.results['main'], 'None')
+#solar_bus = outputlib.views.node(energysystem.results['main'], 'solarenergy')
 
 logging.info('results received')
 
@@ -56,7 +57,8 @@ water_seq = water_bus['sequences']
 electricity_seq = electricity_bus['sequences']
 thermalh_seq = thermalh_bus['sequences']
 thermall_seq = thermall_bus['sequences']
-solar_seq = solar_bus['sequences']
+Speicher_seq = Speicher_bus['sequences']
+#solar_seq = solar_bus['sequences']
 
 # print(water_bus.keys())
 # print(electricity_seq.head(5))
@@ -64,7 +66,7 @@ water_scal = water_bus['scalars']
 electricity_scal = electricity_bus['scalars']
 thermalh_scal = thermalh_bus['scalars']
 thermall_scal = thermall_bus['scalars']
-solar_scal = solar_bus['scalars']
+#solar_scal = solar_bus['scalars']
 
 ### Plot results ###
 
@@ -103,7 +105,7 @@ def shape_legend(node, reverse=False, **kwargs):  # just copied
     return axes
 
 cdict = {
-    (('Collector', 'thermal_high'), 'flow'): '#ffde32',
+    (('solar', 'thermal_high'), 'flow'): '#ffde32',
     (('thermal_high', 'storage_thh'), 'flow'): '#555555',
     (('storage_thh', 'thermal_high'), 'flow'): '#555555',
     (('thermal_high', 'PB'), 'flow'): '#ff0000',
@@ -122,12 +124,12 @@ cdict = {
     (('water', 'demand'), 'flow'): '#ff0000'}
 
 # define order of inputs and outputs
-inordersol = [(('solar', 'solarenergy'), 'flow')]
-inorderthh = [(('Collector', 'thermal_high'), 'flow'),
-              (('storage_thh', 'thermal_high'), 'flow'),
-              (('thh_shortage', 'thermal_high'), 'flow')]
+#inordersol = [(('solar', 'solarenergy'), 'flow')]
+inorderthh = [(('solar', 'thermal_high'), 'flow'),
+              (('storage_thh', 'thermal_high'), 'flow')]
 outorderthh = [(('thermal_high', 'PB'), 'flow'),
                (('thermal_high', 'storage_thh'), 'flow'),
+               (('thermal_high', 'excessthh'), 'flow'),
                (('thermal_high', 'TT'), 'flow')]
 inorderel = [(('grid', 'electricity'), 'flow'),
              (('PB', 'electricity'), 'flow'),
@@ -138,34 +140,33 @@ outorderel = [(('electricity', 'Desal'), 'flow'),
 inorderthl = [(('PB', 'thermal_low'), 'flow'),
               (('TT', 'thermal_low'), 'flow')]
 outorderthl = [(('thermal_low', 'Desal'), 'flow')]
-inorderwat = [(('Wat_shortage', 'water'), 'flow'),
-              (('Desal', 'water'), 'flow'),
+inorderwat = [(('Desal', 'water'), 'flow'),
               (('storagewat', 'water'), 'flow')]
 outorderwat = [(('water', 'demand'), 'flow'),
                (('water', 'storagewat'), 'flow'),
                (('water', 'excesswat'), 'flow')]
 
-fig = plt.figure(figsize=(30, 25))
+fig = plt.figure(figsize=(20, 20))
 
-# plot thermal energy, high temperature
-solar_seq_resample = solar_seq.iloc[sp:ep]
-my_plot_sol = oev.plot.io_plot(
-        'solarenergy', solar_seq_resample, cdict=cdict, inorder=inordersol,
-        ax=fig.add_subplot(5, 1, 1), smooth=False)
-
-ax_sol = shape_legend('solarenergy', **my_plot_sol)
-oev.plot.set_datetime_ticks(ax_sol, solar_seq_resample.index, tick_distance=148,
-                            date_format='%d-%m-%H', offset=1)
-
-ax_sol.set_ylabel('Power in kW')
-ax_sol.set_xlabel('2017')
-ax_sol.set_title("solar bus")
+# plot solar bus
+#solar_seq_resample = solar_seq.iloc[sp:ep]
+#my_plot_sol = oev.plot.io_plot(
+#        'solarenergy', solar_seq_resample, cdict=cdict, inorder=inordersol,
+#        ax=fig.add_subplot(4, 1, 1), smooth=False)
+#
+#ax_sol = shape_legend('solarenergy', **my_plot_sol)
+#oev.plot.set_datetime_ticks(ax_sol, solar_seq_resample.index, tick_distance=148,
+#                            date_format='%d-%m-%H', offset=1)
+#
+#ax_sol.set_ylabel('Power in kW')
+#ax_sol.set_xlabel('2017')
+#ax_sol.set_title("solar bus")
 
 # plot thermal energy, high temperature
 thermalh_seq_resample = thermalh_seq.iloc[sp:ep]
 my_plot_thh = oev.plot.io_plot(
         'thermal_high', thermalh_seq_resample, cdict=cdict, inorder=inorderthh,
-        outorder=outorderthh, ax=fig.add_subplot(5, 1, 2), smooth=False)
+        outorder=outorderthh, ax=fig.add_subplot(4, 1, 1), smooth=False)
 
 ax_thh = shape_legend('thermal_high', **my_plot_thh)
 oev.plot.set_datetime_ticks(ax_thh, thermalh_seq_resample.index, tick_distance=148,
@@ -179,7 +180,7 @@ ax_thh.set_title("thermal bus high temperature")
 electricity_seq_resample = electricity_seq.iloc[sp:ep]
 my_plot_el = oev.plot.io_plot(
         'electricity', electricity_seq_resample, cdict=cdict, inorder=inorderel,
-        outorder=outorderel, ax=fig.add_subplot(5, 1, 3), smooth=False)
+        outorder=outorderel, ax=fig.add_subplot(4, 1, 2), smooth=False)
 
 ax_el = shape_legend('electricity', **my_plot_el)
 oev.plot.set_datetime_ticks(ax_el, electricity_seq_resample.index, tick_distance=48,
@@ -193,7 +194,7 @@ ax_el.set_title("Electricity bus")
 thermall_seq_resample = thermall_seq.iloc[sp:ep]
 my_plot_thl = oev.plot.io_plot(
         'thermal_low', thermall_seq_resample, cdict=cdict, inorder=inorderthl,
-        outorder=outorderthl, ax=fig.add_subplot(5, 1, 4), smooth=False)
+        outorder=outorderthl, ax=fig.add_subplot(4, 1, 3), smooth=False)
 
 ax_thl = shape_legend('thermal_low', **my_plot_thl)
 oev.plot.set_datetime_ticks(ax_thl, thermall_seq_resample.index, tick_distance=48,
@@ -207,7 +208,7 @@ ax_thl.set_title("thermal bus low temperature")
 water_seq_resample = water_seq.iloc[sp:ep]
 my_plot_wat = oev.plot.io_plot(
         'water', water_seq_resample, cdict=cdict, inorder=inorderwat,
-        outorder=outorderwat, ax=fig.add_subplot(5, 1, 5), smooth=False)
+        outorder=outorderwat, ax=fig.add_subplot(4, 1, 4), smooth=False)
 
 ax_wat = shape_legend('water', **my_plot_wat)
 oev.plot.set_datetime_ticks(ax_wat, water_seq_resample.index, tick_distance=48,
@@ -223,24 +224,29 @@ print(thermalh_scal)
 print(water_scal)
 print(electricity_scal)
 print(thermall_scal)
-print(solar_scal)
+#print(solar_scal)
 print('max water shortage')
 print(max(water_seq[(('Wat_shortage', 'water'), 'flow')]))
 print('max thermal shortage')
 print(max(thermalh_seq[(('thh_shortage', 'thermal_high'), 'flow')]))
-print('max solar')
-print(max(solar_seq[(('solar', 'solarenergy'), 'flow')]))
-print('max thermal from Collector')
-print(max(thermalh_seq[(('Collector', 'thermal_high'), 'flow')]))
+#print('max solar')
+#print(max(solar_seq[(('solar', 'solarenergy'), 'flow')]))
+print('max thermal from solar')
+print(max(thermalh_seq[(('solar', 'thermal_high'), 'flow')]))
 print('max thermal to PB')
 print(max(thermalh_seq[(('thermal_high', 'PB'), 'flow')]))
-print('max thermal from PB')
+print('max thermal low from PB')
 print(max(thermall_seq[(('PB', 'thermal_low'), 'flow')]))
 print('max thermal from TT')
 print(max(thermall_seq[(('TT', 'thermal_low'), 'flow')]))
-print(thermall_seq[(('TT', 'thermal_low'), 'flow')][5])
+print("Kapazität Speicher thh")
+print(max(Speicher_seq[(('storage_thh', 'None'), 'capacity')]))
+print("Kapazität Speicher el")
+print(max(Speicher_seq[(('storageel', 'None'), 'capacity')]))
+print("Kapazität Speicher wat")
+print(max(Speicher_seq[(('storagewat', 'None'), 'capacity')]))
 
 ### Write results in csv ###
-
-# thermalh_seq.to_csv('data_output/MED_CSP_results_thh_100.csv')
-thermall_seq.to_csv('data_output/MED_CSP_results_thl_8760.csv')
+#
+#thermalh_seq.to_csv('data_output/MED_CSP_results_thh_250418.csv')
+#Speicher_seq.to_csv('data_output/MED_CSP_results_speicher_8760_250418.csv')
