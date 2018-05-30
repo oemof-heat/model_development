@@ -42,7 +42,7 @@ date_time_index = pd.date_range('1/1/2017', periods=number_of_time_steps,
 
 # Read data file
 # Import  PV and demand data
-data = pd.read_csv('data_input/example_wat3.csv', sep=';',)
+data = pd.read_csv('data_input/Oman3.csv', sep=';',)
 
 # Initialise the energysystem
 energysystem = solph.EnergySystem(timeindex=date_time_index)
@@ -63,38 +63,45 @@ energysystem.add(bth, bco, bwh, bel, bgas)
 
 # Sinks and sources
 
-Collector = solph.Source(label='solar', outputs={bth: solph.Flow(
-                            fixed=True, actual_value=data['pv'],
-                            investment=solph.Investment(ep_costs=100.05))})
+collector = solph.Source(label='solar', outputs={bth: solph.Flow(
+                            fixed=True, actual_value=data['Solar gain from collector Wprom2'],
+                            investment=solph.Investment(ep_costs=329.05))})
 gas_grid = solph.Source(
-        label='naturalgas', outputs={bgas: solph.Flow(variable_costs=10)})
-grid = solph.Source(
-        label='naturalgas', outputs={bel: solph.Flow(variable_costs=10)})
+        label='naturalgas', outputs={bgas: solph.Flow(variable_costs=100)})
+#grid = solph.Source(
+#        label='grid', outputs={bel: solph.Flow(variable_costs=10)})
 
 demand = solph.Sink(
-        label='demand', inputs={bwat: solph.Flow(
-        fixed=True, actual_value=data['demand_wat'], nominal_value=)})
+        label='demand', inputs={bco: solph.Flow(
+        fixed=True, actual_value=data['Cooling load kW'], nominal_value=1)})
 
 aquifer = solph.Sink(
-        label='aquifer', inputs={bwat: solph.Flow()})
+        label='aquifer', inputs={bwh: solph.Flow(variable_costs=100)})
 
-cooling_tower
+cooling_tower = solph.Sink(
+        label='tower', inputs={bwh: solph.Flow(variable_costs=10)})
     
-energysystem.add(Collector, gas_grid, grid, demand)
+energysystem.add(collector, gas_grid, demand, aquifer, cooling_tower)
 
 # Transformers
 
 chil = solph.Transformer(
         label='Chiller',
         inputs={bth: solph.Flow()},
-        outputs={bco: solph.Flow(), bwh: solph.Flow()},
-                         )
+        outputs={bco: solph.Flow(investment=solph.Investment(ep_costs=200)), bwh: solph.Flow()},
+        conversion_factors={bco: 0.3, bwh: 0.7})
 
-energysystem.add(chil,)
+boiler = solph.Transformer(
+        label='boiler',
+        inputs={bgas: solph.Flow()},
+        outputs={bth: solph.Flow(investment=solph.Investment(ep_costs=0.0001))},
+        conversion_factors={bgas: 0.95})
+
+energysystem.add(chil, boiler)
 
 # storages
 
-stor_co = solph.components.Genericstorage(
+stor_co = solph.components.GenericStorage(
         label='storage_cool',
         inputs={bco: solph.Flow()},
         outputs={bco: solph.Flow()},
@@ -103,13 +110,13 @@ stor_co = solph.components.Genericstorage(
         nominal_output_capacity_ratio=1/6,
         inflow_conversion_factor=0.9,
         outflow_conversion_factor=0.9,
-        investment=solph.Investment(ep_costs=0.0001)
-        )
+        investment=solph.Investment(ep_costs=29.05))
+        
 
-stor_thermal = solph.components.Genericstorage(
+stor_thermal = solph.components.GenericStorage(
         label='storage_thermal',
-        inputs={bco: solph.Flow()},
-        outputs={bco: solph.Flow()},
+        inputs={bth: solph.Flow()},
+        outputs={bth: solph.Flow()},
         capacity_loss=0.005,
         nominal_input_capacity_ratio=1/6,
         nominal_output_capacity_ratio=1/6,
@@ -118,10 +125,10 @@ stor_thermal = solph.components.Genericstorage(
         investment=solph.Investment(ep_costs=0.0001)
         )
 
-baterie = solph.components.Genericstorage(
+baterie = solph.components.GenericStorage(
         label='storage_elec',
-        inputs={bco: solph.Flow()},
-        outputs={bco: solph.Flow()},
+        inputs={bel: solph.Flow()},
+        outputs={bel: solph.Flow()},
         capacity_loss=0.005,
         nominal_input_capacity_ratio=1/6,
         nominal_output_capacity_ratio=1/6,
@@ -130,7 +137,7 @@ baterie = solph.components.Genericstorage(
         investment=solph.Investment(ep_costs=0.0001)
         )
 
-energysystem.add(stor_co, stor_thermal, baterie)
+energysystem.add(stor_co, baterie, stor_thermal)
 
 
 ########################################
@@ -144,8 +151,8 @@ om = solph.Model(energysystem)
 # Get value for components withouta name
 
 # Create a block and add it to the system
-myconstrains = po.Block()
-om.add_component('MyBlock', myconstrains)
+#myconstrains = po.Block()
+#om.add_component('MyBlock', myconstrains)
 # Add the constrains to the created block
 
 
@@ -160,3 +167,5 @@ energysystem.results['param'] = outputlib.processing.param_results(om)
 timestr = time.strftime("%Y%m%d-%H%M")
 energysystem.dump(dpath="C:\Git_clones\oemof_heat\Dumps",
                   filename="Oman_"+timestr+".oemof")
+
+print(energysystem.results)
