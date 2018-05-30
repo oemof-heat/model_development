@@ -79,8 +79,8 @@ energysystem.add(solph.Sink(label='excessthl', inputs={bthl: solph.Flow()}))
 energysystem.add(solph.Source(label='solar', outputs={bthh: solph.Flow(
         fixed=True, actual_value=data['pv'], investment=solph.Investment(ep_costs=529.05))}))
 # Add shortage sources, should be 0, just there to avoid an underdetermined system
-energysystem.add(solph.Source(label='Wat_shortage', outputs={bwat: solph.Flow(
-        variable_costs=10000)}))
+# energysystem.add(solph.Source(label='Wat_shortage', outputs={bwat: solph.Flow(
+#        variable_costs=10000)}))
 energysystem.add(solph.Source(label='thh_shortage', outputs={bthh: solph.Flow(
         variable_costs=10000)}))
 
@@ -119,8 +119,8 @@ storage_thh = solph.components.GenericStorage(
                 inputs={bthh: solph.Flow()},
                 outputs={bthh: solph.Flow()},
                 capacity_loss=0.005,
-                nominal_input_capacity_ratio=1/6,
-                nominal_output_capacity_ratio=1/6,
+                nominal_input_capacity_ratio=1/5,
+                nominal_output_capacity_ratio=1/5,
                 inflow_conversion_factor=0.9,
                 outflow_conversion_factor=0.9,
                 investment=solph.Investment(ep_costs=0.0001)
