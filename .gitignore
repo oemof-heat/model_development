@@ -1,6 +1,8 @@
 *.csv
 */data_confidential
-Dumps
+Dumps/
 docs/_build/
 docs/_static/
 docs/_templates/
+data_output/
+*.oemof

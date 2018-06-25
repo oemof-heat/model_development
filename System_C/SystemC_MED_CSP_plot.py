@@ -31,13 +31,14 @@ except ImportError:
 
 energysystem = solph.EnergySystem()
 energysystem.restore(dpath="C:\Git_clones\oemof_heat\Dumps",
-                     filename="MED_CSP_20180430-1417.oemof")
+                     filename="MED_CSP_20180530-1514.oemof")
 
 start_of_plot = 000
 end_of_plot = 500
 sp = start_of_plot
 ep = end_of_plot
 
+print(energysystem.results['meta'])
 results_strings = outputlib.views.convert_keys_to_strings(energysystem.results['main'])
 #print(results_strings.keys())
 water_bus = outputlib.views.node(energysystem.results['main'], 'water')
@@ -69,7 +70,6 @@ thermall_scal = thermall_bus['scalars']
 #solar_scal = solar_bus['scalars']
 
 ### Plot results ###
-
 
 def shape_legend(node, reverse=False, **kwargs):  # just copied
     handels = kwargs['handles']
@@ -217,6 +217,8 @@ oev.plot.set_datetime_ticks(ax_wat, water_seq_resample.index, tick_distance=48,
 ax_wat.set_ylabel('Amount of water in m3/h')
 ax_wat.set_xlabel('2017')
 ax_wat.set_title("water bus")
+
+plt.show()
 
 ### Print values ###
 

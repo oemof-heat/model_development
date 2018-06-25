@@ -28,7 +28,7 @@ try:
 except ImportError:
     plt = None
 
-number_of_time_steps = 100
+number_of_time_steps = 50
 
 # initiate the logger
 logger.define_logging(logfile='oemof_example.log',
@@ -168,4 +168,4 @@ timestr = time.strftime("%Y%m%d-%H%M")
 energysystem.dump(dpath="C:\Git_clones\oemof_heat\Dumps",
                   filename="Oman_"+timestr+".oemof")
 
-print(energysystem.results)
+print(energysystem.results['main'])
