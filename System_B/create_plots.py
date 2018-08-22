@@ -142,22 +142,23 @@ def create_dispatch_plot():
     #         (('bel', 'excess_el'), 'flow'): '#555555',
     #         (('bel', 'heat_pump'), 'flow'): '#42c77a'}
 
+    # df = df.head(3000)
+    print(int(len(df.index)/10))
     fig = plt.figure(figsize=(13, 5))
     ax = fig.add_subplot(1, 1, 1)
-    df.head(100).plot(ax=ax, kind='bar', stacked=True, linewidth=0, width=1)
+    df.plot(ax=ax, kind='bar', stacked=True, linewidth=0, width=1)
     ax.set_xlabel('Time [h]')
     ax.set_ylabel('Energy [MWh]')
     ax.set_title('Flows into and out of bel')
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
-    # ax.set_xticks(range(0, len(dates) -1, tick_distance), minor=False)
+    ax.set_xticks(range(0, len(df.index)-1, int(len(df.index)/10)), minor=False)
     # ax.set_xticklabels()
     ax.set_ylabel('Power in MW')
     ax.set_xlabel('2012')
     ax.set_title("Electricity bus")
-    # legend = ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
+    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
 
     # save figure
-    # fig = ax.get_figure()
     fig.savefig(abs_path  + '/plots/' + 'myplot.png', bbox_inches='tight')
 
 create_dispatch_plot()
