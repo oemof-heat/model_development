@@ -1,5 +1,5 @@
-""" This is the docstring for the app_district_heating.py
-application. This application models a district heating system with
+"""
+This application models a district heating system with
 a natural gas fired gas turbine supplying to the main network and
 decentralized power-to-heat supplying to the sub network.
 
@@ -28,19 +28,22 @@ import pandas as pd
 import numpy as np
 from docopt import docopt
 
+abs_path = os.path.dirname(os.path.abspath(__file__))
+
 logger.define_logging()
 
 arguments = docopt(__doc__)
 print(arguments)
 
-#####################################################################
-logging.info('Initialize the energy system')
-#####################################################################
-
 if arguments['--debug']:
     number_timesteps = 2
 else:
     number_timesteps = 8760
+
+
+#####################################################################
+logging.info('Initialize the energy system')
+#####################################################################
 
 date_time_index = pd.date_range('1/1/2012', periods=number_timesteps,
                                 freq='H')
@@ -48,13 +51,11 @@ date_time_index = pd.date_range('1/1/2012', periods=number_timesteps,
 energysystem = solph.EnergySystem(timeindex=date_time_index)
 
 # random data
-data = pd.DataFrame(np.random.randint(0, 100,
-    size=(number_timesteps, 1)),
-    columns=['demand_heat'])*1e-2
+heat_demand = pd.DataFrame(np.random.randint(0, 100,
+    size=(number_timesteps, 1)))*1e-2
 
-# full_filename = os.path.join(os.path.dirname(__file__),
-#     'heat_demand.csv')
-# data = pd.read_csv(full_filename, sep=",")
+full_filename = abs_path + '/data/' + 'demand_heat.csv'
+demand_heat = pd.read_csv(full_filename, sep=",")['efh']
 
 
 #####################################################################
@@ -115,7 +116,7 @@ else:
 
 energysystem.add(solph.Sink(label='demand_heat',
     inputs={bth: solph.Flow(
-        actual_value=data['demand_heat'],
+        actual_value=demand_heat,
         fixed=True,
         nominal_value=69e6,
         summed_min=1)}))
@@ -136,7 +137,7 @@ energysystem.add(solph.components.GenericStorage(label='heat_storage',
 
 #####################################################################
 logging.info('Solve the optimization problem')
-#####################################################################
+
 
 om = solph.Model(energysystem)
 om.solve(solver=arguments['--solver'], solve_kwargs={'tee': True})
@@ -153,5 +154,7 @@ if arguments['--debug']:
 logging.info('Check the results')
 #####################################################################
 
-results = processing.results(om)
+energysystem.results['main'] = processing.results(om)
+energysystem.results['meta'] = processing.meta_results(om)
+energysystem.dump(dpath=abs_path, filename='es.dump')
 
