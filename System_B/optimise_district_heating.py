@@ -51,12 +51,17 @@ date_time_index = pd.date_range('1/1/2012', periods=number_timesteps,
 energysystem = solph.EnergySystem(timeindex=date_time_index)
 
 # random data
-heat_demand = pd.DataFrame(np.random.randint(0, 100,
-    size=(number_timesteps, 1)))*1e-2
+# demand_heat = pd.DataFrame(np.random.randint(0, 100,
+#     size=(number_timesteps, 1)))*1e-2
 
-full_filename = abs_path + '/data/' + 'demand_heat.csv'
-demand_heat = pd.read_csv(full_filename, sep=",")['efh']
+demand_heat = pd.read_csv(abs_path + '/data/' + 'demand_heat.csv', sep=",")['efh']
+price_el = pd.read_csv(abs_path + '/data/' + 'day_ahead_price_el_2014.csv')
 
+# units are kW, Euro
+# model parameters
+price_gas = 1  # TODO units
+# price_el = 1
+print(price_el.keys())
 
 #####################################################################
 logging.info('Create oemof objects')
@@ -80,7 +85,7 @@ energysystem.add(solph.Source(label='shortage_heat',
 
 if arguments['--invest-chp']:
     energysystem.add(solph.Transformer(label='gasturbine',
-        inputs={bgas: solph.Flow()},
+        inputs={bgas: solph.Flow(variable_costs=price_gas)},
         outputs={bth: solph.Flow(
             investment=solph.Investment(
                 ep_costs=economics.annuity(
@@ -90,7 +95,7 @@ if arguments['--invest-chp']:
 
 else:
     energysystem.add(solph.Transformer(label='gasturbine',
-        inputs={bgas: solph.Flow()},
+        inputs={bgas: solph.Flow(variable_costs=price_gas)},
         outputs={bth: solph.Flow(
             nominal_value=23000,
             variable_costs=0)},
@@ -98,7 +103,7 @@ else:
 
 if arguments['--invest-pth']:
     energysystem.add(solph.Transformer(label='power-to-heat',
-        inputs={bel: solph.Flow()},
+        inputs={bel: solph.Flow(variable_costs=price_el)},
         outputs={bth: solph.Flow(
             investment=solph.Investment(
                 ep_costs=economics.annuity(
@@ -108,7 +113,7 @@ if arguments['--invest-pth']:
 
 else:
     energysystem.add(solph.Transformer(label='power-to-heat',
-        inputs={bel: solph.Flow()},
+        inputs={bel: solph.Flow(variable_costs=price_el)},
         outputs={bth: solph.Flow(
             nominal_value=5000,
             variable_costs=0)},
@@ -118,7 +123,7 @@ energysystem.add(solph.Sink(label='demand_heat',
     inputs={bth: solph.Flow(
         actual_value=demand_heat,
         fixed=True,
-        nominal_value=1,
+        nominal_value=1000,
         summed_min=1)}))
 
 energysystem.add(solph.components.GenericStorage(label='heat_storage',
