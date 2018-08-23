@@ -22,10 +22,12 @@ import os
 from workalendar.europe import Germany
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
-filename = abs_path + '/data/' + 'temperature_data.csv'
+filename = abs_path + '/data/' + 'ninja_weather_51.8341_12.2374_uncorrected.csv' # 'temperature_data.csv'
 
-temperature = pd.read_csv(filename)["temperature"]
-
+temperature = pd.read_csv(filename, skiprows=2)  # ["temperature"]
+temperature.columns = ['utc_time','time','temp']
+temperature = temperature[['time','temp']]
+temperature.set_index('time')
 
 cal = Germany()
 holidays = dict(cal.holidays(2010))
@@ -38,21 +40,21 @@ demand = pd.DataFrame(
 
 # Single family house (efh: Einfamilienhaus)
 demand['efh'] = bdew.HeatBuilding(
-    demand.index, holidays=holidays, temperature=temperature,
+    demand.index, holidays=holidays, temperature=temperature['temp'],
     shlp_type='EFH',
     building_class=1, wind_class=1, annual_heat_demand=25000,
     name='EFH').get_bdew_profile()
 
 # Multi family house (mfh: Mehrfamilienhaus)
 demand['mfh'] = bdew.HeatBuilding(
-    demand.index, holidays=holidays, temperature=temperature,
+    demand.index, holidays=holidays, temperature=temperature['temp'],
     shlp_type='MFH',
     building_class=2, wind_class=0, annual_heat_demand=80000,
     name='MFH').get_bdew_profile()
 
 # Industry, trade, service (ghd: Gewerbe, Handel, Dienstleistung)
 demand['ghd'] = bdew.HeatBuilding(
-    demand.index, holidays=holidays, temperature=temperature,
+    demand.index, holidays=holidays, temperature=temperature['temp'],
     shlp_type='ghd', wind_class=0, annual_heat_demand=140000,
     name='ghd').get_bdew_profile()
 
