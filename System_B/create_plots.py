@@ -112,59 +112,36 @@ draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path+'/plots
 rcParams['figure.figsize'] = [10.0, 10.0]
 
 def create_dispatch_plot():
-    print(energysystem.results['main'].keys())
     node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat')
     # print(node_results_bel)
     df = node_results_bel['sequences']
     heat_in = [key for key in df.keys() if key[0][1] == 'heat']
 
-    # inorder = [(('pp_chp', 'bel'), 'flow'),
-    #              (('pp_coal', 'bel'), 'flow'),
-    #              (('pp_gas', 'bel'), 'flow'),
-    #              (('pp_lig', 'bel'), 'flow'),
-    #              (('pp_oil', 'bel'), 'flow'),
-    #              (('pv', 'bel'), 'flow'),
-    #              (('wind', 'bel'), 'flow')]
-
-    # outorder = [(('bel', 'demand_el'), 'flow'),
-    #              (('bel', 'excess_el'), 'flow'),
-    #              (('bel', 'heat_pump'), 'flow')]
-
-    # cdict = {(('pp_chp', 'bel'), 'flow'): '#eeac7e',
-    #         (('pp_coal', 'bel'), 'flow'): '#0f2e2e',
-    #         (('pp_gas', 'bel'), 'flow'): '#c76c56',
-    #         (('pp_lig', 'bel'), 'flow'): '#56201d',
-    #         (('pp_oil', 'bel'), 'flow'): '#494a19',
-    #         (('pv', 'bel'), 'flow'): '#ffde32',
-    #         (('wind', 'bel'), 'flow'): '#4ca7c3',
-    #         (('bel', 'demand_el'), 'flow'): '#ce4aff',
-    #         (('bel', 'excess_el'), 'flow'): '#555555',
-    #         (('bel', 'heat_pump'), 'flow'): '#42c77a'}
-
-    # df = df.head(3000)
     df_resam = df.resample('1D').mean()
     fig = plt.figure(figsize=(13, 5))
     ax = fig.add_subplot(1, 1, 1)
-    df_resam[heat_in].plot(ax=ax, kind='bar', stacked=True, linewidth=0, width=1, use_index=False)
+    df_resam[heat_in].plot(ax=ax, kind='bar', stacked=True, color=['g','r','b','y'], linewidth=0, width=1, use_index=False)
+    (-1 * df_resam[(('heat', 'heat_storage'), 'flow')]).plot(ax=ax, kind='bar', color='k', stacked=True, linewidth=0, width=1, use_index=False)
+    print(-1 * df_resam[(('heat', 'heat_storage'), 'flow')])
     df_resam[(('heat', 'demand_heat'), 'flow')].plot(ax=ax, color='r', linewidth=3, use_index=False)
     ax.set_xlabel('Time [h]')
     ax.set_ylabel('Energy [MWh]')
     ax.set_title('Flows into and out of bel')
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
-    ax.set_xticks(range(0, len(df_resam.index)-1, int(len(df_resam.index)/10)), minor=False)
-    ax.set_xticklabels([1,2,3], minor=False)
+    # ax.set_xticks(range(0, len(df_resam.index)-1, int(len(df_resam.index)/10)), minor=False)
+    # ax.set_xticklabels([1,2,3], minor=False)
     print(df_resam.index)
     # ax.set_xticklabels(
     #     [item.strftime(date_format)
     #      for item in dates.tolist()[0::tick_distance]],
     #     rotation=0, minor=False)
-    ax.set_ylabel('Power in MW')
-    ax.set_xlabel('2012')
-    ax.set_title("Electricity bus")
+    ax.set_ylabel('Power in kW')
+    ax.set_xlabel('2014')
+    ax.set_title("Heat bus")
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
 
     # save figure
-    fig.savefig(abs_path  + '/plots/' + 'myplot.svg', bbox_inches='tight')
+    fig.savefig(abs_path  + '/plots/' + 'dispatch_stack_plot.svg', bbox_inches='tight', figsize=(12, 6), dpi=100)
 
 create_dispatch_plot()
     
