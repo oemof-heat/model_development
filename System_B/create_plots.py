@@ -17,8 +17,6 @@ from matplotlib import rcParams as rcParams
 import oemof.graph as graph
 import oemof.solph as solph
 import oemof.outputlib as outputlib
-import oemof_visio as oev
-
 import networkx as nx
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -34,9 +32,9 @@ def plot_heat_demand():
     ax = demand.plot()
     ax.set_xlabel("Date")
     ax.set_ylabel("Heat demand in MW")
-    plt.savefig('plots/heat_demand.png', dpi=100, bbox_inches='tight')
+    plt.savefig('plots/heat_demand.svg', dpi=100, bbox_inches='tight')
 
-# plot_heat_demand()
+plot_heat_demand()
 
 def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
                edge_color='#CFCFCF', plot=True, store=False,
@@ -105,19 +103,20 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
         plt.show()
 
 
-# draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path+'/plots/'+'es_graph.png', layout='neato', node_size=3000,
-#            node_color={
-#                'b_0': '#cd3333',
-#                'b_1': '#7EC0EE',
-#                'b_2': '#eeac7e'})
+draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path+'/plots/'+'es_graph.svg', layout='neato', node_size=3000,
+           node_color={
+               'b_0': '#cd3333',
+               'b_1': '#7EC0EE',
+               'b_2': '#eeac7e'})
 
-# rcParams['figure.figsize'] = [10.0, 10.0]
+rcParams['figure.figsize'] = [10.0, 10.0]
 
 def create_dispatch_plot():
     print(energysystem.results['main'].keys())
     node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat')
     # print(node_results_bel)
     df = node_results_bel['sequences']
+    heat_in = [key for key in df.keys() if key[0][1] == 'heat']
 
     # inorder = [(('pp_chp', 'bel'), 'flow'),
     #              (('pp_coal', 'bel'), 'flow'),
@@ -143,23 +142,29 @@ def create_dispatch_plot():
     #         (('bel', 'heat_pump'), 'flow'): '#42c77a'}
 
     # df = df.head(3000)
-    print(int(len(df.index)/10))
+    df_resam = df.resample('1D').mean()
     fig = plt.figure(figsize=(13, 5))
     ax = fig.add_subplot(1, 1, 1)
-    df.plot(ax=ax, kind='bar', stacked=True, linewidth=0, width=1)
+    df_resam[heat_in].plot(ax=ax, kind='bar', stacked=True, linewidth=0, width=1, use_index=False)
+    df_resam[(('heat', 'demand_heat'), 'flow')].plot(ax=ax, color='r', linewidth=3, use_index=False)
     ax.set_xlabel('Time [h]')
     ax.set_ylabel('Energy [MWh]')
     ax.set_title('Flows into and out of bel')
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
-    ax.set_xticks(range(0, len(df.index)-1, int(len(df.index)/10)), minor=False)
-    # ax.set_xticklabels()
+    ax.set_xticks(range(0, len(df_resam.index)-1, int(len(df_resam.index)/10)), minor=False)
+    ax.set_xticklabels([1,2,3], minor=False)
+    print(df_resam.index)
+    # ax.set_xticklabels(
+    #     [item.strftime(date_format)
+    #      for item in dates.tolist()[0::tick_distance]],
+    #     rotation=0, minor=False)
     ax.set_ylabel('Power in MW')
     ax.set_xlabel('2012')
     ax.set_title("Electricity bus")
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
 
     # save figure
-    fig.savefig(abs_path  + '/plots/' + 'myplot.png', bbox_inches='tight')
+    fig.savefig(abs_path  + '/plots/' + 'myplot.svg', bbox_inches='tight')
 
 create_dispatch_plot()
     
