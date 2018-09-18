@@ -9,3 +9,4 @@ data_output/
 *.oemof
 *.png
 __pycache__
+.idea
