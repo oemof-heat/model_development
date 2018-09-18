@@ -1,0 +1,30 @@
+debug: False
+solver: 'cbc'
+
+investment:
+  invest_chp: False
+  invest_pth: False
+
+prices:
+    gas: 35 # Eur/MWh
+    el: 50 # Eur/MWh
+    heat_shortage: 5000 # unrealistically high, just to make the problem feasible
+    
+gasturbine:
+  capex: 1000
+  inv_period: 20
+  nominal_value: 23000
+
+power_to_heat:
+  capex: 1000
+  inv_period: 20
+  nominal_value: 5000
+
+storage_heat:
+  nominal_capacity: 600000 # kWh
+  capacity_loss: 0.
+
+demand_heat:
+  nominal_value: 1000.
+
+wacc: 0.05
