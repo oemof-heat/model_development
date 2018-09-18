@@ -21,9 +21,12 @@ logging.info('Preprocess data')
 # Load config file for scenario
 logging.info('Load config file')
 
+# run tests
+# logging.info('Perform tests')
+
 # Run the optimisation model
 logging.info('Run optimisation model')
-run_model_dessau()
+run_model_dessau(config_path="/scenarios/config.yml")
 
 # Postprocessing
 logging.info('Postprocess data')
