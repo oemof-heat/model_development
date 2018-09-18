@@ -6,3 +6,4 @@ docs/_static/
 docs/_templates/
 data_output/
 *.oemof
+*.png
