@@ -73,7 +73,6 @@ import os
 import pandas as pd
 import pprint as pp
 import timeit
-import results_analysis_flexCHP
 start_time = timeit.default_timer()
 
 try:
@@ -83,7 +82,7 @@ except ImportError:
 
 solver = 'cbc'
 debug = False  # Set number_of_timesteps to 3 to get a readable lp-file.
-number_of_time_steps = 3 # 24*7*8  # 8 weeks, every hour
+number_of_time_steps = 8760 # 24*7*8  # 8 weeks, every hour
 solver_verbose = False  # show/hide solver output
 
 # initiate the logger (see the API docs for more information)
@@ -198,4 +197,3 @@ elif run_time_in_sec >= 60:
 else:
     print("%12.2f" %run_time_in_sec, "seconds")
 
-results_analysis_flexCHP.show_results()
