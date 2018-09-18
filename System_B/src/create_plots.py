@@ -32,7 +32,7 @@ def plot_heat_demand():
     ax = demand.plot()
     ax.set_xlabel("Date")
     ax.set_ylabel("Heat demand in MW")
-    plt.savefig('plots/heat_demand.svg', dpi=100, bbox_inches='tight')
+    plt.savefig('plots/heat_demand.pdf', dpi=100, bbox_inches='tight')
 
 
 
@@ -103,7 +103,6 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
         plt.show()
 
 
-
 def create_dispatch_plot():
     node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat')
     # print(node_results_bel)
@@ -134,12 +133,12 @@ def create_dispatch_plot():
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
 
     # save figure
-    fig.savefig(abs_path  + '/plots/' + 'dispatch_stack_plot.svg', bbox_inches='tight', figsize=(12, 6), dpi=100)
+    fig.savefig(abs_path  + '/plots/' + 'dispatch_stack_plot.pdf', bbox_inches='tight', figsize=(12, 6), dpi=100)
 
 
 def create_plots():
     plot_heat_demand()
-    draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path + '/plots/' + 'es_graph.svg',
+    draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path + '/plots/' + 'es_graph.pdf',
                layout='neato', node_size=3000,
                node_color={
                    'b_0': '#cd3333',
