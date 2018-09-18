@@ -164,4 +164,4 @@ def run_model_dessau(config_path):
     energysystem.dump(dpath=abs_path + '/results', filename='es.dump')
 
 if __name__ == '__main__':
-    model_dessau(config_path="/scenarios/config.yml")
+    model_dessau(config_path="/experiments/experiment_1.yml")
