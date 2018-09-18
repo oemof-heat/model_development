@@ -19,10 +19,10 @@ import oemof.solph as solph
 import oemof.outputlib as outputlib
 import networkx as nx
 
-abs_path = os.path.dirname(os.path.abspath(__file__))
+abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
 energysystem = solph.EnergySystem()
-energysystem.restore(dpath=abs_path, filename='es.dump')
+energysystem.restore(dpath=abs_path + '/results', filename='es.dump')
 energysystem_graph = graph.create_nx_graph(energysystem)
 
 def plot_heat_demand():
@@ -34,7 +34,7 @@ def plot_heat_demand():
     ax.set_ylabel("Heat demand in MW")
     plt.savefig('plots/heat_demand.svg', dpi=100, bbox_inches='tight')
 
-plot_heat_demand()
+
 
 def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
                edge_color='#CFCFCF', plot=True, store=False,
@@ -103,13 +103,6 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
         plt.show()
 
 
-draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path+'/plots/'+'es_graph.svg', layout='neato', node_size=3000,
-           node_color={
-               'b_0': '#cd3333',
-               'b_1': '#7EC0EE',
-               'b_2': '#eeac7e'})
-
-rcParams['figure.figsize'] = [10.0, 10.0]
 
 def create_dispatch_plot():
     node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat')
@@ -143,5 +136,20 @@ def create_dispatch_plot():
     # save figure
     fig.savefig(abs_path  + '/plots/' + 'dispatch_stack_plot.svg', bbox_inches='tight', figsize=(12, 6), dpi=100)
 
-create_dispatch_plot()
+
+def create_plots():
+    plot_heat_demand()
+    draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path + '/plots/' + 'es_graph.svg',
+               layout='neato', node_size=3000,
+               node_color={
+                   'b_0': '#cd3333',
+                   'b_1': '#7EC0EE',
+                   'b_2': '#eeac7e'})
+
+    rcParams['figure.figsize'] = [10.0, 10.0]
+    create_dispatch_plot()
+
+if __name__ == '__main__':
+    create_plots()
+
     
