@@ -8,6 +8,7 @@ import logging
 import os
 import subprocess
 
+import prepare_time_series
 from model_dessau import run_model_dessau
 import create_plots
 
@@ -17,6 +18,7 @@ logger.define_logging(logpath=abs_path + '/results')
 
 # Preproccessing
 logging.info('Preprocess data')
+prepare_time_series
 
 # Load config file for scenario
 logging.info('Load config file')
