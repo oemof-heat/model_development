@@ -22,15 +22,15 @@ import matplotlib.pyplot as plt
 # ********** PART 2 - Processing the results *********************************
 # ****************************************************************************
 
-make_plots=True
-use_ggplot=True
-show_plots=True
-save_plots=True
-print_slices=True
-print_keys=True
-print_meta=True
-print_sums=True
-analyse=True
+make_plots = True
+use_ggplot = True
+show_plots = True
+save_plots = True
+print_slices = False
+print_keys = True
+print_meta = True
+print_sums = True
+analyse = True
 
 
 # logging.info('Restore the energy system and the results.')
@@ -47,8 +47,8 @@ if print_slices==True:
     ## print a time slice of the state of charge
     print('')
     print('********* State of Charge (slice) *********')
-    print(results[(storage_th_comp, None)]['sequences']['2030-01-01 01:00:00':
-                                                   '2030-01-01 02:00:00'])
+    print(results[(storage_th_comp, None)]['sequences']['2030-07-01 01:00:00':
+                                                   '2030-07-31 02:00:00'])
     print('')
 
 # get all variables of a specific component/bus
@@ -64,10 +64,13 @@ CHP_electricity = string_results[('CHP', 'electricity')]['sequences']
 demand_th = string_results[('heat', 'demand_th')]['sequences']
 demand_el = string_results[('electricity', 'demand_el')]['sequences']
 boiler = string_results[('boiler', 'heat')]['sequences']
-CHP_heat_share = CHP_heat/demand_th.max()*100  # in [%]
-boiler_share = boiler/demand_th.max()*100  # in [%]
+CHP_heat_share = CHP_heat/demand_th*100  # in [%]
+boiler_share = boiler/demand_th*100  # in [%]
+CHP_el_share = CHP_electricity/demand_el*100  # in [%]
+P2H_el = string_results['electricity', 'P2H']['sequences']
+P2H_el_share = P2H_el/demand_el*100  # in [%]
 storage_discharge = string_results['storage_th', 'heat']['sequences']
-storage_charge = string_results['heat','storage_th']['sequences']
+storage_charge = string_results['heat', 'storage_th']['sequences']
 storage_soc = string_results['storage_th', 'None']['sequences']  # State of charge in [MWh_th]
 storage_soc_rel = string_results['storage_th', 'None']['sequences']/string_results['storage_th', 'None']['sequences'].max()*100  # State of charge in [%]
 shortage_electricity = string_results['shortage_bel', 'electricity']['sequences']
@@ -87,83 +90,94 @@ if make_plots==True:
     end_axes = pd.to_datetime('31.12.2030 23:00:00', format='%d.%m.%Y %H:%M:%S')
 
     ### PLOT 1 ###
-    fig1, (ax1, ax2, ax3) = plt.subplots(3, 1)
+    fig1, (ax1, ax2, ax8, ax7, ax3) = plt.subplots(5, 1)
+    fig1.set_size_inches(10, 7)
+    plt.subplots_adjust(right=0.75)
     fig1.subplots_adjust(hspace=0.3)  # make a little extra space between the subplots
     fig1.autofmt_xdate()  # tilted labels on x-axes
+    fig1.suptitle("Heating", size=14)
 
-    ax1.set_title("Heating")
+    ax1.set_title("Demand and Supply", size=10)
     ax1.plot(demand_th[start:end], label='Heating Demand')
     ax1.plot(boiler[start:end], label='Heat from Boiler')
     ax1.plot(CHP_heat[start:end], label='Heat form CHP')
     ax1.set_xlim(start_axes, end_axes)
     ax1.set_ylim(0,1000)
     # ax1.set_xlabel('Zeit')
-    ax1.set_ylabel('Leistung in $\mathrm{MW}_{th}$')
+    ax1.set_ylabel('Leistung \nin $\mathrm{MW}_{th}$')
     ax1.grid(True)
-    ax1.legend()
+    ax1.legend(bbox_to_anchor=(1.04,1), loc="upper left", borderaxespad=0)
 
-    ax2.set_title('Wärmespeicher', size=12)
+    ax2.set_title('Thermal energy storage', size=10)
     ln1 = ax2.plot(storage_discharge[start:end], label='Discharge')
-    ln2 = ax2.plot(storage_charge[start:end]*-1, label='Charge')
-    ax22 = ax2.twinx()
-    ln3 = ax22.plot(storage_soc_rel[start:end], c="#9999CC", label='State of Charge')
-    ax2.set_ylim(-2000, 2000)
-    ax22.set_ylim(-100, 100)
+    ln2 = ax2.plot(storage_charge[start:end], label='Charge')
+    # ax22 = ax2.twinx()
+    # ln3 = ax22.plot(storage_soc_rel[start:end], c="#9999CC", label='State of Charge')
+    # ax2.set_ylim(-4000, 4000)
+    # ax22.set_ylim(-100, 100)
     ax2.set_xlim(start_axes, end_axes)
-    ax2.set_ylabel('Leistung in $\mathrm{MW}_{th}$')
-    ax22.set_ylabel('Füllstand in %')
-    lns = ln1+ln2+ln3
-    labs = [l.get_label() for l in lns]
-    ax22.legend(lns, labs)
+    ax2.set_ylabel('Leistung \nin $\mathrm{MW}_{th}$')
+    # ax22.set_ylabel('Füllstand in %')
+    # lns = ln1+ln2+ln3
+    # labs = [l.get_label() for l in lns]
+    # ax22.legend(lns, labs)
     # ax22.legend(loc=4)
+    ax2.legend(bbox_to_anchor=(1.04,1), loc="upper left", borderaxespad=0)
 
-    ax3.set_title('Anteil an der Wärmeversorgung (Deckungsgrad)', size=12)
+    ax8.plot(storage_soc_rel[start:end], label='State of Charge')
+    ax8.set_ylabel('Füllstand \nin %')
+    ax8.legend(bbox_to_anchor=(1.04,1), loc="upper left", borderaxespad=0)
+
+    ax7.set_title('Shortage and Excess Heat', size=10)
+    ax7.plot(shortage_heat[start:end], label='shortage')
+    ax7.plot(excess_heat[start:end], label='excess')
+    ax7.set_xlim(start_axes, end_axes)
+    # ax3.set_ylim(0, 100)
+    ax7.set_ylabel('Leistung \nin $\mathrm{MW}_{th}$')
+    ax7.legend(bbox_to_anchor=(1.04,1), loc="upper left", borderaxespad=0)
+
+    ax3.set_title('Anteil an der Wärmeversorgung (Deckungsgrad)', size=10)
     ax3.plot(boiler_share[start:end], label='Heat from boiler')
     ax3.plot(CHP_heat_share[start:end], label='Heat from CHP')
     ax3.set_xlim(start_axes, end_axes)
-    ax3.set_ylim(0, 100)
+    # ax3.set_ylim(0, 150)
     ax3.set_xlabel('Zeit in Stunden')
-    ax3.set_ylabel('Anteil in %')
-    ax3.legend()
+    ax3.set_ylabel('Anteil \nin %')
+    ax3.legend(bbox_to_anchor=(1.04,1), loc="upper left", borderaxespad=0)
 
     ### PLOT 2 ###
     fig2, (ax4, ax5, ax6) = plt.subplots(3, 1)
+    fig2.set_size_inches(10, 7)
+    plt.subplots_adjust(right=0.75)
     fig2.subplots_adjust(hspace=0.3)  # make a little extra space between the subplots
     fig2.autofmt_xdate()  # tilted labels on x-axes
+    fig2.suptitle("Electricity", size=14)
 
-    ax4.set_title("Electricity")
+    ax4.set_title("Demand and Shortage", size=10)
     ax4.plot(demand_el[start:end], label='Electricity Demand')
     ax4.plot(shortage_electricity[start:end], label='Shortage')
     ax4.plot(CHP_electricity[start:end], label='Electricity form CHP')
     ax4.set_xlim(start_axes, end_axes)
     ax4.set_ylim(0, 1200)
-    # ax4.set_ylabel('Leistung in $\mathrm{MW}_{el}$')
+    ax4.set_ylabel('Leistung \nin $\mathrm{MW}_{el}$')
     ax4.grid(True)
-    ax4.legend()
+    ax4.legend(bbox_to_anchor=(1.04,1), loc="upper left", borderaxespad=0)
 
-    ax5.set_title('Residuallast', size=12)
-    ln4 = ax5.plot(residual_el[start:end], label='Residuallast')
-    # ln5 = ax5.plot(storage_charge[start:end]*-1, label='Charge')
-    # ax5 = ax5.twinx()
-    # ln6 = ax55.plot(storage_soc_rel[start:end], c="#9999CC", label='State of Charge')
-    # ax5.set_ylim(0, 500)
-    # ax55.set_ylim(-100, 100)
+    ax5.set_title('Residual load and P2H', size=10)
+    ax5.plot(residual_el[start:end], label='Residual load')
+    ax5.plot(P2H_el[start:end], label='Power consumption P2H')
     ax5.set_xlim(start_axes, end_axes)
-    ax5.set_ylabel('Leistung in $\mathrm{MW}_{th}$')
-    # ax55.set_ylabel('Füllstand in %')
-    # lns2 = ln4+ln5+ln6
-    # labs2 = [l.get_label() for l in lns2]
-    # ax55.legend(lns2, labs2)
-    ax5.legend()
+    ax5.set_ylabel('Leistung in \n$\mathrm{MW}_{th}$')
+    ax5.legend(bbox_to_anchor=(1.04,1), loc="upper left", borderaxespad=0)
 
-    # ax6.set_title('Anteil an der Wärmeversorgung (Deckungsgrad)', size=12)
-    # ax6.plot(boiler_share[start:end], label='Heat from boiler')
-    # ax6.plot(CHP_heat_share[start:end], label='Heat from CHP')
+    ax6.set_title('Anteil des CHP an Stromversorgung (Deckungsgrad)', size=10)
+    # ax6.plot(P2H_el_share[start:end], label='P2H')
+    ax6.plot(CHP_el_share[start:end], label='CHP')
     ax6.set_xlim(start_axes, end_axes)
-    ax6.set_ylim(0, 100)
+    ax6.set_ylim(0, 200)
     ax6.set_xlabel('Zeit in Stunden')
-    ax6.set_ylabel('Anteil in %')
-    ax6.legend()
+    ax6.set_ylabel('Anteil \nin %')
+    ax6.legend(bbox_to_anchor=(1.04,1), loc="upper left", borderaxespad=0)
 
     plt.show()
 
@@ -201,3 +215,4 @@ if analyse==True:
     print("Total shortage heat:    {:.2f}".format(shortage_heat.flow.sum()), "MWh_el")
     print("Total excess electr.:   {:.2f}".format(excess_electricity.flow.sum()), "MWh_el")
     print("Total excess heat.:     {:.2f}".format(excess_heat.flow.sum()), "MWh_el")
+
