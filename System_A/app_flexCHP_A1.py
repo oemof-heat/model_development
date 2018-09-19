@@ -116,8 +116,8 @@ bth = solph.Bus(label='heat')
 
 energysystem.add(bgas, bel, bth)
 
-energysystem.add(solph.Sink(label='excess_bel', inputs={bel: solph.Flow(variable_costs=99)}))
-energysystem.add(solph.Sink(label='excess_bth', inputs={bth: solph.Flow(variable_costs=99)}))
+energysystem.add(solph.Sink(label='excess_bel', inputs={bel: solph.Flow(variable_costs=0)}))
+energysystem.add(solph.Sink(label='excess_bth', inputs={bth: solph.Flow(variable_costs=0)}))
 energysystem.add(solph.Source(label='shortage_bel', outputs={bel: solph.Flow(variable_costs=100)}))
 energysystem.add(solph.Source(label='shortage_bth', outputs={bth: solph.Flow(variable_costs=100)}))
 energysystem.add(solph.Source(label='rgas', outputs={bgas: solph.Flow(
@@ -151,9 +151,9 @@ energysystem.add(solph.Transformer(
 storage_th = solph.components.GenericStorage(
     nominal_capacity=500,  # [MWh_th]
     label='storage_th',
-    inputs={bth: solph.Flow()},
-    outputs={bth: solph.Flow()},
-    capacity_loss=0.00, initial_capacity=0,
+    inputs={bth: solph.Flow(nominal_value=500, variable_costs=0)},  # [MW_th]
+    outputs={bth: solph.Flow(nominal_value=500)},  # [MW_th]
+    capacity_loss=0.001, initial_capacity=0,
     inflow_conversion_factor=1, outflow_conversion_factor=0.99)
 
 energysystem.add(storage_th)
@@ -178,11 +178,9 @@ model.solve(solver=solver, solve_kwargs={'tee': solver_verbose})
 
 logging.info('Store the energy system with the results.')
 
-# add results to the energy system to make it possible to store them.
 energysystem.results['main'] = outputlib.processing.results(model)
 energysystem.results['meta'] = outputlib.processing.meta_results(model)
 
-# store energy system with results
 energysystem.dump(dpath="dumps", filename="flexCHB_A1_dumps.oemof")
 
 stop_time = timeit.default_timer()
