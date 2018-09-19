@@ -32,7 +32,6 @@ abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 logger.define_logging()
 
 
-
 def run_model_dessau(config_path):
 
     with open(abs_path + config_path, 'r') as ymlfile:
@@ -56,7 +55,7 @@ def run_model_dessau(config_path):
 
 
     prices = cfg['prices']
-    gasturbine = cfg['gasturbine']
+    ccgt = cfg['ccgt']
     power_to_heat = cfg['power_to_heat']
     storage_heat = cfg['storage_heat']
     demand_heat = cfg['demand_heat']
@@ -69,68 +68,87 @@ def run_model_dessau(config_path):
 
     bgas = solph.Bus(label="natural_gas", balanced=False)
     bel = solph.Bus(label="electricity", balanced=False)
-    bth = solph.Bus(label="heat")
+    bth_prim = solph.Bus(label="heat_prim")
+    bth_sec = solph.Bus(label="heat_sec")
+    bth_end = solph.Bus(label="heat_end")
 
-    energysystem.add(bgas, bth, bel)
+    energysystem.add(bgas, bth_prim, bth_sec, bth_end, bel)
 
     # energysystem.add(solph.Sink(label='excess_heat',
         # inputs={bth: solph.Flow()}))
 
     energysystem.add(solph.Source(label='shortage_heat',
-        outputs={bth: solph.Flow(variable_costs=prices['heat_shortage'])}))
+        outputs={bth_prim: solph.Flow(variable_costs=prices['heat_shortage'])}))
 
     # energysystem.add(solph.Source(label='rgas',
     #     outputs={bgas: solph.Flow(
     #         variable_costs=0)}))
 
     if cfg['investment']['invest_chp']:
-        energysystem.add(solph.Transformer(label='gasturbine',
+        energysystem.add(solph.Transformer(
+            label='ccgt',
             inputs={bgas: solph.Flow(variable_costs=price_gas)},
-            outputs={bth: solph.Flow(
+            outputs={bth_prim: solph.Flow(
                 investment=solph.Investment(
                     ep_costs=economics.annuity(
-                        capex=gasturbine['capex'], n=gasturbine['inv_period'], wacc=wacc)),
+                        capex=ccgt['capex'], n=ccgt['inv_period'], wacc=wacc)),
                 variable_costs=0)},
-            conversion_factors={bth: 0.5}))
+            conversion_factors={bth_prim: 0.5}))
 
     else:
-        energysystem.add(solph.Transformer(label='gasturbine',
+        energysystem.add(solph.Transformer(
+            label='ccgt',
             inputs={bgas: solph.Flow(variable_costs=prices['gas'])},
-            outputs={bth: solph.Flow(
-                nominal_value=gasturbine['nominal_value'],
+            outputs={bth_prim: solph.Flow(
+                nominal_value=ccgt['nominal_value'],
                 variable_costs=0)},
-            conversion_factors={bth: 0.5}))
+            conversion_factors={bth_prim: 0.5}))
 
     if cfg['investment']['invest_pth']:
-        energysystem.add(solph.Transformer(label='power-to-heat',
+        energysystem.add(solph.Transformer(
+            label='power-to-heat',
             inputs={bel: solph.Flow(variable_costs=prices['el'])},
-            outputs={bth: solph.Flow(
+            outputs={bth_prim: solph.Flow(
                 investment=solph.Investment(
                     ep_costs=economics.annuity(
                         capex=power_to_heat['capex'], n=power_to_heat['inv_period'], wacc=wacc)),
                 variable_costs=0)},
-            conversion_factors={bth: 1}))
+            conversion_factors={bth_prim: 1}))
 
     else:
         energysystem.add(solph.Transformer(label='power_to_heat',
             inputs={bel: solph.Flow(variable_costs=prices['el'])},
-            outputs={bth: solph.Flow(
+            outputs={bth_prim: solph.Flow(
                 nominal_value=power_to_heat['nominal_value'],
                 variable_costs=0)},
-            conversion_factors={bth: 1}))
+            conversion_factors={bth_prim: 1}))
 
-    energysystem.add(solph.Sink(label='demand_heat',
-        inputs={bth: solph.Flow(
+    energysystem.add(solph.Transformer(
+        label='dhn_prim',
+        inputs={bth_prim: solph.Flow()},
+        outputs={bth_sec: solph.Flow()},
+        conversion_factors={bth_sec: 0.85}))
+
+    energysystem.add(solph.Transformer(
+        label='dhn_sec',
+        inputs={bth_sec: solph.Flow()},
+        outputs={bth_end: solph.Flow()},
+        conversion_factors={bth_end: 0.85}))
+
+    energysystem.add(solph.Sink(
+        label='demand_heat',
+        inputs={bth_end: solph.Flow(
             actual_value=demand_heat['timeseries'],
             fixed=True,
-            nominal_value=demand_heat['nominal_value'],
+            nominal_value=1.,
             summed_min=1)}))
 
-    energysystem.add(solph.components.GenericStorage(label='storage_heat',
+    energysystem.add(solph.components.GenericStorage(
+        label='storage_heat',
         nominal_capacity=storage_heat['nominal_capacity'],
-        inputs={bth: solph.Flow(
+        inputs={bth_prim: solph.Flow(
             variable_costs=0)},
-        outputs={bth: solph.Flow()},
+        outputs={bth_prim: solph.Flow()},
         capacity_loss=storage_heat['capacity_loss'],
         initial_capacity=0,
         capacity_max=1,
