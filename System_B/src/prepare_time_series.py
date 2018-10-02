@@ -21,27 +21,29 @@ import datetime
 import os
 from workalendar.europe import Germany
 
-abs_path = os.path.dirname(os.path.abspath(__file__))
+abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
-def prepare_timeseries_price_demand_heat():
-    """
-    Creates synthetic heat profiles via BDEW method
-    """
-
+def prepare_timeseries_temperature(filename_raw_data, filename_processed_data):
     # load temperature data
-    filename = abs_path + '/data/' + 'ninja_weather_51.8341_12.2374_uncorrected.csv' # 'temperature_data.csv'
+    filename = abs_path + '/data/raw/' + filename_raw_data # 'temperature_data.csv'
     temperature = pd.read_csv(filename, skiprows=2)  # ["temperature"]
     temperature.columns = ['utc_time','time','temp']
     temperature = temperature[['time','temp']]
     temperature.set_index('time')
+    temperature.to_csv(abs_path + '/data/preprocessed/' + filename_processed_data)
+    return temperature
 
+def prepare_timeseries_price_demand_heat(year, building_types, temperature, filename_processed_data):
+    """
+    Creates synthetic heat profiles via BDEW method
+    """
     # get holidays for germany
     cal = Germany()
-    holidays = dict(cal.holidays(2010))
+    holidays = dict(cal.holidays(year))
 
     # create a DataFrame to hold the timeseries
     demand = pd.DataFrame(
-        index=pd.date_range(pd.datetime(2010, 1, 1, 0),
+        index=pd.date_range(pd.datetime(year, 1, 1, 0),
                             periods=8760, freq='H'))
 
     # Single family house (efh: Einfamilienhaus)
@@ -65,7 +67,7 @@ def prepare_timeseries_price_demand_heat():
         name='ghd').get_bdew_profile()
 
     # save heat demand time series
-    demand.to_csv(abs_path+'/data/'+'demand_heat.csv')
+    demand.to_csv(abs_path+'/data/preprocessed/'+ filename_processed_data)
 
 def prepare_timeseries_price_gas():
     # prepare gas price time series
@@ -82,4 +84,5 @@ def prepare_timeseries_price_electricity():
 
 
 if __name__ == '__main__':
-    prepare_timeseries_price_demand_heat()
+    temperature = prepare_timeseries_temperature('ninja_weather_51.8341_12.2374_uncorrected.csv', 'temperature.csv')
+    prepare_timeseries_price_demand_heat(2010, None, temperature, 'demand_heat.csv')

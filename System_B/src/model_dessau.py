@@ -59,7 +59,7 @@ def run_model_dessau(config_path):
     power_to_heat = cfg['power_to_heat']
     storage_heat = cfg['storage_heat']
     demand_heat = cfg['demand_heat']
-    demand_heat['timeseries'] = pd.read_csv(abs_path + '/data/' + 'demand_heat.csv', sep=",")['efh']
+    demand_heat['timeseries'] = pd.read_csv(abs_path + '/data/preprocessed/' + 'demand_heat.csv', sep=",")['efh']
     wacc = cfg['wacc']
 
     #####################################################################

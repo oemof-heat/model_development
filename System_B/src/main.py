@@ -41,8 +41,5 @@ create_plots.create_plots()
 
 
 # Build the report
-cmd = ['pdflatex', '-interaction=nonstopmode', '--output-directory={0}/presentation/build'.format(abs_path), '{0}/presentation/report.tex'.format(abs_path)]
-process = subprocess.call(cmd) # , stdout=open(os.devnull, 'wb'))
-# cmd = ['pdflatex', '-interaction', 'nonstopmode', 'cover.tex']
-# proc = subprocess.Popen(cmd)
-# proc.communicate()
+# cmd = ['pdflatex', '-interaction=nonstopmode', '--output-directory={0}/presentation/build'.format(abs_path), '{0}/presentation/report.tex'.format(abs_path)]
+# process = subprocess.call(cmd) # , stdout=open(os.devnull, 'wb'))
