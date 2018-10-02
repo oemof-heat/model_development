@@ -191,7 +191,7 @@ if run_time_in_sec < 60:
 elif run_time_in_sec >= 60:
     run_time_in_min = run_time_in_sec/60
     residual_seconds = run_time_in_sec%60
-    print("%6.2f" %run_time_in_min, "minuts and","%6.2f" %residual_seconds, "seconds")
+    print("%6.0f" %run_time_in_min, "min,", "%6.0f" %residual_seconds, "s")
 else:
     print("%12.2f" %run_time_in_sec, "seconds")
 
