@@ -9,4 +9,4 @@ Summierte Betriebsstunden
 
 Test citing: :cite:'Hartmann2011'
 
-.. bibliography:: references.bib
+.. bibliography:: bibliography.bib
