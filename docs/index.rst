@@ -11,10 +11,12 @@ routines for the project oemof_heat. It serves as a common reference and a docum
 It does not aim to represent a final product, as the project is in progress.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 2
+    :caption: Contents:
 
-   postprocessing
+    data_references
+    measures_and_indicators
+
 
 Other references
 =================
