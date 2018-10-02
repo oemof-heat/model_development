@@ -1,9 +1,39 @@
 debug: True
 solver: 'cbc'
 
+
+# preprocessing of time series
+
+demand_heat:
+  #total_annual_demand: 232000 # MWh
+  timeseries_temperature: 'preprocessed/temperature.csv'
+  timeseries_demand_heat: 'preprocessed/demand_heat.csv'
+  inhabitants: 86154
+  efh:
+      annual_demand:
+      building_class:
+      wind_class:
+  mfh:
+      annual_demand:
+      building_class:
+      wind_class:
+  industry:
+      annual_demand:
+      building_class:
+      wind_class:
+  nominal_value:
+
+price_electricity:
+  raw_data_timeseries_elecricity:
+  timeseries_electricity: 'preprocessed/timeseries_electricity.csv'
+
+
+# optimisation
 investment:
   invest_chp: False
   invest_pth: False
+
+wacc: 0.05
 
 prices:
   gas: 35 # Eur/MWh
@@ -29,9 +59,3 @@ storage_heat:
   nominal_capacity: 600000 # kWh
   capacity_loss: 0.
   capex: 10 # Eur/kWh
-
-demand_heat:
-  total_annual_demand: 232000 # MWh
-  nominal_value: 1000.
-
-wacc: 0.05
