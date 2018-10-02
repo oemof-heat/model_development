@@ -7,3 +7,4 @@ The DIW data documenation contains data on technology properties and costs :cite
 .. rubric:: References
 
 .. bibliography:: bibliography.bib
+    :style: plain
