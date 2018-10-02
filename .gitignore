@@ -1,8 +1,12 @@
 *.csv
 */data_confidential
 Dumps/
+dumps/
 docs/_build/
 docs/_static/
 docs/_templates/
 data_output/
 *.oemof
+*.png
+__pycache__
+.idea
