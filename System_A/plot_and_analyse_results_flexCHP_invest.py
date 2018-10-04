@@ -78,10 +78,13 @@ shortage_heat = string_results['shortage_bth', 'heat']['sequences']
 excess_electricity = string_results['electricity', 'excess_bel']['sequences']
 excess_heat = string_results['heat', 'excess_bth']['sequences']
 residual_el = string_results['residual_el', 'electricity']['sequences']
+
 # Collecting results for invest option
 CHP_invest_MWh = string_results[('CHP', 'electricity')]['scalars']
+boiler_invest_MWh = string_results[('natural_gas', 'boiler')]['scalars']
 storage_th_invest_MWh = string_results['storage_th', 'None']['scalars']
 storage_el_invest_MWh = string_results['storage_el', 'None']['scalars']
+
 
 if make_plots==True:
     if use_ggplot==True:
@@ -213,6 +216,8 @@ print('-- Electrical Energy Storage (Capacity in MWh) --')
 print(storage_el_invest_MWh['invest'])
 print('-- CHP electrical capacity in MWh --')
 print(CHP_invest_MWh['invest'])
+print('-- Boiler capacity in MWh_el --')
+print(boiler_invest_MWh['invest'])
 print('')
 
 if analyse==True:
