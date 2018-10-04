@@ -123,7 +123,7 @@ epc_CHP = economics.annuity(650000, 20, 0.07)  # CHP (gas) [Euro/MWh_el]
 epc_storage_th = economics.annuity(2000, 20, 0.07)
 epc_storage_el = economics.annuity(200000, 20, 0.07)
 epc_boiler = economics.annuity(90000, 20, 0.07)  # Conventional boiler (gas) [Euro/MWh_th]
-epc_PtH = economics.annuity(100000, 20, 0.07)  # Electrical boiler (P2H) [Euro/MWh_el]
+# epc_PtH = economics.annuity(100000, 20, 0.07)  # Electrical boiler (P2H) [Euro/MWh_el]
 
 energysystem.add(solph.Sink(label='excess_bel', inputs={bel: solph.Flow(variable_costs=0)}))
 energysystem.add(solph.Sink(label='excess_bth', inputs={bth: solph.Flow(variable_costs=0)}))
@@ -148,8 +148,8 @@ energysystem.add(solph.Transformer(
 
 energysystem.add(solph.Transformer(
     label='boiler',
-    inputs={bgas: solph.Flow()},
-    outputs={bth: solph.Flow(nominal_value=650, variable_costs=1)},  # [MW_th], [-]
+    inputs={bgas: solph.Flow(investment=solph.Investment(ep_costs=epc_boiler))},
+    outputs={bth: solph.Flow(variable_costs=1)},
     conversion_factors={bth: 0.9}))
 
 energysystem.add(solph.Transformer(
