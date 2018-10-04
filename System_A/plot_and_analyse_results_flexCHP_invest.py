@@ -60,7 +60,6 @@ shortage_el = outputlib.views.node(results, 'shortage_bel')
 
 # Collecting results for specific components and flows
 CHP_heat = string_results[('CHP', 'heat')]['sequences']
-CHP_invest_MWh = string_results[('CHP', 'electricity')]['scalars']
 CHP_electricity = string_results[('CHP', 'electricity')]['sequences']
 demand_th = string_results[('heat', 'demand_th')]['sequences']
 demand_el = string_results[('electricity', 'demand_el')]['sequences']
@@ -73,13 +72,16 @@ P2H_el_share = P2H_el/demand_el*100  # in [%]
 storage_discharge = string_results['storage_th', 'heat']['sequences']
 storage_charge = string_results['heat', 'storage_th']['sequences']
 storage_soc = string_results['storage_th', 'None']['sequences']  # State of charge in [MWh_th]
-storage_invest_MWh = string_results['storage_th', 'None']['scalars']
 storage_soc_rel = string_results['storage_th', 'None']['sequences']/string_results['storage_th', 'None']['sequences'].max()*100  # State of charge in [%]
 shortage_electricity = string_results['shortage_bel', 'electricity']['sequences']
 shortage_heat = string_results['shortage_bth', 'heat']['sequences']
 excess_electricity = string_results['electricity', 'excess_bel']['sequences']
 excess_heat = string_results['heat', 'excess_bth']['sequences']
 residual_el = string_results['residual_el', 'electricity']['sequences']
+# Collecting results for invest option
+CHP_invest_MWh = string_results[('CHP', 'electricity')]['scalars']
+storage_th_invest_MWh = string_results['storage_th', 'None']['scalars']
+storage_el_invest_MWh = string_results['storage_el', 'None']['scalars']
 
 if make_plots==True:
     if use_ggplot==True:
@@ -206,7 +208,9 @@ if print_sums==True:
 
 print('********* Invest results *********')
 print('-- Thermal Energy Storage (Capacity in MWh) --')
-print(storage_invest_MWh['invest'])
+print(storage_th_invest_MWh['invest'])
+print('-- Electrical Energy Storage (Capacity in MWh) --')
+print(storage_el_invest_MWh['invest'])
 print('-- CHP electrical capacity in MWh --')
 print(CHP_invest_MWh['invest'])
 print('')
