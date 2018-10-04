@@ -1,7 +1,7 @@
-Postprocessing
-==============
+Measures and indicators
+=======================
 
-Summierte Betriebsstunden
+Summed operation hours
 
 .. math::
 
