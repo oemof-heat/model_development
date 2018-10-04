@@ -9,7 +9,7 @@ The system also comes with an electric heater, a so called Power-2-Heat (P2H) un
 to provide electricity consumption as electricity grid service (The grid itself is not modeled!) in times when
 negative electricity demand (so called 'negative residual load') occurs.
 
-Uses the invest option on the CHP plant and the TES.
+Uses the invest option on the CHP plant, the electrical energy storage (battery) and the TES.
 
 The following energy system is modeled:
 
@@ -32,7 +32,9 @@ The following energy system is modeled:
  storage_th(Storage) |<--------------------------|
                      |-------------------------->|
                      |          |        |       |
-
+ storage_el(Storage) |<------------------|       |
+                     |------------------>|       |
+                     |          |        |       |
 
 
 Data
@@ -116,10 +118,17 @@ bth = solph.Bus(label='heat')
 
 energysystem.add(bgas, bel, bth)
 
+# Costs with capex in Euro/MWh, lifetime in years and wacc in [-]
+epc_CHP = economics.annuity(650000, 20, 0.07)  # CHP (gas) [Euro/MWh_el]
+epc_storage_th = economics.annuity(2000, 20, 0.07)
+epc_storage_el = economics.annuity(200000, 20, 0.07)
+epc_boiler = economics.annuity(90000, 20, 0.07)  # Conventional boiler (gas) [Euro/MWh_th]
+epc_PtH = economics.annuity(100000, 20, 0.07)  # Electrical boiler (P2H) [Euro/MWh_el]
+
 energysystem.add(solph.Sink(label='excess_bel', inputs={bel: solph.Flow(variable_costs=0)}))
 energysystem.add(solph.Sink(label='excess_bth', inputs={bth: solph.Flow(variable_costs=0)}))
-energysystem.add(solph.Source(label='shortage_bel', outputs={bel: solph.Flow(variable_costs=100)}))
-energysystem.add(solph.Source(label='shortage_bth', outputs={bth: solph.Flow(variable_costs=100)}))
+energysystem.add(solph.Source(label='shortage_bel', outputs={bel: solph.Flow(variable_costs=1000000)}))
+energysystem.add(solph.Source(label='shortage_bth', outputs={bth: solph.Flow(variable_costs=1000000)}))
 energysystem.add(solph.Source(label='rgas', outputs={bgas: solph.Flow(
     nominal_value=100000, summed_max=1e8, variable_costs=22)}))  # [MWh_th], [EUR/MWh_th]
 energysystem.add(solph.Source(label='residual_el', outputs={bel: solph.Flow(
@@ -129,7 +138,6 @@ energysystem.add(solph.Sink(label='demand_el', inputs={bel: solph.Flow(
 energysystem.add(solph.Sink(label='demand_th', inputs={bth: solph.Flow(
     actual_value=data['demand_th'], fixed=True, nominal_value=1000)}))  # [MW_th]
 
-epc_CHP = economics.annuity(6500, 20, 0.07)  # Args: capex in Euro/MWh_el, lifetime in years and wacc in [-]
 energysystem.add(solph.Transformer(
     label="CHP",
     inputs={bgas: solph.Flow()},
@@ -150,7 +158,6 @@ energysystem.add(solph.Transformer(
     outputs={bth: solph.Flow(nominal_value=150, variable_costs=0)},  # [MW_th], [-]
     conversion_factors={bth: 0.99}))
 
-epc_storage_th = economics.annuity(2000, 20, 0.07)  # Args: capex in Euro/MWh_th, lifetime in years and wacc in [-]
 storage_th = solph.components.GenericStorage(
     # nominal_capacity=500,  # [MWh_th]
     label='storage_th',
@@ -162,7 +169,18 @@ storage_th = solph.components.GenericStorage(
     outflow_conversion_factor=0.99,
     investment=solph.Investment(ep_costs=epc_storage_th))
 
-energysystem.add(storage_th)
+storage_el = solph.components.GenericStorage(
+    # nominal_capacity=200,  # [MWh_el]
+    label='storage_el',
+    inputs={bel: solph.Flow()},  # [MW_el]
+    outputs={bel: solph.Flow()},  # [MW_el]
+    capacity_loss=0.01,
+    # initial_capacity=0,
+    inflow_conversion_factor=1,
+    outflow_conversion_factor=0.60,
+    investment=solph.Investment(ep_costs=epc_storage_el))
+
+energysystem.add(storage_th, storage_el)
 
 ##########################################################################
 # Optimise the energy system and plot the results
