@@ -35,7 +35,7 @@ analyse = True
 
 # logging.info('Restore the energy system and the results.')
 energysystem = solph.EnergySystem()
-energysystem.restore(dpath="dumps", filename="flexCHB_A1_dumps.oemof")
+energysystem.restore(dpath="dumps", filename="flexCHB_invest_dumps.oemof")
 
 # define an alias for shorter calls below (optional)
 results = energysystem.results['main']
@@ -78,6 +78,13 @@ shortage_heat = string_results['shortage_bth', 'heat']['sequences']
 excess_electricity = string_results['electricity', 'excess_bel']['sequences']
 excess_heat = string_results['heat', 'excess_bth']['sequences']
 residual_el = string_results['residual_el', 'electricity']['sequences']
+
+# Collecting results for invest option
+CHP_invest_MWh = string_results[('CHP', 'electricity')]['scalars']
+boiler_invest_MWh = string_results[('natural_gas', 'boiler')]['scalars']
+storage_th_invest_MWh = string_results['storage_th', 'None']['scalars']
+storage_el_invest_MWh = string_results['storage_el', 'None']['scalars']
+
 
 if make_plots==True:
     if use_ggplot==True:
@@ -123,8 +130,8 @@ if make_plots==True:
     # ax22.legend(lns, labs)
     # ax22.legend(loc=4)
     ax2.legend(bbox_to_anchor=(1.04,1), loc="upper left", borderaxespad=0)
-
-    ax8.plot(storage_soc_rel[start:end], label='State of Charge')
+    # ax8.plot(storage_soc_rel[start:end], label='State of Charge')
+    ax8.plot(storage_soc[start:end], label='State of Charge')
     ax8.set_ylabel('Füllstand \nin %')
     ax8.legend(bbox_to_anchor=(1.04,1), loc="upper left", borderaxespad=0)
 
@@ -200,6 +207,18 @@ if print_sums==True:
     print(heat_bus['sequences'].sum(axis=0))
     print('-- gas bus --')
     print(gas_bus['sequences'].sum(axis=0))
+    print('')
+
+print('********* Invest results *********')
+print('-- Thermal Energy Storage (Capacity in MWh) --')
+print(storage_th_invest_MWh['invest'])
+print('-- Electrical Energy Storage (Capacity in MWh) --')
+print(storage_el_invest_MWh['invest'])
+print('-- CHP electrical capacity in MWh --')
+print(CHP_invest_MWh['invest'])
+print('-- Boiler capacity in MWh_el --')
+print(boiler_invest_MWh['invest'])
+print('')
 
 if analyse==True:
     print('********* CHP operation analysis *********')

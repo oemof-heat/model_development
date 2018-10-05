@@ -4,11 +4,12 @@
 General description
 -------------------
 
-Modeling a combined heat and power (CHP) plant with a thermal energy storage to increase its flexibility.
+Modeling a combined heat and power (CHP) plant with a thermal energy storage (TES) to increase its flexibility.
 The system also comes with an electric heater, a so called Power-2-Heat (P2H) unit,
 to provide electricity consumption as electricity grid service (The grid itself is not modeled!) in times when
 negative electricity demand (so called 'negative residual load') occurs.
-In some scenarios the system is extended by an electricity storage (battery).
+
+Uses the invest option on the CHP plant, the electrical energy storage (battery) and the TES.
 
 The following energy system is modeled:
 
@@ -25,15 +26,15 @@ The following energy system is modeled:
  P2H                 |          |        |------>|
                      |          |        |       |
                      |<---------|        |       |
- CHP(Transformer)    |------------------>|       |
+ CHP                 |------------------>|       |
                      |-------------------------->|
                      |          |        |       |
  storage_th(Storage) |<--------------------------|
                      |-------------------------->|
                      |          |        |       |
- O p t i o n a l
- battery (Storage)   |<------------------|       |
+ storage_el(Storage) |<------------------|       |
                      |------------------>|       |
+                     |          |        |       |
 
 
 Data
@@ -73,6 +74,7 @@ import os
 import pandas as pd
 import pprint as pp
 import timeit
+from oemof.tools import economics
 start_time = timeit.default_timer()
 
 try:
@@ -82,11 +84,11 @@ except ImportError:
 
 solver = 'cbc'
 debug = False  # Set number_of_timesteps to 3 to get a readable lp-file.
-number_of_time_steps = 8760 # 24*7*8  # 8 weeks, every hour
+number_of_time_steps = 8760  # 24*7*8  # 8 weeks, every hour
 solver_verbose = False  # show/hide solver output
 
 # initiate the logger (see the API docs for more information)
-logger.define_logging(logfile='flex_CHB_A1.log',
+logger.define_logging(logfile='flex_CHB_invest.log',
                       screen_level=logging.INFO,
                       file_level=logging.DEBUG)
 
@@ -116,10 +118,17 @@ bth = solph.Bus(label='heat')
 
 energysystem.add(bgas, bel, bth)
 
+# Costs with capex in Euro/MWh, lifetime in years and wacc in [-]
+epc_CHP = economics.annuity(650000, 20, 0.07)  # CHP (gas) [Euro/MWh_el]
+epc_storage_th = economics.annuity(2000, 20, 0.07)
+epc_storage_el = economics.annuity(200000, 20, 0.07)
+epc_boiler = economics.annuity(90000, 20, 0.07)  # Conventional boiler (gas) [Euro/MWh_th]
+# epc_PtH = economics.annuity(100000, 20, 0.07)  # Electrical boiler (P2H) [Euro/MWh_el]
+
 energysystem.add(solph.Sink(label='excess_bel', inputs={bel: solph.Flow(variable_costs=0)}))
 energysystem.add(solph.Sink(label='excess_bth', inputs={bth: solph.Flow(variable_costs=0)}))
-energysystem.add(solph.Source(label='shortage_bel', outputs={bel: solph.Flow(variable_costs=100)}))
-energysystem.add(solph.Source(label='shortage_bth', outputs={bth: solph.Flow(variable_costs=100)}))
+energysystem.add(solph.Source(label='shortage_bel', outputs={bel: solph.Flow(variable_costs=1000000)}))
+energysystem.add(solph.Source(label='shortage_bth', outputs={bth: solph.Flow(variable_costs=1000000)}))
 energysystem.add(solph.Source(label='rgas', outputs={bgas: solph.Flow(
     nominal_value=100000, summed_max=1e8, variable_costs=22)}))  # [MWh_th], [EUR/MWh_th]
 energysystem.add(solph.Source(label='residual_el', outputs={bel: solph.Flow(
@@ -132,14 +141,15 @@ energysystem.add(solph.Sink(label='demand_th', inputs={bth: solph.Flow(
 energysystem.add(solph.Transformer(
     label="CHP",
     inputs={bgas: solph.Flow()},
-    outputs={bel: solph.Flow(nominal_value=1200, variable_costs=1),  # [MW_th], [-]
-             bth: solph.Flow(nominal_value=650, variable_costs=1)},  # [MW_el], [-]
+    outputs={bel: solph.Flow(variable_costs=1,
+                             investment=solph.Investment(ep_costs=epc_CHP)),  # [MW_th], [-]
+             bth: solph.Flow(variable_costs=1)},  # [MW_el], [-]
     conversion_factors={bel: 0.60, bth: 0.25}))  # eta_el=60% und Brennstoffausnutzungsgrad omega = 85% --> eta_th=25%
 
 energysystem.add(solph.Transformer(
     label='boiler',
-    inputs={bgas: solph.Flow()},
-    outputs={bth: solph.Flow(nominal_value=650, variable_costs=1)},  # [MW_th], [-]
+    inputs={bgas: solph.Flow(investment=solph.Investment(ep_costs=epc_boiler))},
+    outputs={bth: solph.Flow(variable_costs=1)},
     conversion_factors={bth: 0.9}))
 
 energysystem.add(solph.Transformer(
@@ -149,14 +159,28 @@ energysystem.add(solph.Transformer(
     conversion_factors={bth: 0.99}))
 
 storage_th = solph.components.GenericStorage(
-    nominal_capacity=500,  # [MWh_th]
+    # nominal_capacity=500,  # [MWh_th]
     label='storage_th',
-    inputs={bth: solph.Flow(nominal_value=500, variable_costs=0)},  # [MW_th]
-    outputs={bth: solph.Flow(nominal_value=500)},  # [MW_th]
-    capacity_loss=0.001, initial_capacity=0,
-    inflow_conversion_factor=1, outflow_conversion_factor=0.99)
+    inputs={bth: solph.Flow()},  # [MW_th]
+    outputs={bth: solph.Flow()},  # [MW_th]
+    capacity_loss=0.001,
+    # initial_capacity=0,
+    inflow_conversion_factor=1,
+    outflow_conversion_factor=0.99,
+    investment=solph.Investment(ep_costs=epc_storage_th))
 
-energysystem.add(storage_th)
+storage_el = solph.components.GenericStorage(
+    # nominal_capacity=200,  # [MWh_el]
+    label='storage_el',
+    inputs={bel: solph.Flow()},  # [MW_el]
+    outputs={bel: solph.Flow()},  # [MW_el]
+    capacity_loss=0.01,
+    # initial_capacity=0,
+    inflow_conversion_factor=1,
+    outflow_conversion_factor=0.60,
+    investment=solph.Investment(ep_costs=epc_storage_el))
+
+energysystem.add(storage_th, storage_el)
 
 ##########################################################################
 # Optimise the energy system and plot the results
@@ -168,7 +192,7 @@ model = solph.Model(energysystem)
 
 if debug:
     filename = os.path.join(
-        helpers.extend_basic_path('lp_files'), 'flexCHB_A1.lp')
+        helpers.extend_basic_path('lp_files'), 'flexCHB_invest.lp')
     logging.info('Store lp-file in {0}.'.format(filename))
     model.write(filename, io_options={'symbolic_solver_labels': True})
 
@@ -181,7 +205,7 @@ logging.info('Store the energy system with the results.')
 energysystem.results['main'] = outputlib.processing.results(model)
 energysystem.results['meta'] = outputlib.processing.meta_results(model)
 
-energysystem.dump(dpath="dumps", filename="flexCHB_A1_dumps.oemof")
+energysystem.dump(dpath="dumps", filename="flexCHB_invest_dumps.oemof")
 
 stop_time = timeit.default_timer()
 run_time_in_sec = stop_time - start_time
