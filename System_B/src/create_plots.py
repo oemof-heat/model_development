@@ -126,7 +126,7 @@ def create_dispatch_plot(df):
     df_resam[heat_to_dhn].plot(ax=ax, color='r', linewidth=3)
 
     # set title, labels and legend
-    ax.set_ylabel('Power in MW')
+    ax.set_ylabel('Power in kW')
     ax.set_xlabel('Time')
     ax.set_title('Heat demand and generation')
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
