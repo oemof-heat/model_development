@@ -39,10 +39,11 @@ def get_zensus_data():
 
 get_zensus_data()
 
-zensus_shortcut = pd.read_csv(abs_path + '/data/raw/zensus_alter_anzahlwohnungen_flaeche_anzahl.csv', delimiter=';', skiprows=6, names=['Baujahr', 'Gebauede_Anzahl_Wohnungen', 'Groesse_m2', 'Anzahl'])
+zensus_shortcut = pd.read_csv(abs_path + '/data/raw/zensus_alter_anzahlwohnungen_flaeche_anzahl.csv', delimiter=';', skiprows=6, encoding='ISO-8859-14', names=['Baujahr', 'Gebauede_Anzahl_Wohnungen', 'Groesse_m2', 'Anzahl'])
 zensus_shortcut['area_per_flat'] = zensus_shortcut['Groesse_m2'].str[-3:].replace(['ehr','amt'], np.nan).astype('float')
 zensus_shortcut['area'] = zensus_shortcut['Anzahl'].str.replace('(', '').str.replace(')', '').replace(['-'], np.nan).astype('float') * zensus_shortcut['area_per_flat']
-print(zensus_shortcut)
+zensus_shortcut.to_csv(abs_path + '/data/raw/area.csv')
+print(zensus_shortcut.groupby(['Baujahr', 'Gebauede_Anzahl_Wohnungen'])['area'].sum())
 
 
 
