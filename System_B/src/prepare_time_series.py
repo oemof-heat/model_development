@@ -23,19 +23,22 @@ from workalendar.europe import Germany
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
-def prepare_timeseries_temperature(filename_raw_data, filename_processed_data):
+def prepare_timeseries_temperature(raw_file, output_file):
+    """
+    convert raw temperature data to appropriate format.
+    """
     # load temperature data
-    filename = abs_path + '/data/raw/' + filename_raw_data # 'temperature_data.csv'
+    filename = abs_path + '/data/raw/' + raw_file # 'temperature_data.csv'
     temperature = pd.read_csv(filename, skiprows=2)  # ["temperature"]
     temperature.columns = ['utc_time','time','temp']
     temperature = temperature[['time','temp']]
     temperature.set_index('time')
-    temperature.to_csv(abs_path + '/data/preprocessed/' + filename_processed_data)
+    temperature.to_csv(abs_path + '/data/preprocessed/' + output_file)
     return temperature
 
-def prepare_timeseries_price_demand_heat(year, building_types, temperature, filename_processed_data):
+def prepare_timeseries_demand_heat(year, building_types, temperature, output_file):
     """
-    Creates synthetic heat profiles via BDEW method
+    Creates synthetic heat profiles via BDEW method.
     """
     # get holidays for germany
     cal = Germany()
@@ -50,7 +53,7 @@ def prepare_timeseries_price_demand_heat(year, building_types, temperature, file
     demand['efh'] = bdew.HeatBuilding(
         demand.index, holidays=holidays, temperature=temperature['temp'],
         shlp_type='EFH',
-        building_class=1, wind_class=1, annual_heat_demand=25000,
+        building_class=1, wind_class=1, annual_heat_demand=232000,
         name='EFH').get_bdew_profile()
 
     # Multi family house (mfh: Mehrfamilienhaus)
@@ -67,7 +70,7 @@ def prepare_timeseries_price_demand_heat(year, building_types, temperature, file
         name='ghd').get_bdew_profile()
 
     # save heat demand time series
-    demand.to_csv(abs_path+'/data/preprocessed/'+ filename_processed_data)
+    demand.to_csv(abs_path+'/data/preprocessed/'+ output_file)
 
 def prepare_timeseries_price_gas():
     # prepare gas price time series
@@ -85,4 +88,4 @@ def prepare_timeseries_price_electricity():
 
 if __name__ == '__main__':
     temperature = prepare_timeseries_temperature('ninja_weather_51.8341_12.2374_uncorrected.csv', 'temperature.csv')
-    prepare_timeseries_price_demand_heat(2010, None, temperature, 'demand_heat.csv')
+    prepare_timeseries_demand_heat(2010, None, temperature, 'demand_heat.csv')
