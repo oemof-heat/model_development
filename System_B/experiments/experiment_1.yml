@@ -36,8 +36,8 @@ investment:
 wacc: 0.05
 
 prices:
-  gas: 35 # Eur/MWh
-  el: 50 # Eur/MWh
+  gas: 0.035 # Eur/kWh
+  el: 0.05 # Eur/kWh
   heat_shortage: 500000 # unrealistically high, just to make the problem feasible
 
 emissions:
@@ -48,7 +48,7 @@ emissions:
 ccgt:
   capex: 480000 # Eur/kW
   inv_period: 20
-  nominal_value: 29.9
+  nominal_value: 29900 # kW
 
 power_to_heat:
   capex: 250000 # Eur/kW
