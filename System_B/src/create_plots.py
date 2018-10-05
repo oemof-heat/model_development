@@ -14,7 +14,6 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rcParams as rcParams
-import matplotlib.dates as mdates
 import oemof.graph as graph
 import oemof.solph as solph
 import oemof.outputlib as outputlib
@@ -32,7 +31,6 @@ def plot_heat_demand():
     demand = pd.read_csv(abs_path + '/data/preprocessed/' + 'demand_heat.csv')
     plt.figure()
     ax = demand.plot()
-    print('demand efh', demand['efh'].sum())
     ax.set_xlabel("Date")
     ax.set_ylabel("Heat demand in MW")
     plt.savefig(abs_path + '/plots/heat_demand.pdf', dpi=100, bbox_inches='tight')
@@ -106,23 +104,20 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
         plt.show()
 
 
-def create_dispatch_plot(df):
+def plot_dispatch(df):
     """
     """
+    # preprocessing
     heat_in = [key for key in df.keys() if key[0][1] == 'heat_prim']
     heat_to_storage = (('heat_prim', 'storage_heat'), 'flow')
     heat_to_dhn = (('heat_prim', 'dhn_prim'), 'flow')
-
     df_plot = df[heat_in + [heat_to_storage, heat_to_dhn]]
     df_plot[heat_to_storage] *= -1
-
-    # resample timeseries
     df_resam = df_plot.resample('1D').mean()
 
+    # plot
     fig, ax = plt.subplots(figsize=(13, 5))
-
     df_resam[heat_in + [heat_to_storage]].plot.area(ax=ax, color=['#19A8B8','#F9FF00','#FF0000','k','k'])
-    # (df_resam[heat_to_storage] * -0.000001 ).plot.area(ax=ax, color='k')
     df_resam[heat_to_dhn].plot(ax=ax, color='r', linewidth=3)
 
     # set title, labels and legend
@@ -136,7 +131,6 @@ def create_dispatch_plot(df):
 
 
 def create_plots():
-
     node_color = { 'natural gas': '#19A8B8',
                    'ccgt': '#19A8B8',
                    'electricity': '#F9FF00',
@@ -153,9 +147,11 @@ def create_plots():
                node_size=5000, edge_color='k',
                node_color=node_color)
     rcParams['figure.figsize'] = [10.0, 10.0]
-    node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
-    create_dispatch_plot(node_results_bel)
+
     plot_heat_demand()
+    node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
+    plot_dispatch(node_results_bel)
+
 
 if __name__ == '__main__':
     create_plots()

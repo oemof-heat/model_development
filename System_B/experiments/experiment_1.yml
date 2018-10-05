@@ -1,13 +1,11 @@
 debug: False
 solver: 'cbc'
 
-
-# preprocessing of time series
-
 demand_heat:
   #total_annual_demand: 232000 # MWh
   timeseries_temperature: 'preprocessed/temperature.csv'
   timeseries_demand_heat: 'preprocessed/demand_heat.csv'
+  # TODO:
   inhabitants: 86154
   efh:
       annual_demand:
@@ -23,10 +21,6 @@ demand_heat:
       wind_class:
   nominal_value:
 
-price_electricity:
-  raw_data_timeseries_elecricity:
-  timeseries_electricity: 'preprocessed/timeseries_electricity.csv'
-
 
 # optimisation
 investment:
@@ -38,8 +32,11 @@ wacc: 0.05
 prices:
   gas: 0.035 # Eur/kWh
   el: 0.05 # Eur/kWh
+  raw_data_timeseries_el:
+  timeseries_el: 'preprocessed/timeseries_electricity.csv'
   heat_shortage: 500000 # unrealistically high, just to make the problem feasible
 
+# TODO
 emissions:
   gas:
   el:

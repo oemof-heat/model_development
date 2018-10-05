@@ -60,13 +60,13 @@ def prepare_timeseries_demand_heat(year, building_types, temperature, output_fil
     demand['mfh'] = bdew.HeatBuilding(
         demand.index, holidays=holidays, temperature=temperature['temp'],
         shlp_type='MFH',
-        building_class=2, wind_class=0, annual_heat_demand=80000,
+        building_class=2, wind_class=0, annual_heat_demand=80000000,
         name='MFH').get_bdew_profile()
 
     # Industry, trade, service (ghd: Gewerbe, Handel, Dienstleistung)
     demand['ghd'] = bdew.HeatBuilding(
         demand.index, holidays=holidays, temperature=temperature['temp'],
-        shlp_type='ghd', wind_class=0, annual_heat_demand=140000,
+        shlp_type='ghd', wind_class=0, annual_heat_demand=140000000,
         name='ghd').get_bdew_profile()
 
     # save heat demand time series

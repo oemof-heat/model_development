@@ -16,6 +16,7 @@ The following quantities concern the energy system as a whole:
 Coverage through renewables
 Summed Excess, max Excess
 Summed import, max import
+Emissions
 """
 
 import os
@@ -43,6 +44,7 @@ energysystem.restore(dpath=abs_path + '/results', filename='es.dump')
 # def get_max_excess():
 # def get_summed_import():
 # def get_max_import():
+# def get_emmission():
 
 def print_summed_heat():
     heat_prim = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
