@@ -38,7 +38,7 @@ def run_model_dessau(config_path):
         cfg = yaml.load(ymlfile)
 
     if cfg['debug']:
-        number_timesteps = 2
+        number_timesteps = 200
     else:
         number_timesteps = 8760
 
@@ -127,13 +127,13 @@ def run_model_dessau(config_path):
         label='dhn_prim',
         inputs={bth_prim: solph.Flow()},
         outputs={bth_sec: solph.Flow()},
-        conversion_factors={bth_sec: 0.85}))
+        conversion_factors={bth_sec: 1.}))
 
     energysystem.add(solph.Transformer(
         label='dhn_sec',
         inputs={bth_sec: solph.Flow()},
         outputs={bth_end: solph.Flow()},
-        conversion_factors={bth_end: 0.85}))
+        conversion_factors={bth_end: 1.}))
 
     energysystem.add(solph.Sink(
         label='demand_heat',
