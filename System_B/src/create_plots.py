@@ -14,6 +14,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rcParams as rcParams
+import matplotlib.dates as mdates
 import oemof.graph as graph
 import oemof.solph as solph
 import oemof.outputlib as outputlib
@@ -25,42 +26,17 @@ energysystem = solph.EnergySystem()
 energysystem.restore(dpath=abs_path + '/results', filename='es.dump')
 energysystem_graph = graph.create_nx_graph(energysystem)
 
+
 def plot_heat_demand():
     # Plot demand of building
     demand = pd.read_csv(abs_path + '/data/preprocessed/' + 'demand_heat.csv')
     plt.figure()
     ax = demand.plot()
+    print('demand efh', demand['efh'].sum())
     ax.set_xlabel("Date")
     ax.set_ylabel("Heat demand in MW")
     plt.savefig(abs_path + '/plots/heat_demand.pdf', dpi=100, bbox_inches='tight')
 
-def hierarchy_pos(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5,
-                  pos = None, parent = None):
-    '''If there is a cycle that is reachable from root, then this will see infinite recursion.
-       G: the graph
-       root: the root node of current branch
-       width: horizontal space allocated for this branch - avoids overlap with other branches
-       vert_gap: gap between levels of hierarchy
-       vert_loc: vertical location of root
-       xcenter: horizontal location of root
-       pos: a dict saying where all nodes go if they have been assigned
-       parent: parent of this branch.'''
-    if pos == None:
-        pos = {root:(xcenter,vert_loc)}
-    else:
-        pos[root] = (xcenter, vert_loc)
-    neighbors = list(G.neighbors(root))
-    # if parent != None:   #this should be removed for directed graphs.
-    #     neighbors.remove(parent)  #if directed, then parent not in neighbors.
-    if len(neighbors)!=0:
-        dx = width/len(neighbors)
-        nextx = xcenter - width/2 - dx/2
-        for neighbor in neighbors:
-            nextx += dx
-            pos = hierarchy_pos(G,neighbor, width = dx, vert_gap = vert_gap,
-                                vert_loc = vert_loc-vert_gap, xcenter=nextx, pos=pos,
-                                parent = root)
-    return pos
 
 def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
                edge_color='#CFCFCF', plot=True, store=False,
@@ -111,7 +87,6 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
     }
 
     labeldict = {node: node.replace('_', '\n') for node in grph.nodes}
-    print('ee', labeldict)
 
     # draw graph
     plt.figure(figsize=(12, 6))
@@ -119,9 +94,9 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
     nx.draw(grph, pos=pos, labels=labeldict, **options)
 
     # add edge labels for all edges
-    # if edge_labels is True and plt:
-    #     labels = nx.get_edge_attributes(grph, 'weight')
-    #     nx.draw_networkx_edge_labels(grph, pos=pos, edge_labels=labels)
+    if edge_labels is True and plt:
+        labels = nx.get_edge_attributes(grph, 'weight')
+        nx.draw_networkx_edge_labels(grph, pos=pos, edge_labels=labels)
 
     if store is True:
         plt.savefig(filename, dpi=100, bbox_inches='tight')
@@ -131,33 +106,29 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
         plt.show()
 
 
-def create_dispatch_plot():
-    node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat_prim')
-
-    df = node_results_bel['sequences']
+def create_dispatch_plot(df):
+    """
+    """
     heat_in = [key for key in df.keys() if key[0][1] == 'heat_prim']
+    heat_to_storage = (('heat_prim', 'storage_heat'), 'flow')
+    heat_to_dhn = (('heat_prim', 'dhn_prim'), 'flow')
 
-    df_resam = df.resample('1D').mean()
-    fig = plt.figure(figsize=(13, 5))
-    ax = fig.add_subplot(1, 1, 1)
-    df_resam[heat_in].plot(ax=ax, kind='bar', stacked=True, color=['g','r','b','y'], linewidth=0, width=1, use_index=False)
-    (-1 * df_resam[(('heat_prim', 'storage_heat'), 'flow')]).plot(ax=ax, kind='bar', color='k', stacked=True, linewidth=0, width=1, use_index=False)
-    print(-1 * df_resam[(('heat_prim', 'storage_heat'), 'flow')])
-    # df_resam[(('heat_prim', 'demand_heat'), 'flow')].plot(ax=ax, color='r', linewidth=3, use_index=False)
-    ax.set_xlabel('Time [h]')
-    ax.set_ylabel('Energy [MWh]')
-    ax.set_title('Flows into and out of bel')
-    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
-    # ax.set_xticks(range(0, len(df_resam.index)-1, int(len(df_resam.index)/10)), minor=False)
-    # ax.set_xticklabels([1,2,3], minor=False)
-    print(df_resam.index)
-    # ax.set_xticklabels(
-    #     [item.strftime(date_format)
-    #      for item in dates.tolist()[0::tick_distance]],
-    #     rotation=0, minor=False)
-    ax.set_ylabel('Power in kW')
-    ax.set_xlabel('2014')
-    ax.set_title("Heat bus")
+    df_plot = df[heat_in + [heat_to_storage, heat_to_dhn]]
+    df_plot[heat_to_storage] *= -1
+
+    # resample timeseries
+    df_resam = df_plot.resample('1D').mean()
+
+    fig, ax = plt.subplots(figsize=(13, 5))
+
+    df_resam[heat_in + [heat_to_storage]].plot.area(ax=ax, color=['#19A8B8','#F9FF00','#FF0000','k','k'])
+    # (df_resam[heat_to_storage] * -0.000001 ).plot.area(ax=ax, color='k')
+    df_resam[heat_to_dhn].plot(ax=ax, color='r', linewidth=3)
+
+    # set title, labels and legend
+    ax.set_ylabel('Power in MW')
+    ax.set_xlabel('Time')
+    ax.set_title('Heat demand and generation')
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
 
     # save figure
@@ -165,11 +136,8 @@ def create_dispatch_plot():
 
 
 def create_plots():
-    plot_heat_demand()
-    draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path + '/plots/' + 'es_graph.pdf',
-               node_size=5000, edge_color='k',
-               node_color={
-                   'natural gas': '#19A8B8',
+
+    node_color = { 'natural gas': '#19A8B8',
                    'ccgt': '#19A8B8',
                    'electricity': '#F9FF00',
                    'power_to_heat': '#F9FF00',
@@ -180,11 +148,14 @@ def create_plots():
                    'dhn_sec': '#686868',
                    'heat_end': '#FF9900',
                    'shortage_heat': '#FF0000',
-                   'demand_heat': '#eeac7e'})
-
-
+                   'demand_heat': '#eeac7e'}
+    draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path + '/plots/' + 'es_graph.pdf',
+               node_size=5000, edge_color='k',
+               node_color=node_color)
     rcParams['figure.figsize'] = [10.0, 10.0]
-    create_dispatch_plot()
+    node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
+    create_dispatch_plot(node_results_bel)
+    plot_heat_demand()
 
 if __name__ == '__main__':
     create_plots()
