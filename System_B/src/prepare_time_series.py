@@ -53,7 +53,7 @@ def prepare_timeseries_demand_heat(year, building_types, temperature, output_fil
     demand['efh'] = bdew.HeatBuilding(
         demand.index, holidays=holidays, temperature=temperature['temp'],
         shlp_type='EFH',
-        building_class=1, wind_class=1, annual_heat_demand=232000,
+        building_class=1, wind_class=1, annual_heat_demand=232000000,
         name='EFH').get_bdew_profile()
 
     # Multi family house (mfh: Mehrfamilienhaus)
@@ -71,6 +71,7 @@ def prepare_timeseries_demand_heat(year, building_types, temperature, output_fil
 
     # save heat demand time series
     demand.to_csv(abs_path+'/data/preprocessed/'+ output_file)
+    print(demand['efh'].sum(), demand['efh'][0])
 
 def prepare_timeseries_price_gas():
     # prepare gas price time series
@@ -85,7 +86,9 @@ def prepare_timeseries_price_electricity():
     # prepare electricity price time series
     pass
 
-
-if __name__ == '__main__':
+def prepare_timeseries():
     temperature = prepare_timeseries_temperature('ninja_weather_51.8341_12.2374_uncorrected.csv', 'temperature.csv')
     prepare_timeseries_demand_heat(2010, None, temperature, 'demand_heat.csv')
+
+if __name__ == '__main__':
+    prepare_timeseries()
