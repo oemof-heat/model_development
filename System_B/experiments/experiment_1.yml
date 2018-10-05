@@ -1,4 +1,4 @@
-debug: True
+debug: False
 solver: 'cbc'
 
 
@@ -38,7 +38,7 @@ wacc: 0.05
 prices:
   gas: 35 # Eur/MWh
   el: 50 # Eur/MWh
-  heat_shortage: 5000 # unrealistically high, just to make the problem feasible
+  heat_shortage: 500000 # unrealistically high, just to make the problem feasible
 
 emissions:
   gas:
