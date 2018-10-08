@@ -59,7 +59,7 @@ def run_model_dessau(config_path):
     power_to_heat = cfg['power_to_heat']
     storage_heat = cfg['storage_heat']
     demand_heat = cfg['demand_heat']
-    demand_heat['timeseries'] = pd.read_csv(abs_path + '/data/preprocessed/' + 'demand_heat.csv', sep=",")['efh']
+    demand_heat['timeseries'] = pd.read_csv(abs_path + '/data_preprocessed/' + 'demand_heat.csv', sep=",")['efh']
     wacc = cfg['wacc']
 
     #####################################################################
@@ -182,4 +182,4 @@ def run_model_dessau(config_path):
     energysystem.dump(dpath=abs_path + '/results', filename='es.dump')
 
 if __name__ == '__main__':
-    run_model_dessau(config_path="/experiments/experiment_1.yml")
+    run_model_dessau(config_path="/experiment_configs/experiment_1.yml")

@@ -28,7 +28,7 @@ energysystem_graph = graph.create_nx_graph(energysystem)
 
 def plot_heat_demand():
     # Plot demand of building
-    demand = pd.read_csv(abs_path + '/data/preprocessed/' + 'demand_heat.csv')
+    demand = pd.read_csv(abs_path + '/data_preprocessed/' + 'demand_heat.csv')
     fig, ax = plt.subplots(figsize=(12, 6))
     demand.plot(ax=ax, linewidth=1)
     ax.set_xlabel("Date")

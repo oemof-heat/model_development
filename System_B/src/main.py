@@ -8,9 +8,9 @@ import logging
 import os
 import subprocess
 
-from prepare_time_series import prepare_timeseries
+from preprocess import prepare_timeseries
 from model_dessau import run_model_dessau
-import create_plots
+import plot
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
@@ -28,14 +28,14 @@ logging.info('Load config file')
 
 # Run the optimisation model
 logging.info('Run optimisation model')
-run_model_dessau(config_path="/experiments/experiment_1.yml")
+run_model_dessau(config_path="/experiment_configs/experiment_1.yml")
 
 # Postprocessing
 logging.info('Postprocess data')
 
 # Plotting
 logging.info('Create plots')
-create_plots.create_plots()
+plot.create_plots()
 
 # Create a table of the scenario
 

@@ -28,12 +28,12 @@ def prepare_timeseries_temperature(raw_file, output_file):
     convert raw temperature data to appropriate format.
     """
     # load temperature data
-    filename = abs_path + '/data/raw/' + raw_file # 'temperature_data.csv'
+    filename = abs_path + '/data_raw/' + raw_file # 'temperature_data.csv'
     temperature = pd.read_csv(filename, skiprows=2)  # ["temperature"]
     temperature.columns = ['utc_time','time','temp']
     temperature = temperature[['time','temp']]
     temperature.set_index('time')
-    temperature.to_csv(abs_path + '/data/preprocessed/' + output_file)
+    temperature.to_csv(abs_path + '/data_preprocessed/' + output_file)
     return temperature
 
 def prepare_timeseries_demand_heat(year, building_types, temperature, output_file):
@@ -70,7 +70,7 @@ def prepare_timeseries_demand_heat(year, building_types, temperature, output_fil
         name='ghd').get_bdew_profile()
 
     # save heat demand time series
-    demand.to_csv(abs_path+'/data/preprocessed/'+ output_file)
+    demand.to_csv(abs_path+'/data_preprocessed/'+ output_file)
     print(demand['efh'].sum(), demand['efh'][0])
 
 def prepare_timeseries_price_gas():
