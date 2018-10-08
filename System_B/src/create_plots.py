@@ -29,11 +29,11 @@ energysystem_graph = graph.create_nx_graph(energysystem)
 def plot_heat_demand():
     # Plot demand of building
     demand = pd.read_csv(abs_path + '/data/preprocessed/' + 'demand_heat.csv')
-    plt.figure()
-    ax = demand.plot()
+    fig, ax = plt.subplots(figsize=(12, 6))
+    demand.plot(ax=ax, linewidth=1)
     ax.set_xlabel("Date")
     ax.set_ylabel("Heat demand in MW")
-    plt.savefig(abs_path + '/plots/heat_demand.pdf', dpi=100, bbox_inches='tight')
+    plt.savefig(abs_path + '/plots/heat_demand.pdf', figsize=(12, 6), bbox_inches='tight')
 
 
 def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
@@ -116,7 +116,7 @@ def plot_dispatch(df):
     df_resam = df_plot.resample('1D').mean()
 
     # plot
-    fig, ax = plt.subplots(figsize=(13, 5))
+    fig, ax = plt.subplots(figsize=(12, 6))
     df_resam[heat_in + [heat_to_storage]].plot.area(ax=ax, color=['#19A8B8','#F9FF00','#FF0000','k','k'])
     df_resam[heat_to_dhn].plot(ax=ax, color='r', linewidth=3)
 
@@ -127,7 +127,7 @@ def plot_dispatch(df):
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
 
     # save figure
-    fig.savefig(abs_path  + '/plots/' + 'dispatch_stack_plot.pdf', bbox_inches='tight', figsize=(12, 6), dpi=100)
+    fig.savefig(abs_path  + '/plots/' + 'dispatch_stack_plot.pdf', bbox_inches='tight', figsize=(12, 6))
 
 
 def create_plots():
