@@ -32,7 +32,7 @@ abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 logger.define_logging()
 
 
-def run_model_dessau(config_path):
+def run_model_dessau(config_path, results_dir):
 
     with open(abs_path + config_path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
@@ -59,7 +59,7 @@ def run_model_dessau(config_path):
     power_to_heat = cfg['power_to_heat']
     storage_heat = cfg['storage_heat']
     demand_heat = cfg['demand_heat']
-    demand_heat['timeseries'] = pd.read_csv(abs_path + '/data_preprocessed/' + 'demand_heat.csv', sep=",")['efh']
+    demand_heat['timeseries'] = pd.read_csv(results_dir + '/data_preprocessed/' + 'demand_heat.csv', sep=",")['efh']
     wacc = cfg['wacc']
 
     #####################################################################
@@ -179,7 +179,7 @@ def run_model_dessau(config_path):
 
     energysystem.results['main'] = processing.results(om)
     energysystem.results['meta'] = processing.meta_results(om)
-    energysystem.dump(dpath=abs_path + '/results', filename='es.dump')
+    energysystem.dump(dpath=results_dir + '/optimisation_results', filename='es.dump')
 
 if __name__ == '__main__':
     run_model_dessau(config_path="/experiment_configs/experiment_1.yml")

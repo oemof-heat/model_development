@@ -33,7 +33,7 @@ def prepare_timeseries_temperature(raw_file, output_file):
     temperature.columns = ['utc_time','time','temp']
     temperature = temperature[['time','temp']]
     temperature.set_index('time')
-    temperature.to_csv(abs_path + '/data_preprocessed/' + output_file)
+    temperature.to_csv(output_file)
     return temperature
 
 def prepare_timeseries_demand_heat(year, building_types, temperature, output_file):
@@ -70,7 +70,7 @@ def prepare_timeseries_demand_heat(year, building_types, temperature, output_fil
         name='ghd').get_bdew_profile()
 
     # save heat demand time series
-    demand.to_csv(abs_path+'/data_preprocessed/'+ output_file)
+    demand.to_csv(output_file)
     print(demand['efh'].sum(), demand['efh'][0])
 
 def prepare_timeseries_price_gas():
@@ -86,9 +86,9 @@ def prepare_timeseries_price_electricity():
     # prepare electricity price time series
     pass
 
-def prepare_timeseries():
-    temperature = prepare_timeseries_temperature('ninja_weather_51.8341_12.2374_uncorrected.csv', 'temperature.csv')
-    prepare_timeseries_demand_heat(2010, None, temperature, 'demand_heat.csv')
+def prepare_timeseries(results_dir):
+    temperature = prepare_timeseries_temperature('ninja_weather_51.8341_12.2374_uncorrected.csv', results_dir + '/data_preprocessed/temperature.csv')
+    prepare_timeseries_demand_heat(2010, None, temperature, results_dir + '/data_preprocessed/demand_heat.csv')
 
 if __name__ == '__main__':
     prepare_timeseries()

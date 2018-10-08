@@ -19,21 +19,14 @@ import oemof.solph as solph
 import oemof.outputlib as outputlib
 import networkx as nx
 
-abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
-energysystem = solph.EnergySystem()
-energysystem.restore(dpath=abs_path + '/results', filename='es.dump')
-energysystem_graph = graph.create_nx_graph(energysystem)
-
-
-def plot_heat_demand():
+def plot_heat_demand(df, filename):
     # Plot demand of building
-    demand = pd.read_csv(abs_path + '/data_preprocessed/' + 'demand_heat.csv')
     fig, ax = plt.subplots(figsize=(12, 6))
-    demand.plot(ax=ax, linewidth=1)
+    df.plot(ax=ax, linewidth=1)
     ax.set_xlabel("Date")
     ax.set_ylabel("Heat demand in MW")
-    plt.savefig(abs_path + '/plots/heat_demand.pdf', figsize=(12, 6), bbox_inches='tight')
+    plt.savefig(filename, figsize=(12, 6), bbox_inches='tight')
 
 
 def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
@@ -104,7 +97,7 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
         plt.show()
 
 
-def plot_dispatch(df):
+def plot_dispatch(df, filename):
     """
     """
     # preprocessing
@@ -127,10 +120,15 @@ def plot_dispatch(df):
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
 
     # save figure
-    fig.savefig(abs_path  + '/plots/' + 'dispatch_stack_plot.pdf', bbox_inches='tight', figsize=(12, 6))
+    fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
 
 
-def create_plots():
+def create_plots(results_dir):
+    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+    energysystem = solph.EnergySystem()
+    energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
+    energysystem_graph = graph.create_nx_graph(energysystem)
+
     node_color = { 'natural gas': '#19A8B8',
                    'ccgt': '#19A8B8',
                    'electricity': '#F9FF00',
@@ -143,14 +141,16 @@ def create_plots():
                    'heat_end': '#FF9900',
                    'shortage_heat': '#FF0000',
                    'demand_heat': '#eeac7e'}
-    draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path + '/plots/' + 'es_graph.pdf',
+    draw_graph(energysystem_graph, plot=False, store=True, filename=results_dir + '/plots/' + 'es_graph.pdf',
                node_size=5000, edge_color='k',
                node_color=node_color)
     rcParams['figure.figsize'] = [10.0, 10.0]
 
-    plot_heat_demand()
+    demand = pd.read_csv(results_dir + '/data_preprocessed/' + 'demand_heat.csv')
+    plot_heat_demand(demand, filename=results_dir + '/plots/heat_demand.pdf')
+
     node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
-    plot_dispatch(node_results_bel)
+    plot_dispatch(node_results_bel, filename=results_dir + '/plots/' + 'dispatch_stack_plot.pdf')
 
 
 if __name__ == '__main__':

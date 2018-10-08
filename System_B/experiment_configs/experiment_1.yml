@@ -1,4 +1,4 @@
-debug: False
+debug: True
 solver: 'cbc'
 
 demand_heat:
