@@ -1,7 +1,7 @@
 Data references
 ===============
 
-The DIW data documenation contains data on technology properties and costs :cite:`Schroder2013`
+The DIW data documentation on electricity generation contains data on technology properties and costs :cite:`Schroder2013`.
 
 
 .. rubric:: References
