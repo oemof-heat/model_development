@@ -10,7 +10,8 @@ import subprocess
 
 from preprocess import prepare_timeseries
 from model_dessau import run_model_dessau
-import plot
+from postprocess import postprocess
+from plot import create_plots
 
 
 experiment_cfg = 'experiment_1.yml'
@@ -45,12 +46,11 @@ run_model_dessau(config_path="/experiment_configs/" + experiment_cfg, results_di
 
 # Postprocessing
 logging.info('Postprocess data')
+postprocess()
 
 # Plotting
 logging.info('Create plots')
-plot.create_plots(results_dir)
-
-# Create a table of the scenario
+create_plots(results_dir)
 
 
 # Build the report

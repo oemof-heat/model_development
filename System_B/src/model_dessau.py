@@ -179,6 +179,7 @@ def run_model_dessau(config_path, results_dir):
 
     energysystem.results['main'] = processing.results(om)
     energysystem.results['meta'] = processing.meta_results(om)
+    energysystem.results['param'] = processing.parameter_as_dict(om)
     energysystem.dump(dpath=results_dir + '/optimisation_results', filename='es.dump')
 
 if __name__ == '__main__':
