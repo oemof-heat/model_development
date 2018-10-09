@@ -138,13 +138,21 @@ energysystem.add(solph.Sink(label='demand_el', inputs={bel: solph.Flow(
 energysystem.add(solph.Sink(label='demand_th', inputs={bth: solph.Flow(
     actual_value=data['demand_th'], fixed=True, nominal_value=1000)}))  # [MW_th]
 
-energysystem.add(solph.Transformer(
-    label="CHP",
+# energysystem.add(solph.Transformer(
+#     label="CHP",
+#     inputs={bgas: solph.Flow()},
+#     outputs={bel: solph.Flow(variable_costs=1,
+#     investment=solph.Investment(ep_costs=epc_CHP)),  # [MW_th], [-]
+#     bth: solph.Flow(variable_costs=1)},  # [MW_el], [-]
+#     conversion_factors={bel: 0.60, bth: 0.25}))  # eta_el=60% und Brennstoffausnutzungsgrad omega = 85% --> eta_th=25%
+
+energysystem.add(solph.components.ExtractionTurbineCHP(
+    label='CHP',
     inputs={bgas: solph.Flow()},
     outputs={bel: solph.Flow(variable_costs=1,
-                             investment=solph.Investment(ep_costs=epc_CHP)),  # [MW_th], [-]
-             bth: solph.Flow(variable_costs=1)},  # [MW_el], [-]
-    conversion_factors={bel: 0.60, bth: 0.25}))  # eta_el=60% und Brennstoffausnutzungsgrad omega = 85% --> eta_th=25%
+    investment=solph.Investment(ep_costs=epc_CHP)), bth: solph.Flow()},
+    conversion_factors={bel: 0.3, bth: 0.5},
+    conversion_factor_full_condensation={bel: 0.6}))
 
 energysystem.add(solph.Transformer(
     label='boiler',
