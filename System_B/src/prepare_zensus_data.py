@@ -2,49 +2,54 @@ import pandas as pd
 import requests
 import os
 import numpy as np
+
 # Amtlicher Gemeindeschluessel:
 # https://www.riserid.eu/data/user_upload/downloads/info-pdf.s/Diverses/Liste-Amtlicher-Gemeindeschluessel-AGS-2015.pdf
 # Dessau Rosslau: 15001000
 
-
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
+def download_zensus_data():
+    """
+    Queries the zensus database and saves the result to data_raw
+    """
+    try:
+        url = 'https://ergebnisse.zensus2011.de/auswertungsdb/download?csv=dynTable&tableHash=statUnit=WOHNUNG;absRel=ANZAHL;ags=150010000000;agsAxis=X;yAxis=BAUJAHR_MZ,ZAHLWOHNGN_HHG,WOHNFLAECHE_10S&locale=DE'
+        r = requests.get(url)
+        open(abs_path + '/data_raw/zensus_alter_anzahlwohnungen_flaeche_anzahl.csv', 'wb').write(r.content)
+    except:
+        print('Download failed')
 
-def get_zensus_data():
-    # Einige Abfragen der zensus Datenbank:
-    # get
-    url = 'https://ergebnisse.zensus2011.de/auswertungsdb/download?csv=dynTable&tableHash=statUnit=GEBAEUDE;absRel=ANZAHL;ags=150010000000;agsAxis=X;yAxis=GEBAEUDEART_SYS,BAUJAHR_MZ,GEBTYPBAUWEISE,ZAHLWOHNGN_HHG&locale=DE'
-    r = requests.get(url)
-    open(abs_path + '/data/raw/zensus_1.csv', 'wb').write(r.content)
 
-    # get
-    url = 'https://ergebnisse.zensus2011.de/auswertungsdb/download?csv=dynTable&tableHash=statUnit=GEBAEUDE;absRel=ANZAHL;ags=150010000000;agsAxis=X;yAxis=HEIZTYP,BAUJAHR_MZ,GEBTYPGROESSE&locale=DE'
-    r = requests.get(url)
-    open(abs_path + '/data/raw/zensus_2.csv', 'wb').write(r.content)
+def calculate_area_statistics():
+    """
+    Calculates the total area by building type and age
 
-    # get (this one is not the same as shown in the excel of Marcus)
-    url = 'https://ergebnisse.zensus2011.de/#dynTable:statUnit=GEBAEUDE;absRel=ANZAHL;ags=15082,15091,150010000000;agsAxis=X;yAxis=ZAHLWOHNGN_HHG,BAUJAHR_MZ'
-    r = requests.get(url)
-    open(abs_path + '/data/raw/zensus_3.csv', 'wb').write(r.content)
+    """
+    zensus_data = pd.read_csv(abs_path + '/data_raw/zensus_alter_anzahlwohnungen_flaeche_anzahl.csv',
+                                  delimiter=';', skiprows=6, skipfooter=7, encoding='ISO-8859-14',
+                                  names=['Baujahr', 'Gebauede_Anzahl_Wohnungen', 'Groesse_m2', 'Anzahl'])
 
-    # get
-    url = 'https://ergebnisse.zensus2011.de/#dynTable:statUnit=WOHNUNG;absRel=ANZAHL;ags=150010000000,150820005005,150820015015,150820180180,150820241241,150820256256,150820301301,150820340340,150820377377,150820430430,150820440440,150910010010,150910020020,150910060060,150910110110,150910145145,150910160160,150910241241,150910375375,150910391391;agsAxis=X;yAxis=BAUJAHR_MZ,WOHNFLAECHE_20S'
-    r = requests.get(url)
-    open(abs_path + '/data/raw/zensus_4.csv', 'wb').write(r.content)
+    # clean data
+    zensus_data['Groesse_m2'] = zensus_data['Groesse_m2'].str[-3:].replace(['ehr','amt'], np.nan).astype('float')
+    zensus_data['Anzahl'] = zensus_data['Anzahl'].str.replace('(', '').str.replace(')', '').replace(['-'], np.nan).astype('float')
+    # calculate total area
+    zensus_data['area'] = zensus_data['Anzahl'] * zensus_data['Groesse_m2']
+    # save the result
+    zensus_data.to_csv(abs_path + '/data_raw/area.csv')
+    print(zensus_data.groupby(['Baujahr', 'Gebauede_Anzahl_Wohnungen'])['area'].sum())
+    print(zensus_data.groupby(['Baujahr', 'Gebauede_Anzahl_Wohnungen'])['area'].sum().unstack())
+    print(zensus_data['Baujahr'].unique())
 
-    # get
-    url = 'https://ergebnisse.zensus2011.de/auswertungsdb/download?csv=dynTable&tableHash=statUnit=WOHNUNG;absRel=ANZAHL;ags=150010000000;agsAxis=X;yAxis=BAUJAHR_MZ,ZAHLWOHNGN_HHG,WOHNFLAECHE_10S&locale=DE'
-    r = requests.get(url)
-    open(abs_path + '/data/raw/zensus_alter_anzahlwohnungen_flaeche_anzahl.csv', 'wb').write(r.content)
 
-get_zensus_data()
+def calculate_annual_heat_demand():
+    heat_demand_per_area = pd.read_csv(abs_path + '/data_raw/dena_heat_demand_per_area.csv', index_col='year')
+    print(heat_demand_per_area)
 
-zensus_shortcut = pd.read_csv(abs_path + '/data/raw/zensus_alter_anzahlwohnungen_flaeche_anzahl.csv', delimiter=';', skiprows=6, encoding='ISO-8859-14', names=['Baujahr', 'Gebauede_Anzahl_Wohnungen', 'Groesse_m2', 'Anzahl'])
-zensus_shortcut['area_per_flat'] = zensus_shortcut['Groesse_m2'].str[-3:].replace(['ehr','amt'], np.nan).astype('float')
-zensus_shortcut['area'] = zensus_shortcut['Anzahl'].str.replace('(', '').str.replace(')', '').replace(['-'], np.nan).astype('float') * zensus_shortcut['area_per_flat']
-zensus_shortcut.to_csv(abs_path + '/data/raw/area.csv')
-print(zensus_shortcut.groupby(['Baujahr', 'Gebauede_Anzahl_Wohnungen'])['area'].sum())
 
+download_zensus_data()
+calculate_area_statistics()
+calculate_annual_heat_demand()
 
 
 # filename = '/home/local/RL-INSTITUT/jann.launer/Desktop/oemof_repos/oemof_heat/System_B/data/raw/csv_GebaudeWohnungen/Zensus11_Datensatz_Gebaeude.csv'
