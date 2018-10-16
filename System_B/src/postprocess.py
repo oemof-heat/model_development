@@ -26,8 +26,7 @@ import oemof.outputlib as outputlib
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
-energysystem = solph.EnergySystem()
-energysystem.restore(dpath=abs_path + '/model_runs/experiment_1'+ '/optimisation_results', filename='es.dump')
+
 
 
 # def get_variable_costs():
@@ -48,7 +47,7 @@ energysystem.restore(dpath=abs_path + '/model_runs/experiment_1'+ '/optimisation
 
 # Create a table of the scenario
 
-def print_summed_heat():
+def print_summed_heat(energysystem):
     heat_prim = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
     heat_to_storage = (('heat_prim', 'storage_heat'), 'flow')
     heat_to_dhn = (('heat_prim', 'dhn_prim'), 'flow')
@@ -65,12 +64,14 @@ def print_summed_heat():
     print('heat_end to demand_heat', sink[(('heat_end', 'demand_heat'), 'flow')].sum())
 
 
-def get_param_as_dict():
+def get_param_as_dict(energysystem):
     param = energysystem.results['param']
 
 def postprocess():
-    print_summed_heat()
-    get_param_as_dict()
+    energysystem = solph.EnergySystem()
+    energysystem.restore(dpath=abs_path + '/model_runs/experiment_1' + '/optimisation_results', filename='es.dump')
+    print_summed_heat(energysystem)
+    get_param_as_dict(energysystem)
 
 if __name__ == '__main__':
     postprocess()
