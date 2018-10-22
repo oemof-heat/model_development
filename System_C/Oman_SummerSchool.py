@@ -12,6 +12,20 @@ System C: concrete example: Model of cooling process with a solar collector
 # Preamble #
 ############
 
+# Input nominal values and nominal capacities and prices
+nv_pv =  90 # kW_peak
+nv_collector = 360 # m^2
+nv_ACM = 100  # kW_cool
+nv_CCM = 120  # kW_cool
+nv_boiler = 70  # kW_heat
+nv_CT = 1000  # kW_input
+nc_cool = 400  # kWh
+nc_heat = 200  # kWh
+nc_elec = 100  # kWh
+p_elec_buy = 0.10  # Euro/kWh
+p_elec_sell = 0  # Euro/kWh
+p_gas = 0.04  # Euro/kWh
+
 # Import packages
 from oemof.tools import logger
 import oemof.solph as solph
@@ -28,7 +42,7 @@ try:
 except ImportError:
     plt = None
 
-number_of_time_steps = 50
+number_of_time_steps = 8760
 
 # initiate the logger
 logger.define_logging(logfile='oemof_example.log',
@@ -56,62 +70,80 @@ energysystem = solph.EnergySystem(timeindex=date_time_index)
 bh = solph.Bus(label='heat')
 bc = solph.Bus(label="cool")
 bwh = solph.Bus(label="waste")
-bel = solph.Bus(label="electricity")
+bwh2 = solph.Bus(label="waste2")
+bel = solph.Bus(label="elec")
 bgas = solph.Bus(label="gas")
 
-energysystem.add(bh, bc, bwh, bel, bgas)
+energysystem.add(bh, bc, bwh, bwh2, bel, bgas)
 
 # Sources and sinks
 
 pv = solph.Source(
         label='pv',
         outputs={bel: solph.Flow(fixed=True,
-                                 actual_value=data['solar gain kWprom2'],
-                                 nominal_value=100)})
+                                 actual_value=data['PV Faktor'],
+                                 nominal_value=nv_pv)})
 
 collector = solph.Source(label='collector', outputs={bh: solph.Flow(
-                            fixed=True, actual_value=data['solar gain kWprom2'],
-                            nominal_value=100)})         # investment muss raus
+                            fixed=True,
+                            actual_value=data['solar gain kWprom2'],
+                            nominal_value=nv_collector)})
 gas_grid = solph.Source(
-        label='naturalgas', outputs={bgas: solph.Flow(variable_costs=100)})
+        label='naturalgas', outputs={bgas: solph.Flow(variable_costs=p_gas)})
 
 el_grid = solph.Source(
-        label='el_grid', outputs={bel: solph.Flow(variable_costs=100)})
+        label='el_grid', outputs={bel: solph.Flow(variable_costs=p_elec_buy)})
+
+cool_shortage = solph.Source(
+        label='shortage', outputs={bc: solph.Flow(variable_costs=10000)})
 
 demand = solph.Sink(
-        label='cool_demand',
-        inputs={bc: solph.Flow(fixed=True, actual_value=data['Cooling load kW'],
+        label='demand',
+        inputs={bc: solph.Flow(fixed=True,
+                               actual_value=data['Cooling load kW'],
                                nominal_value=1)})
 
-cool_tower = solph.Sink(
-        label='cool_tower', inputs={bwh: solph.Flow(variable_costs=10)})
+ambience = solph.Sink(label='ambience', inputs={bwh2: solph.Flow()})
 
 el_output = solph.Sink(
-        label='el_output', inputs={bel: solph.Flow(variable_costs=-5)})
+        label='el_output',
+        inputs={bel: solph.Flow(variable_costs=p_elec_sell)})
 
-energysystem.add(pv, collector, gas_grid, el_grid, demand, cool_tower)
+excess_heat = solph.Sink(
+        label='ex_heat',
+        inputs={bh: solph.Flow()})
+
+energysystem.add(pv, collector, gas_grid, el_grid, cool_shortage, demand,
+                 ambience, excess_heat)
 
 # Transformers
+
+CT = solph.Transformer(
+        label='cooling_tower',
+        inputs={bwh: solph.Flow(nominal_value=nv_CT), bel: solph.Flow()},
+        outputs={bwh2: solph.Flow()},
+        conversion_factors={bwh: 0.988, bel: 0.012,
+                            bwh2: 1})
 
 ACM = solph.Transformer(
         label='absorpion_chiller',
         inputs={bh: solph.Flow()},
-        outputs={bc: solph.Flow(investment=solph.Investment(ep_costs=10)), bwh: solph.Flow()},
-        conversion_factors={bc: 0.3, bwh: 0.7})
+        outputs={bc: solph.Flow(nominal_value=nv_ACM), bwh: solph.Flow()},
+        conversion_factors={bc: 0.7, bwh: 1.7})
 
 CCM = solph.Transformer(
         label='compression_chiller',
         inputs={bel: solph.Flow()},
-        outputs={bc: solph.Flow(investment=solph.Investment(ep_costs=100)), bwh: solph.Flow()},
-        conversion_factors={bc: 3, bwh: 0.5})
+        outputs={bc: solph.Flow(nominal_value=nv_CCM), bwh: solph.Flow()},
+        conversion_factors={bc: 3.5, bwh: 4.5})
 
 boiler = solph.Transformer(
         label='boiler',
         inputs={bgas: solph.Flow()},
-        outputs={bh: solph.Flow(investment=solph.Investment(ep_costs=100))},
+        outputs={bh: solph.Flow(nominal_value=nv_boiler)},
         conversion_factors={bgas: 0.95})
 
-energysystem.add(ACM, CCM, boiler)
+energysystem.add(CT, ACM, CCM, boiler)
 
 # storages
 
@@ -120,34 +152,32 @@ stor_cool = solph.components.GenericStorage(
         inputs={bc: solph.Flow()},
         outputs={bc: solph.Flow()},
         capacity_loss=0.005,
-        nominal_input_capacity_ratio=1/6,
-        nominal_output_capacity_ratio=1/6,
-        inflow_conversion_factor=0.9,
-        outflow_conversion_factor=0.9,
-        investment=solph.Investment(ep_costs=29.05))
+        inflow_conversion_factor=0.95,
+        outflow_conversion_factor=0.95,
+        nominal_capacity=nc_cool,
+        initial_capacity=0,
+        )
 
 stor_heat = solph.components.GenericStorage(
         label='storage_heat',
-        inputs={bh: solph.Flow()},
+        inputs={bh: solph.Flow(nominal_value=(nc_heat/2))},
         outputs={bh: solph.Flow()},
-        capacity_loss=0.005,
-        nominal_input_capacity_ratio=1/6,
-        nominal_output_capacity_ratio=1/6,
-        inflow_conversion_factor=0.9,
-        outflow_conversion_factor=0.9,
-        investment=solph.Investment(ep_costs=0.0001)
+        capacity_loss=0.01,
+        inflow_conversion_factor=0.95,
+        outflow_conversion_factor=0.95,
+        nominal_capacity=nc_heat,
+        initial_capacity=0,
         )
 
 battery = solph.components.GenericStorage(
         label='storage_el',
         inputs={bel: solph.Flow()},
         outputs={bel: solph.Flow()},
-        capacity_loss=0.005,
-        nominal_input_capacity_ratio=1/6,
-        nominal_output_capacity_ratio=1/6,
-        inflow_conversion_factor=0.9,
+        capacity_loss=0.0,
+        inflow_conversion_factor=1,
         outflow_conversion_factor=0.9,
-        investment=solph.Investment(ep_costs=0.0001)
+        nominal_capacity=nc_elec,
+        initial_capacity=0,
         )
 
 energysystem.add(stor_cool, battery, stor_heat)
@@ -178,8 +208,8 @@ energysystem.results['param'] = outputlib.processing.param_results(om)
 
 # store the results to plot them in other file
 timestr = time.strftime("%Y%m%d-%H%M")
-energysystem.dump(dpath="C:\Git_clones\oemof_heat\Dumps",
+energysystem.dump(dpath="Dumps",
                   filename="Oman_SS"+timestr+".oemof")
 
-print(energysystem.results['main'])
+# print(energysystem.results['main'])
 print("done")
