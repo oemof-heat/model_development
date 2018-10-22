@@ -38,13 +38,15 @@ energysystem.restore(dpath=abs_path + '/model_runs/experiment_1'+ '/optimisation
 # def get_minimal Production():
 # def get_full load hours():
 # def get_start count():
-#
+
+# def get_load_duration_curves():
 # def get_coverage_through_renewables():
 # def get_summed_excess():
 # def get_max_excess():
 # def get_summed_import():
 # def get_max_import():
 # def get_emmission():
+
 
 # Create a table of the scenario
 
