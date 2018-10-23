@@ -84,7 +84,7 @@ except ImportError:
 
 solver = 'cbc'
 debug = False  # Set number_of_timesteps to 3 to get a readable lp-file.
-number_of_time_steps = 8760  # 24*7*8  # 8 weeks, every hour
+number_of_time_steps = 3  # 24*7*8  # 8 weeks, every hour
 solver_verbose = False  # show/hide solver output
 
 # initiate the logger (see the API docs for more information)
@@ -126,47 +126,86 @@ bth = solph.Bus(label='heat')
 
 energysystem.add(bgas, bel, bth)
 
-# Costs with capex in Euro/MWh, lifetime in years and wacc in [-]
-epc_CHP = economics.annuity(650000, 20, 0.07)  # CHP (gas) [Euro/MWh_el]
-epc_storage_th = economics.annuity(2000, 20, 0.07)
-epc_storage_el = economics.annuity(200000, 20, 0.07)
-epc_boiler = economics.annuity(90000, 20, 0.07)  # Conventional boiler (gas) [Euro/MWh_th]
-# epc_PtH = economics.annuity(100000, 20, 0.07)  # Electrical boiler (P2H) [Euro/MWh_el]
+# Parameters for invest option
+epc_CHP = economics.annuity(
+    param_value['capex_chp'],
+    param_value['life_time_chp'],
+    param_value['wacc_chp'])
+epc_storage_th = economics.annuity(
+    param_value['capex_storage_th'],
+    param_value['life_time_storage_th'],
+    param_value['wacc_storage_th'])
+epc_storage_el = economics.annuity(
+    param_value['capex_storage_el'],
+    param_value['life_time_storage_el'],
+    param_value['wacc_storage_el'])
+epc_boiler = economics.annuity(
+    param_value['capex_boiler'],
+    param_value['life_time_boiler'],
+    param_value['wacc_boiler'])
+epc_PtH = economics.annuity(
+    param_value['capex_pth'],
+    param_value['life_time_pth'],
+    param_value['wacc_pth'])
 
-energysystem.add(solph.Sink(label='excess_bel', inputs={bel: solph.Flow(variable_costs=0)}))
-energysystem.add(solph.Sink(label='excess_bth', inputs={bth: solph.Flow(variable_costs=0)}))
-energysystem.add(solph.Source(label='shortage_bel', outputs={bel: solph.Flow(variable_costs=1000000)}))
-energysystem.add(solph.Source(label='shortage_bth', outputs={bth: solph.Flow(variable_costs=1000000)}))
-energysystem.add(solph.Source(label='rgas', outputs={bgas: solph.Flow(
-    nominal_value=100000, summed_max=1e8, variable_costs=22)}))  # [MWh_th], [EUR/MWh_th]
-energysystem.add(solph.Source(label='residual_el', outputs={bel: solph.Flow(
-    actual_value=data['neg_residual'], nominal_value=150, fixed=True)}))  # [MW_el], [EUR/MWh_el]
-energysystem.add(solph.Sink(label='demand_el', inputs={bel: solph.Flow(
-    actual_value=data['demand_el'], fixed=True, nominal_value=1200)}))  # [MW_el]
-energysystem.add(solph.Sink(label='demand_th', inputs={bth: solph.Flow(
-    actual_value=data['demand_th'], fixed=True, nominal_value=1000)}))  # [MW_th]
+# Sources and sinks
+energysystem.add(solph.Sink(
+    label='excess_bel',
+    inputs={bel: solph.Flow(variable_costs=param_value['var_costs_excess_bel'])}))
+energysystem.add(solph.Sink(
+    label='excess_bth',
+    inputs={bth: solph.Flow(variable_costs=param_value['var_costs_excess_bth'])}))
+energysystem.add(solph.Source(
+    label='shortage_bel',
+    outputs={bel: solph.Flow(variable_costs=param_value['var_costs_shortage_bel'])}))
+energysystem.add(solph.Source(
+    label='shortage_bth',
+    outputs={bth: solph.Flow(variable_costs=param_value['var_costs_shortage_bth'])}))
+energysystem.add(solph.Source(
+    label='rgas',
+    outputs={bgas: solph.Flow(nominal_value=param_value['nom_val_gas'],
+                              summed_max=param_value['sum_max_gas'],
+                              variable_costs=param_value['var_costs_gas'])}))
+energysystem.add(solph.Source(
+    label='residual_el',
+    outputs={bel: solph.Flow(actual_value=data['neg_residual'],
+                             nominal_value=param_value['nom_val_neg_residual'],
+                             fixed=True)}))
+energysystem.add(solph.Sink(
+    label='demand_el',
+    inputs={bel: solph.Flow(actual_value=data['demand_el'],
+                            nominal_value=param_value['nom_val_demand_el'],
+                            fixed=True)}))
+
+energysystem.add(solph.Sink(
+    label='demand_th',
+    inputs={bth: solph.Flow(actual_value=data['demand_th'],
+                            nominal_value=param_value['nom_val_demand_th'],
+                            fixed=True)}))
 
 # energysystem.add(solph.Transformer(
 #     label="CHP",
 #     inputs={bgas: solph.Flow()},
-#     outputs={bel: solph.Flow(variable_costs=1,
-#     investment=solph.Investment(ep_costs=epc_CHP)),  # [MW_th], [-]
-#     bth: solph.Flow(variable_costs=1)},  # [MW_el], [-]
-#     conversion_factors={bel: 0.60, bth: 0.25}))  # eta_el=60% und Brennstoffausnutzungsgrad omega = 85% --> eta_th=25%
+#     outputs={bel: solph.Flow(variable_costs=param_value['var_costs_chp_out_el'],
+#                              investment=solph.Investment(ep_costs=epc_CHP)),
+#              bth: solph.Flow(variable_costs=param_value['var_costs_chp_out_th'])},
+#     conversion_factors={bel: param_value['conversion_factor_chp_bel'], bth: param_value['conversion_factor_chp_bth']}))
 
 energysystem.add(solph.components.ExtractionTurbineCHP(
-    label='CHP',
+    label="CHP",
     inputs={bgas: solph.Flow()},
-    outputs={bel: solph.Flow(variable_costs=1,
-    investment=solph.Investment(ep_costs=epc_CHP)), bth: solph.Flow()},
-    conversion_factors={bel: 0.3, bth: 0.5},
-    conversion_factor_full_condensation={bel: 0.6}))
+    outputs={bel: solph.Flow(variable_costs=param_value['var_costs_chp_out_el'],
+                             investment=solph.Investment(ep_costs=epc_CHP)),
+             bth: solph.Flow(variable_costs=param_value['var_costs_chp_out_th'])},
+    conversion_factors={bel: param_value['conversion_factor_chp_bel'], bth: param_value['conversion_factor_chp_bth']},
+    conversion_factor_full_condensation={bel: param_value['conv_factor_full_cond_chp']}))
 
 energysystem.add(solph.Transformer(
     label='boiler',
-    inputs={bgas: solph.Flow(investment=solph.Investment(ep_costs=epc_boiler))},
-    outputs={bth: solph.Flow(variable_costs=1)},
-    conversion_factors={bth: 0.9}))
+    inputs={bgas: solph.Flow()},
+    outputs={bth: solph.Flow(nominal_value=param_value['nom_val_boiler'],
+                             variable_costs=param_value['var_costs_boiler'])},
+    conversion_factors={bth: param_value['conversion_factor_boiler']}))
 
 energysystem.add(solph.Transformer(
     label='P2H',
