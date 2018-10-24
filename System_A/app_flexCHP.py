@@ -108,7 +108,7 @@ data = pd.read_csv(filename)
 # Read parameter values from data file
 ##########################################################################
 
-filename_param = 'parameter.csv'
+filename_param = 'data_public/parameter.csv'
 param_df = pd.read_csv(filename_param, header=2, index_col=1)  # uses second column of csv-file for indexing
 param_value = param_df['value']
 
