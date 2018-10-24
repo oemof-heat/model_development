@@ -10,5 +10,6 @@ data_output/
 *.png
 __pycache__
 .idea
-.xlsx
+*.xlsx
 */venv/*
+!*/data_public/*.csv
