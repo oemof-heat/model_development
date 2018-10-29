@@ -82,12 +82,12 @@ except ImportError:
 
 solver = 'cbc'
 debug = False  # Set number_of_timesteps to 3 to get a readable lp-file.
-number_of_time_steps = 8760  # 24*7*8  # 8 weeks, every hour
+number_of_time_steps = 8760
 periods = number_of_time_steps
-solver_verbose = False  # show/hide solver output
+solver_verbose = True  # show/hide solver output
 
 # initiate the logger (see the API docs for more information)
-logger.define_logging(logfile='flex_CHB_A1.log',
+logger.define_logging(logfile='flexCHB.log',
                       screen_level=logging.INFO,
                       file_level=logging.DEBUG)
 
@@ -98,19 +98,21 @@ date_time_index = pd.date_range('1/1/2030', periods=number_of_time_steps,
 energysystem = solph.EnergySystem(timeindex=date_time_index)
 
 # Read data file
-try:
-    filename = os.path.join(os.path.dirname(__file__), 'demand_profile_A_nominal_20180912.csv')
-except:
-    print('ERROR: __file__ is not defined')
-    filename = 'demand_profile_A_nominal_20180912.csv'
+abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+filename = abs_path + '/data_raw/data_confidential/demand_profile_A_nominal_20180912.csv'
+# try:
+#     filename = os.path.join(os.path.dirname(__file__), 'demand_profile_A_nominal_20180912.csv')
+# except:
+#     print('ERROR: __file__ is not defined')
+#     filename = '../data_raw/data_confidential/demand_profile_A_nominal_20180912.csv'
 data = pd.read_csv(filename)
 
 ##########################################################################
 # Read parameter values from data file
 ##########################################################################
 
-filename_param = 'data_public/parameter.csv'
-param_df = pd.read_csv(filename_param, index_col=1)  # uses second column of csv-file for indexing
+filename_param = abs_path + '/data_raw/data_public/parameters_A1.csv'
+param_df = pd.read_csv(filename_param, index_col=1)  # uses second column for indexing
 param_value = param_df['value']
 
 ##########################################################################
@@ -249,7 +251,7 @@ logging.info('Store the energy system with the results.')
 energysystem.results['main'] = outputlib.processing.results(model)
 energysystem.results['meta'] = outputlib.processing.meta_results(model)
 
-energysystem.dump(dpath="dumps", filename="flexCHB_A1_dumps.oemof")
+energysystem.dump(dpath=abs_path + "/results/dumps", filename="flexCHB.oemof")
 
 stop_time = timeit.default_timer()
 run_time_in_sec = stop_time - start_time

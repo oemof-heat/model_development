@@ -35,7 +35,9 @@ analyse = True
 
 # logging.info('Restore the energy system and the results.')
 energysystem = solph.EnergySystem()
-energysystem.restore(dpath="dumps", filename="flexCHB_A1_dumps.oemof")
+abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+filename = abs_path + '/data_raw/data_confidential/demand_profile_A_nominal_20180912.csv'
+energysystem.restore(dpath=abs_path + "/results/dumps", filename="flexCHB.oemof")
 
 # define an alias for shorter calls below (optional)
 results = energysystem.results['main']
