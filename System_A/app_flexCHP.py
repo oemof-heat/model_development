@@ -83,6 +83,7 @@ except ImportError:
 solver = 'cbc'
 debug = False  # Set number_of_timesteps to 3 to get a readable lp-file.
 number_of_time_steps = 8760  # 24*7*8  # 8 weeks, every hour
+periods = number_of_time_steps
 solver_verbose = False  # show/hide solver output
 
 # initiate the logger (see the API docs for more information)
@@ -160,15 +161,30 @@ energysystem.add(solph.Sink(
                             nominal_value=param_value['nom_val_demand_th'],
                             fixed=True)}))
 
-energysystem.add(solph.components.ExtractionTurbineCHP(
-    label="CHP",
-    inputs={bgas: solph.Flow()},
-    outputs={bel: solph.Flow(nominal_value=param_value['nom_val_chp_out_el'],
-                             variable_costs=param_value['var_costs_chp_out_el']),
-             bth: solph.Flow(nominal_value=param_value['nom_val_chp_out_th'],
-                             variable_costs=param_value['var_costs_chp_out_th'])},
-    conversion_factors={bel: param_value['conversion_factor_chp_bel'], bth: param_value['conversion_factor_chp_bth']},
-    conversion_factor_full_condensation={bel: param_value['conv_factor_full_cond_chp']}))
+# energysystem.add(solph.components.ExtractionTurbineCHP(
+#     label="CHP",
+#     inputs={bgas: solph.Flow()},
+#     outputs={bel: solph.Flow(nominal_value=param_value['nom_val_chp_out_el'],
+#                              variable_costs=param_value['var_costs_chp_out_el']),
+#              bth: solph.Flow(nominal_value=param_value['nom_val_chp_out_th'],
+#                              variable_costs=param_value['var_costs_chp_out_th'])},
+#     conversion_factors={bel: param_value['conversion_factor_chp_bel'], bth: param_value['conversion_factor_chp_bth']},
+#     conversion_factor_full_condensation={bel: param_value['conv_factor_full_cond_chp']}))
+
+#  combined_cycle_extraction_turbine
+energysystem.add(solph.components.GenericCHP(
+    label='CHP',
+    fuel_input={bgas: solph.Flow(
+        H_L_FG_share_max=[0.19 for p in range(0, periods)])},
+    electrical_output={bel: solph.Flow(
+        P_max_woDH=[200 for p in range(0, periods)],
+        P_min_woDH=[80 for p in range(0, periods)],
+        Eta_el_max_woDH=[0.53 for p in range(0, periods)],
+        Eta_el_min_woDH=[0.43 for p in range(0, periods)])},
+    heat_output={bth: solph.Flow(
+        Q_CW_min=[30 for p in range(0, periods)])},
+    Beta=[0.19 for p in range(0, periods)],
+    back_pressure=False))
 
 energysystem.add(solph.Transformer(
     label='boiler',
