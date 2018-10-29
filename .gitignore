@@ -12,4 +12,3 @@ __pycache__
 .idea
 *.xlsx
 */venv/*
-!*/data_public/*.csv
