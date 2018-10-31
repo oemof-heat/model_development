@@ -202,31 +202,36 @@ energysystem.add(solph.Transformer(
                              variable_costs=param_value['var_costs_p2h_out_bth'])},
     conversion_factors={bth: param_value['conversion_factor_p2h']}))
 
-storage_th = solph.components.GenericStorage(
-    nominal_capacity=param_value['nom_capacity_storage_th'],
-    label='storage_th',
-    inputs={bth: solph.Flow(nominal_value=param_value['nom_val_input_bth_storage_th'],
-                            variable_costs=param_value['var_costs_input_bth_storage_th'])},
-    outputs={bth: solph.Flow(nominal_value=param_value['nom_val_output_bth_storage_th'],
-                             variable_costs=param_value['var_costs_output_bth_storage_th'])},
-    capacity_loss=param_value['capacity_loss_storage_th'],
-    initial_capacity=param_value['init_capacity_storage_th'],
-    inflow_conversion_factor=param_value['inflow_conv_factor_storage_th'],
-    outflow_conversion_factor=param_value['outflow_conv_factor_storage_th'])
+if param_value['nom_capacity_storage_th'] > 0:
+    storage_th = solph.components.GenericStorage(
+        nominal_capacity=param_value['nom_capacity_storage_th'],
+        label='storage_th',
+        inputs={bth: solph.Flow(nominal_value=param_value['nom_val_input_bth_storage_th'],
+                                variable_costs=param_value['var_costs_input_bth_storage_th'])},
+        outputs={bth: solph.Flow(nominal_value=param_value['nom_val_output_bth_storage_th'],
+                                 variable_costs=param_value['var_costs_output_bth_storage_th'])},
+        capacity_loss=param_value['capacity_loss_storage_th'],
+        initial_capacity=param_value['init_capacity_storage_th'],
+        inflow_conversion_factor=param_value['inflow_conv_factor_storage_th'],
+        outflow_conversion_factor=param_value['outflow_conv_factor_storage_th'])
 
-storage_el = solph.components.GenericStorage(
-    nominal_capacity=param_value['nom_capacity_storage_el'],
-    label='storage_el',
-    inputs={bel: solph.Flow(nominal_value=param_value['nom_val_input_bel_storage_el'],
-                            variable_costs=param_value['var_costs_input_bel_storage_el'])},
-    outputs={bel: solph.Flow(nominal_value=param_value['nom_val_output_bel_storage_el'],
-                             variable_costs=param_value['var_costs_output_bel_storage_el'])},
-    capacity_loss=param_value['capacity_loss_storage_el'],
-    initial_capacity=param_value['init_capacity_storage_el'],
-    inflow_conversion_factor=param_value['inflow_conv_factor_storage_el'],
-    outflow_conversion_factor=param_value['outflow_conv_factor_storage_el'])
+    energysystem.add(storage_th)
 
-energysystem.add(storage_th, storage_el)
+
+if param_value['nom_capacity_storage_el'] > 0:
+    storage_el = solph.components.GenericStorage(
+        nominal_capacity=param_value['nom_capacity_storage_el'],
+        label='storage_el',
+        inputs={bel: solph.Flow(nominal_value=param_value['nom_val_input_bel_storage_el'],
+                                variable_costs=param_value['var_costs_input_bel_storage_el'])},
+        outputs={bel: solph.Flow(nominal_value=param_value['nom_val_output_bel_storage_el'],
+                                 variable_costs=param_value['var_costs_output_bel_storage_el'])},
+        capacity_loss=param_value['capacity_loss_storage_el'],
+        initial_capacity=param_value['init_capacity_storage_el'],
+        inflow_conversion_factor=param_value['inflow_conv_factor_storage_el'],
+        outflow_conversion_factor=param_value['outflow_conv_factor_storage_el'])
+
+    energysystem.add(storage_el)
 
 ##########################################################################
 # Optimise the energy system and plot the results
