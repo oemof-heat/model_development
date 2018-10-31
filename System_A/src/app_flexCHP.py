@@ -251,7 +251,7 @@ logging.info('Store the energy system with the results.')
 energysystem.results['main'] = outputlib.processing.results(model)
 energysystem.results['meta'] = outputlib.processing.meta_results(model)
 
-energysystem.dump(dpath=abs_path + "/results/dumps", filename="flexCHB.oemof")
+energysystem.dump(dpath=abs_path + "/results/optimisation_results/dumps", filename="flexCHB.oemof")
 
 stop_time = timeit.default_timer()
 run_time_in_sec = stop_time - start_time
