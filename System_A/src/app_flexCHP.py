@@ -25,13 +25,12 @@ The following energy system is modeled:
  P2H                 |          |        |------>|
                      |          |        |       |
                      |<---------|        |       |
- CHP(Transformer)    |------------------>|       |
+ CHP(genericCHP)    |------------------>|       |
                      |-------------------------->|
                      |          |        |       |
  storage_th(Storage) |<--------------------------|
                      |-------------------------->|
                      |          |        |       |
- O p t i o n a l
  battery (Storage)   |<------------------|       |
                      |------------------>|       |
 
@@ -100,6 +99,7 @@ energysystem = solph.EnergySystem(timeindex=date_time_index)
 # Read data file
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 filename = abs_path + '/data_raw/data_confidential/demand_profile_A_nominal_20180912.csv'
+#abs_path = 'C:/Users/jwolf/Documents/oemof_heat/System_A '
 # try:
 #     filename = os.path.join(os.path.dirname(__file__), 'demand_profile_A_nominal_20180912.csv')
 # except:
@@ -163,30 +163,33 @@ energysystem.add(solph.Sink(
                             nominal_value=param_value['nom_val_demand_th'],
                             fixed=True)}))
 
-# energysystem.add(solph.components.ExtractionTurbineCHP(
-#     label="CHP",
-#     inputs={bgas: solph.Flow()},
-#     outputs={bel: solph.Flow(nominal_value=param_value['nom_val_chp_out_el'],
-#                              variable_costs=param_value['var_costs_chp_out_el']),
-#              bth: solph.Flow(nominal_value=param_value['nom_val_chp_out_th'],
-#                              variable_costs=param_value['var_costs_chp_out_th'])},
-#     conversion_factors={bel: param_value['conversion_factor_chp_bel'], bth: param_value['conversion_factor_chp_bth']},
-#     conversion_factor_full_condensation={bel: param_value['conv_factor_full_cond_chp']}))
-
 #  combined_cycle_extraction_turbine
+# energysystem.add(solph.components.GenericCHP(
+#     label='CHP',
+#     fuel_input={bgas: solph.Flow(
+#         H_L_FG_share_max=[0.19 for p in range(0, periods)])},
+#     electrical_output={bel: solph.Flow(
+#         P_max_woDH=[1200 for p in range(0, periods)],
+#         P_min_woDH=[500 for p in range(0, periods)],
+#         Eta_el_max_woDH=[0.5 for p in range(0, periods)],
+#         Eta_el_min_woDH=[0.4 for p in range(0, periods)])},
+#     heat_output={bth: solph.Flow(
+#         Q_CW_min=[30 for p in range(0, periods)])},
+#     Beta=[0.15 for p in range(0, periods)],
+#     back_pressure=True))
 energysystem.add(solph.components.GenericCHP(
     label='CHP',
     fuel_input={bgas: solph.Flow(
-        H_L_FG_share_max=[0.19 for p in range(0, periods)])},
+        H_L_FG_share_max=[param_value['H_L_FG_share_max'] for p in range(0, periods)])},
     electrical_output={bel: solph.Flow(
-        P_max_woDH=[200 for p in range(0, periods)],
-        P_min_woDH=[80 for p in range(0, periods)],
-        Eta_el_max_woDH=[0.53 for p in range(0, periods)],
-        Eta_el_min_woDH=[0.43 for p in range(0, periods)])},
+        P_max_woDH=[param_value['P_max_woDH'] for p in range(0, periods)],
+        P_min_woDH=[param_value['P_min_woDH'] for p in range(0, periods)],
+        Eta_el_max_woDH=[param_value['Eta_el_max_woDH'] for p in range(0, periods)],
+        Eta_el_min_woDH=[param_value['Eta_el_min_woDH'] for p in range(0, periods)])},
     heat_output={bth: solph.Flow(
-        Q_CW_min=[30 for p in range(0, periods)])},
-    Beta=[0.19 for p in range(0, periods)],
-    back_pressure=False))
+        Q_CW_min=[param_value['Q_CW_min_chp'] for p in range(0, periods)])},
+    Beta=[param_value['Beta_chp'] for p in range(0, periods)],
+    back_pressure=True))
 
 energysystem.add(solph.Transformer(
     label='boiler',
