@@ -1,58 +1,16 @@
 debug: True
 solver: 'cbc'
 
-demand_heat:
-  #total_annual_demand: 232000 # MWh
+input_parameter: 'data_raw/input_parameter/input_parameter.csv'
+timeseries:
   timeseries_temperature: 'preprocessed/temperature.csv'
   timeseries_demand_heat: 'preprocessed/demand_heat.csv'
-  # TODO:
-  inhabitants: 86154
-  efh:
-      annual_demand:
-      building_class:
-      wind_class:
-  mfh:
-      annual_demand:
-      building_class:
-      wind_class:
-  industry:
-      annual_demand:
-      building_class:
-      wind_class:
-  nominal_value:
-
 
 # optimisation
 investment:
   invest_chp: False
   invest_pth: False
 
-wacc: 0.05
 
-prices:
-  gas: 0.035 # Eur/kWh
-  el: 0.05 # Eur/kWh
-  raw_data_timeseries_el:
-  timeseries_el: 'preprocessed/timeseries_electricity.csv'
-  heat_shortage: 500000 # unrealistically high, just to make the problem feasible
-
-# TODO
-emissions:
-  gas:
-  el:
-
-# TODO: Check
-ccgt:
-  capex: 480000 # Eur/kW
-  inv_period: 20
-  nominal_value: 29900 # kW
-
-power_to_heat:
-  capex: 250000 # Eur/kW
-  inv_period: 20
-  nominal_value: 5000 # kW
-
-storage_heat:
-  nominal_capacity: 600000 # kWh
-  capacity_loss: 0.
-  capex: 10 # Eur/kWh
+# inhabitants: 86154
+# total_annual_demand: 232000 # MWh
