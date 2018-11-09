@@ -10,7 +10,3 @@ timeseries:
 investment:
   invest_chp: False
   invest_pth: False
-
-
-# inhabitants: 86154
-# total_annual_demand: 232000 # MWh
