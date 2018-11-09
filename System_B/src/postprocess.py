@@ -69,9 +69,9 @@ def print_summed_heat(energysystem):
 def get_param_as_dict(energysystem):
     param = energysystem.results['param']
 
-def postprocess():
+def postprocess(results_dir):
     energysystem = solph.EnergySystem()
-    energysystem.restore(dpath=abs_path + '/model_runs/experiment_1' + '/optimisation_results', filename='es.dump')
+    energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
     print_summed_heat(energysystem)
     get_param_as_dict(energysystem)
 
