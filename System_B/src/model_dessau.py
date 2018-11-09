@@ -34,7 +34,7 @@ logger.define_logging()
 
 def run_model_dessau(config_path, results_dir):
 
-    with open(abs_path + config_path, 'r') as ymlfile:
+    with open(os.path.join(abs_path,config_path), 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
     if cfg['debug']:
@@ -97,7 +97,7 @@ def run_model_dessau(config_path, results_dir):
 
     if cfg['investment']['invest_pth']:
         energysystem.add(solph.Transformer(
-            label='power-to-heat',
+            label='power_to_heat',
             inputs={bel: solph.Flow(variable_costs=in_param['bel','price_el'])},
             outputs={bth_prim: solph.Flow(
                 investment=solph.Investment(
