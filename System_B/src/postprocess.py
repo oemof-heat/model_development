@@ -37,13 +37,15 @@ abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 # def get_minimal Production():
 # def get_full load hours():
 # def get_start count():
-#
+
+# def get_load_duration_curves():
 # def get_coverage_through_renewables():
 # def get_summed_excess():
 # def get_max_excess():
 # def get_summed_import():
 # def get_max_import():
 # def get_emmission():
+
 
 # Create a table of the scenario
 
@@ -67,9 +69,9 @@ def print_summed_heat(energysystem):
 def get_param_as_dict(energysystem):
     param = energysystem.results['param']
 
-def postprocess():
+def postprocess(results_dir):
     energysystem = solph.EnergySystem()
-    energysystem.restore(dpath=abs_path + '/model_runs/experiment_1' + '/optimisation_results', filename='es.dump')
+    energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
     print_summed_heat(energysystem)
     get_param_as_dict(energysystem)
 

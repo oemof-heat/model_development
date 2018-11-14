@@ -6,19 +6,26 @@ This script runs the whole workflow of the analysis
 from oemof.tools import logger
 import logging
 import os
+import sys
 import subprocess
+import warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 from preprocess import prepare_timeseries
 from model_dessau import run_model_dessau
 from postprocess import postprocess
 from plot import create_plots
 
-
-experiment_cfg = 'experiment_1.yml'
+try:
+    experiment_cfg = sys.argv[1]
+except:
+    print('Please specify which experiment config to run as a command line argument.')
+    sys.exit(1)
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
-results_dir = abs_path + '/model_runs/' + experiment_cfg.strip('.yml')
-
+config_filename = os.path.split(experiment_cfg)[1]
+results_dir = abs_path + '/model_runs/' + config_filename[:-4]
 
 if not os.path.exists(results_dir):
     print('yes')
@@ -42,11 +49,11 @@ logging.info('Load config file')
 
 # Run the optimisation model
 logging.info('Run optimisation model')
-run_model_dessau(config_path="/experiment_configs/" + experiment_cfg, results_dir=results_dir)
+run_model_dessau(config_path=experiment_cfg, results_dir=results_dir)
 
 # Postprocessing
 logging.info('Postprocess data')
-postprocess()
+postprocess(results_dir)
 
 # Plotting
 logging.info('Create plots')

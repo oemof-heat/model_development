@@ -87,7 +87,7 @@ def prepare_timeseries_price_electricity():
     pass
 
 def prepare_timeseries(results_dir):
-    temperature = prepare_timeseries_temperature('ninja_weather_51.8341_12.2374_uncorrected.csv', results_dir + '/data_preprocessed/temperature.csv')
+    temperature = prepare_timeseries_temperature('ninja_weather/ninja_weather_51.8341_12.2374_uncorrected.csv', results_dir + '/data_preprocessed/temperature.csv')
     prepare_timeseries_demand_heat(2010, None, temperature, results_dir + '/data_preprocessed/demand_heat.csv')
 
 if __name__ == '__main__':
