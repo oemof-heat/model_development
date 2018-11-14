@@ -29,8 +29,8 @@ except ImportError:
     plt = None
 
 energysystem = solph.EnergySystem()
-energysystem.restore(dpath="C:\Git_clones\oemof_heat\Dumps",
-                     filename="Oman_20180531-1509.oemof")
+energysystem.restore(dpath='dumps',
+                     filename='Oman.oemof')
 
 start_of_plot = 000
 end_of_plot = 100
@@ -38,7 +38,13 @@ sp = start_of_plot
 ep = end_of_plot
 
 results_strings = outputlib.views.convert_keys_to_strings(energysystem.results['main'])
-print(energysystem.results)
+print(energysystem.results['meta'])
+thermal_bus = outputlib.views.node(energysystem.results['main'], 'thermal')
+print(thermal_bus)
+print(outputlib.views.node(energysystem.results['main'], 'thermal')['sequences'][(('storage_thermal', 'thermal'), 'flow')])
+print(outputlib.views.node(energysystem.results['main'], 'thermal')['scalars'])
+# print(outputlib.views.node(energysystem.results['main'], 'cool')['sequences'][(('cool', 'demand'), 'flow')])
+# print(outputlib.views.node(energysystem.results['main'], 'storage_thermal'))
 logging.info('results received')
 
 #########################
@@ -106,19 +112,19 @@ cdict = {
     (('water', 'demand'), 'flow'): '#ff0000'}
 
 # define order of inputs and outputs
-
-fig = plt.figure(figsize=(20, 20))
-
-# plot thermal energy, high temperature
-thermal_seq_resample = thermal_seq.iloc[sp:ep]
-my_plot_th = oev.plot.io_plot(
-        'thermal_high', thermal_seq_resample, cdict=cdict,
-        ax=fig.add_subplot(4, 1, 1), smooth=False)
-
-ax_thh = shape_legend('thermal_high', **my_plot_th)
-oev.plot.set_datetime_ticks(ax_thh, thermal_seq_resample.index, tick_distance=148,
-                            date_format='%d-%m-%H', offset=1)
-
-ax_thh.set_ylabel('Power in kW')
-ax_thh.set_xlabel('2017')
-ax_thh.set_title("thermal bus")
+#
+# fig = plt.figure(figsize=(20, 20))
+#
+# # plot thermal energy, high temperature
+# thermal_seq_resample = thermal_seq.iloc[sp:ep]
+# my_plot_th = oev.plot.io_plot(
+#         'thermal_high', thermal_seq_resample, cdict=cdict,
+#         ax=fig.add_subplot(4, 1, 1), smooth=False)
+#
+# ax_thh = shape_legend('thermal_high', **my_plot_th)
+# oev.plot.set_datetime_ticks(ax_thh, thermal_seq_resample.index, tick_distance=148,
+#                             date_format='%d-%m-%H', offset=1)
+#
+# ax_thh.set_ylabel('Power in kW')
+# ax_thh.set_xlabel('2017')
+# ax_thh.set_title("thermal bus")
