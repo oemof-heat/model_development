@@ -1,2 +1,30 @@
+# Configuration for RET.Con-Paper
+# Date: Thu 22nd of November 2018
+# Author: Jakob Wolf (jakob.wolf@beuth-hochschule.de)
+
+run_preprocessing: True
+run_model: False
+run_postprocessing: False
+
 debug: True
 solver: 'cbc'
+solver_verbose: False
+
+# DATE AND TIME
+start_date: '1/1/2030'
+frequency: 'H'
+
+# FILE NAMES - WRITING
+filename_dumb: 'flexCHB.oemof'
+filename_lpfile: 'flexCHB.lp'
+filename_logfile: 'flexCHB.log'
+
+# FILE NAMES - READING
+parameters_energy_system: '/data_raw/data_public/parameters_01.csv'
+parameters_load_profile: '/data_raw/data_public/parameters_load_profile_01.csv'
+time_series_loads: '/data_raw/data_confidential/time_series_60min_singleindex.csv'
+# technology_specifications_file_name: 'MCC Technologieoptionen mit Parametern V1_3.xlsx'
+
+# PREPROCESSED DATA
+demand_time_series: '/data_raw/data_confidential/demand_profile_A_nominal_20180912.csv'
+# weather_time_series: 'weather_time_series.csv'
