@@ -21,6 +21,7 @@ import datetime
 import os
 from workalendar.europe import Germany
 import yaml
+import helpers
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
@@ -105,4 +106,5 @@ def prepare_timeseries(config_path, results_dir):
     prepare_timeseries_demand_heat(2014, None, temperature, os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
 
 if __name__ == '__main__':
-    prepare_timeseries()
+    config_path, results_dir = helpers.setup_experiment()
+    prepare_timeseries(config_path, results_dir)
