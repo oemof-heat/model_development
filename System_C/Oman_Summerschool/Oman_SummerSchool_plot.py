@@ -32,7 +32,7 @@ except ImportError:
 #####################################
 
 # file to Import:
-file_imp = 'Oman_SS20181011-1000.oemof'
+file_imp = 'Oman_SS20181029-1624.oemof'
 
 # Weighted average cost of capital
 wacc = 0.07
