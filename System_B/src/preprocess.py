@@ -76,8 +76,7 @@ def prepare_timeseries_demand_heat(year, building_types, temperature, output_fil
         name='ghd').get_bdew_profile()
 
     # save heat demand time series
-    demand.to_csv(output_file)
-    print(demand['efh'].sum(), demand['efh'][0])
+    demand['efh'].to_csv(output_file)
 
 def prepare_timeseries_price_gas():
     # prepare gas price time series

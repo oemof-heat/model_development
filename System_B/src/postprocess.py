@@ -24,6 +24,7 @@ import pandas as pd
 import oemof.solph as solph
 import oemof.outputlib as outputlib
 import yaml
+import helpers
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
@@ -83,5 +84,8 @@ def postprocess(config_path, results_dir):
     get_param_as_dict(energysystem)
 
 if __name__ == '__main__':
-    postprocess()
+    config_path, results_dir = helpers.setup_experiment()
+    postprocess(config_path, results_dir)
+
+
 

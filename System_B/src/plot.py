@@ -19,6 +19,7 @@ import oemof.solph as solph
 import oemof.outputlib as outputlib
 import networkx as nx
 import yaml
+import helpers
 
 
 def plot_heat_demand(df, filename):
@@ -159,5 +160,6 @@ def create_plots(config_path, results_dir):
 
 
 if __name__ == '__main__':
-    create_plots()
+    config_path, results_dir = helpers.setup_experiment()
+    create_plots(config_path, results_dir)
 
