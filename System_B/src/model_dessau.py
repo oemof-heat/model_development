@@ -36,7 +36,7 @@ logger.define_logging()
 def run_model_dessau(config_path, results_dir):
 
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
-    with open(os.path.join(abs_path,config_path), 'r') as ymlfile:
+    with open(config_path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
     # load input parameter

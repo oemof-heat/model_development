@@ -93,7 +93,7 @@ def prepare_timeseries_price_electricity():
 def prepare_timeseries(config_path, results_dir):
     # open config
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
-    with open(os.path.join(abs_path,config_path), 'r') as ymlfile:
+    with open(config_path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
     # temperature

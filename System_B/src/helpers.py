@@ -13,6 +13,9 @@ def setup_experiment():
         Absolute path to results directory
 
     """
+
+    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+
     # take command line arguments
     try:
         config_path = sys.argv[1]
@@ -20,8 +23,10 @@ def setup_experiment():
         print('Please specify which experiment config to run as a command line argument.')
         sys.exit(1)
 
+    # Get absolute path of config file.
+    config_path = os.path.abspath(config_path)
+
     # define path for results
-    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
     config_filename = os.path.split(config_path)[1]
     results_dir = abs_path + '/model_runs/' + config_filename[:-4]
 
