@@ -53,7 +53,11 @@ def preprocess_heat_feedin_timeseries():
         # add it to the year profile
         heat_profile_dessau = pd.concat([heat_profile_dessau, heat_profile_month], sort=False)
 
-    return heat_profile_dessau['Q:MW']
+    heat_profile_dessau = heat_profile_dessau['Q:MW'] * 1000
+    heat_profile_dessau.columns = ['Q:kW']
+    heat_profile_dessau = heat_profile_dessau.resample('1H').mean().interpolate(method='linear')
+
+    return heat_profile_dessau
 
 
 def plot_compare_heat_profiles(experiment_cfg, results_dir):
@@ -67,12 +71,15 @@ def plot_compare_heat_profiles(experiment_cfg, results_dir):
     print(os.path.join(results_dir, 'data_preprocessed/demand_heat.csv'))
     demand_heat = pd.read_csv(os.path.join(results_dir, 'data_preprocessed/demand_heat.csv'), index_col=0,
         parse_dates=True)
-    heat_profile = pd.read_csv(os.path.join(results_dir, 'data_preprocessed/heat_profile_dessau.csv'))
+    heat_profile = pd.read_csv(os.path.join(results_dir, 'data_preprocessed/heat_profile_dessau.csv'),
+                               names=['feedin_heat'], index_col=0, parse_dates=True)
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 5))
-    ax1.plot(heat_profile['Q:MW'])
-    ax2.plot(demand_heat['efh'].resample('1D').min())
-    ax2.plot(demand_heat['efh'].resample('1D').max())
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 5))
+    ax1.plot(heat_profile.resample('1D').min())
+    ax1.plot(heat_profile.resample('1D').max())
+    ax2.plot(demand_heat.resample('1D').min())
+    ax2.plot(demand_heat.resample('1D').max())
+    ax3.plot(heat_profile['2017-1-2 01:00:00':'2017-3-1 01:00:00'])
     plt.show()
 
     return None
