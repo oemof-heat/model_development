@@ -23,12 +23,14 @@ except:
     print('Please specify which experiment config to run as a command line argument.')
     sys.exit(1)
 
+# define path for results
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 config_filename = os.path.split(experiment_cfg)[1]
 results_dir = abs_path + '/model_runs/' + config_filename[:-4]
 
+# create results directory if it does not exist
 if not os.path.exists(results_dir):
-    print('yes')
+    logging.info('Create directories')
     os.makedirs(results_dir + '/data_preprocessed')
     os.makedirs(results_dir + '/optimisation_results')
     os.makedirs(results_dir + '/postprocessed')
@@ -39,10 +41,7 @@ logger.define_logging(logpath=results_dir + '/optimisation_results')
 
 # Preproccessing
 logging.info('Preprocess data')
-prepare_timeseries(results_dir)
-
-# Load config file for scenario
-logging.info('Load config file')
+prepare_timeseries(config_path=experiment_cfg, results_dir=results_dir)
 
 # run tests
 # logging.info('Perform tests')
@@ -53,13 +52,12 @@ run_model_dessau(config_path=experiment_cfg, results_dir=results_dir)
 
 # Postprocessing
 logging.info('Postprocess data')
-postprocess(results_dir)
+postprocess(config_path=experiment_cfg, results_dir=results_dir)
 
 # Plotting
 logging.info('Create plots')
-create_plots(results_dir)
+create_plots(config_path=experiment_cfg, results_dir=results_dir)
 
-
-# Build the report
+# Build a report
 # cmd = ['pdflatex', '-interaction=nonstopmode', '--output-directory={0}/presentation/build'.format(abs_path), '{0}/presentation/report.tex'.format(results_dir)]
 # process = subprocess.call(cmd) # , stdout=open(os.devnull, 'wb'))

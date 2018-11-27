@@ -18,6 +18,7 @@ import oemof.graph as graph
 import oemof.solph as solph
 import oemof.outputlib as outputlib
 import networkx as nx
+import yaml
 
 
 def plot_heat_demand(df, filename):
@@ -123,8 +124,12 @@ def plot_dispatch(df, filename):
     fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
 
 
-def create_plots(results_dir):
+def create_plots(config_path, results_dir):
+    # open config
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+    with open(os.path.join(abs_path,config_path), 'r') as ymlfile:
+        cfg = yaml.load(ymlfile)
+
     energysystem = solph.EnergySystem()
     energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
     energysystem_graph = graph.create_nx_graph(energysystem)

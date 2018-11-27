@@ -1,0 +1,14 @@
+debug: True
+solver: 'cbc'
+
+# optimisation
+investment:
+  invest_chp: False
+  invest_pth: False
+
+input_parameter: 'data_raw/input_parameter/input_parameter.csv'
+timeseries:
+  timeseries_temperature: 'data_preprocessed/temperature.csv'
+  timeseries_demand_heat: 'data_preprocessed/demand_heat.csv'
+  timeseries_demand_heat: 'data_preprocessed/demand_heat.csv'
+

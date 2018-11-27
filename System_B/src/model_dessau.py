@@ -27,16 +27,25 @@ import os
 import pandas as pd
 import yaml
 
-abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
 logger.define_logging()
 
 
 def run_model_dessau(config_path, results_dir):
 
+    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
     with open(os.path.join(abs_path,config_path), 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
+    # load input parameter
+    in_param = pd.read_csv(os.path.join(abs_path, cfg['input_parameter']), index_col=[1, 2])['var_value']
+    wacc = in_param['general', 'wacc']
+
+    # load timeseries
+    print(cfg['timeseries']['timeseries_demand_heat'])
+    demand_heat_timeseries = pd.read_csv(os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']), sep=",")['efh']
+
+    # create timeindex
     if cfg['debug']:
         number_timesteps = 200
     else:
@@ -47,11 +56,6 @@ def run_model_dessau(config_path, results_dir):
 
     logging.info('Initialize the energy system')
     energysystem = solph.EnergySystem(timeindex=date_time_index)
-
-    in_param = pd.read_csv(os.path.join(abs_path, cfg['input_parameter']), index_col=[1, 2])['var_value']
-
-    demand_heat_timeseries = pd.read_csv(results_dir + '/data_preprocessed/' + 'demand_heat.csv', sep=",")['efh']
-    wacc = in_param['general','wacc']
 
     #####################################################################
     logging.info('Create oemof objects')

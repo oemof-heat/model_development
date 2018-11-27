@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import datetime
 import os
 from workalendar.europe import Germany
+import yaml
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
@@ -90,14 +91,19 @@ def prepare_timeseries_price_electricity():
     # prepare electricity price time series
     pass
 
-def prepare_timeseries(results_dir):
+def prepare_timeseries(config_path, results_dir):
+    # open config
+    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+    with open(os.path.join(abs_path,config_path), 'r') as ymlfile:
+        cfg = yaml.load(ymlfile)
+
     # temperature
     temperature = prepare_timeseries_temperature(
         'ninja_weather/ninja_weather_51.8341_12.2374_uncorrected.csv',
         results_dir + '/data_preprocessed/temperature.csv')
 
     # heat demand
-    prepare_timeseries_demand_heat(2014, None, temperature, results_dir + '/data_preprocessed/demand_heat.csv')
+    prepare_timeseries_demand_heat(2014, None, temperature, os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
 
 if __name__ == '__main__':
     prepare_timeseries()
