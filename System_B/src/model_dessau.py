@@ -19,7 +19,7 @@ __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
 
-from oemof.tools import logger, economicshelpers,
+from oemof.tools import logger, economics
 import oemof.tools.helpers
 import oemof.solph as solph
 from oemof.outputlib import processing
