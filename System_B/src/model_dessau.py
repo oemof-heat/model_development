@@ -147,11 +147,11 @@ def run_model_dessau(config_path, results_dir):
         nominal_capacity=in_param['storage_heat','nominal_capacity'],
         inputs={bth_prim: solph.Flow(
             variable_costs=0,
-            nominal_value=1)},
+            nominal_value=in_param['storage_heat','input_nominal_value'])},
         outputs={bth_prim: solph.Flow(
-            nominal_value=1)},
+            nominal_value=in_param['storage_heat','output_nominal_value'])},
         capacity_loss=in_param['storage_heat','capacity_loss'],
-        initial_capacity=0,
+        initial_capacity=in_param['storage_heat','initial_capacity'],
         capacity_max=in_param['storage_heat','nominal_capacity'],
         inflow_conversion_factor=1,
         outflow_conversion_factor=1))
