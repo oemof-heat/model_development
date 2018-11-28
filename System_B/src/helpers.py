@@ -32,7 +32,6 @@ def setup_experiment():
 
     # create results directory if it does not exist
     if not os.path.exists(results_dir):
-        logging.info('Create directories')
         os.makedirs(results_dir + '/data_preprocessed')
         os.makedirs(results_dir + '/optimisation_results')
         os.makedirs(results_dir + '/postprocessed')
