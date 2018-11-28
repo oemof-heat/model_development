@@ -17,33 +17,44 @@ from plot import create_plots
 import helpers
 import time
 
-starttime = time.time()
 
-config_path, results_dir = helpers.setup_experiment()
+def main():
+    r"""
+    This function runs the whole analysis pipeline
 
-logger.define_logging(logpath=results_dir + '/optimisation_results')
+    """
+    starttime = time.time()
 
-# Preproccessing
-logging.info('Preprocess data')
-prepare_timeseries(config_path=config_path, results_dir=results_dir)
-preprocess_closed_data(config_path=config_path, results_dir=results_dir)
+    config_path, results_dir = helpers.setup_experiment()
 
-# Run the optimisation model
-logging.info('Run optimisation model')
-run_model_dessau(config_path=config_path, results_dir=results_dir)
+    logger.define_logging(logpath=results_dir + '/optimisation_results')
 
-# Postprocessing
-logging.info('Postprocess data')
-postprocess(config_path=config_path, results_dir=results_dir)
+    # Preproccessing
+    logging.info('Preprocess data')
+    prepare_timeseries(config_path=config_path, results_dir=results_dir)
+    preprocess_closed_data(config_path=config_path, results_dir=results_dir)
 
-# Plotting
-logging.info('Create plots')
-create_plots(config_path=config_path, results_dir=results_dir)
+    # Run the optimisation model
+    logging.info('Run optimisation model')
+    run_model_dessau(config_path=config_path, results_dir=results_dir)
 
-# Build a report
-# cmd = ['pdflatex', '-interaction=nonstopmode', '--output-directory={0}/presentation/build'.format(abs_path), '{0}/presentation/report.tex'.format(results_dir)]
-# process = subprocess.call(cmd) # , stdout=open(os.devnull, 'wb'))
+    # Postprocessing
+    logging.info('Postprocess data')
+    postprocess(config_path=config_path, results_dir=results_dir)
 
-endtime = time.time()
+    # Plotting
+    logging.info('Create plots')
+    create_plots(config_path=config_path, results_dir=results_dir)
 
-logging.info(f'Analysis lastet {endtime-starttime} sec.')
+    # Build a report
+    # cmd = ['pdflatex', '-interaction=nonstopmode', '--output-directory={0}/presentation/build'.format(abs_path), '{0}/presentation/report.tex'.format(results_dir)]
+    # process = subprocess.call(cmd) # , stdout=open(os.devnull, 'wb'))
+
+    endtime = time.time()
+
+    logging.info(f'Analysis lastet {endtime-starttime} sec.')
+
+    return True
+
+if __name__ == '__main__':
+    main()
