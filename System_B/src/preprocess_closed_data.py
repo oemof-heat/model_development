@@ -18,6 +18,7 @@ def preprocess_heat_feedin_timeseries():
 
     heat_profile_dessau = pd.DataFrame(columns = ['V:m3/h', 'Q:MW', 'At:°C'])
 
+
     for month in ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']:
 
         # parse month sheet from excel
@@ -50,12 +51,25 @@ def preprocess_heat_feedin_timeseries():
         heat_profile_month = pd.concat([heat_profile_month_min.drop('Zeit', axis=1), heat_profile_month_max.drop('Zeit', axis=1)], sort=False)
         heat_profile_month = heat_profile_month.sort_index()
 
-        # add it to the year profile
+        # concatenate with the year profile
         heat_profile_dessau = pd.concat([heat_profile_dessau, heat_profile_month], sort=False)
 
-    heat_profile_dessau = heat_profile_dessau['Q:MW'] * 1000
-    heat_profile_dessau.columns = ['Q:kW']
-    heat_profile_dessau = heat_profile_dessau.resample('1H').mean().interpolate(method='linear')
+    heat_profile_dessau.index.name = 'Zeit'
+    heat_profile_dessau['Q:kW'] = heat_profile_dessau['Q:MW'] * 1000 # convert from MW to kW
+
+    # remove duplicate indices
+    heat_profile_dessau = heat_profile_dessau.reset_index().drop_duplicates(subset='Zeit', keep='first').set_index('Zeit')
+
+    # reindex and interpolate
+    ix = pd.date_range('1/1/2017',
+                        periods=8760,
+                        freq='H')
+
+    heat_profile_dessau = heat_profile_dessau.reindex(ix)
+    heat_profile_dessau = heat_profile_dessau.interpolate(method='linear')
+
+    # keep only heat profile Q:kW
+    heat_profile_dessau = heat_profile_dessau['Q:kW']
 
     return heat_profile_dessau
 
@@ -103,7 +117,7 @@ def preprocess_closed_data(config_path, results_dir):
     heat_profile_dessau = preprocess_heat_feedin_timeseries()
     heat_profile_dessau.to_csv(os.path.join(results_dir, 'data_preprocessed/heat_profile_dessau.csv'))
 
-    # plot_compare_heat_profiles(config_path, results_dir)
+    plot_compare_heat_profiles(config_path, results_dir)
 
     return None
 

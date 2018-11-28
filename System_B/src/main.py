@@ -25,7 +25,7 @@ logger.define_logging(logpath=results_dir + '/optimisation_results')
 
 # Preproccessing
 logging.info('Preprocess data')
-# prepare_timeseries(config_path=experiment_cfg, results_dir=results_dir)
+prepare_timeseries(config_path=config_path, results_dir=results_dir)
 preprocess_closed_data(config_path=config_path, results_dir=results_dir)
 
 # Run the optimisation model
