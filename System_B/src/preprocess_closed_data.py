@@ -4,7 +4,6 @@ import numpy as np
 import os
 import helpers
 
-abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
 def preprocess_heat_feedin_timeseries():
     r"""
