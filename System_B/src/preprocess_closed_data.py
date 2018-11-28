@@ -94,8 +94,7 @@ def plot_compare_heat_profiles(experiment_cfg, results_dir):
     ax1.plot(heat_profile.resample('1D').max())
     ax2.plot(demand_heat.resample('1D').min())
     ax2.plot(demand_heat.resample('1D').max())
-    # ax3.plot(heat_profile['2017-1-2 01:00:00':'2017-3-1 01:00:00'])
-    ax3.plot(demand_heat.resample('3D').mean())
+    ax3.plot(heat_profile['2017-1-2 01:00:00':'2017-3-1 01:00:00'])
     plt.show()
 
     return None
@@ -119,7 +118,7 @@ def preprocess_closed_data(config_path, results_dir):
     heat_profile_dessau = preprocess_heat_feedin_timeseries()
     heat_profile_dessau.to_csv(os.path.join(results_dir, 'data_preprocessed/heat_profile_dessau.csv'))
 
-    plot_compare_heat_profiles(config_path, results_dir)
+    # plot_compare_heat_profiles(config_path, results_dir)
 
     return None
 
