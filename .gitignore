@@ -1,5 +1,7 @@
 *.csv
 */data_confidential
+*/data_raw
+*/model_runs
 Dumps/
 dumps/
 docs/_build/
