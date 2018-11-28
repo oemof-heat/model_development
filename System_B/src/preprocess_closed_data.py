@@ -82,9 +82,10 @@ def plot_compare_heat_profiles(experiment_cfg, results_dir):
     -------
     None
     """
-    print(os.path.join(results_dir, 'data_preprocessed/demand_heat.csv'))
+
     demand_heat = pd.read_csv(os.path.join(results_dir, 'data_preprocessed/demand_heat.csv'), index_col=0,
         parse_dates=True)
+
     heat_profile = pd.read_csv(os.path.join(results_dir, 'data_preprocessed/heat_profile_dessau.csv'),
                                names=['feedin_heat'], index_col=0, parse_dates=True)
 
@@ -117,7 +118,7 @@ def preprocess_closed_data(config_path, results_dir):
     heat_profile_dessau = preprocess_heat_feedin_timeseries()
     heat_profile_dessau.to_csv(os.path.join(results_dir, 'data_preprocessed/heat_profile_dessau.csv'))
 
-    plot_compare_heat_profiles(config_path, results_dir)
+    #plot_compare_heat_profiles(config_path, results_dir)
 
     return None
 
