@@ -152,7 +152,7 @@ def create_plots(config_path, results_dir):
                node_color=node_color)
     rcParams['figure.figsize'] = [10.0, 10.0]
 
-    demand = pd.read_csv(results_dir + '/data_preprocessed/' + 'demand_heat.csv')
+    demand = pd.read_csv(os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
     plot_heat_demand(demand, filename=results_dir + '/plots/heat_demand.pdf')
 
     node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
