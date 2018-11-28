@@ -9,7 +9,7 @@ Options:
 
   -d, --debug              Sets timesteps to 2 and writes the lp file
   -o, --solver=SOLVER      The solver to use. Should be one of
-                          helpers "glpk", "cbc" or "gurobi". [default: cbc]
+                           helpers "glpk", "cbc" or "gurobi". [default: cbc]
       --invest-pth         Invest optimize the power-to-heat plant.
       --invest-chp         Invest optimize the gas turbine.
 
@@ -44,7 +44,6 @@ def run_model_dessau(config_path, results_dir):
     wacc = in_param['general', 'wacc']
 
     # load timeseries
-    print(cfg['timeseries']['timeseries_demand_heat'])
     demand_heat_timeseries = pd.read_csv(os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']),
                                          index_col=0, names=['demand_heat'], sep=',')['demand_heat']
     print(demand_heat_timeseries.head())
@@ -55,7 +54,8 @@ def run_model_dessau(config_path, results_dir):
     else:
         number_timesteps = 8760
 
-    date_time_index = pd.date_range('1/1/2017', periods=number_timesteps,
+    date_time_index = pd.date_range('1/1/2017',
+                                    periods=number_timesteps,
                                     freq='H')
 
     logging.info('Initialize the energy system')
@@ -152,7 +152,7 @@ def run_model_dessau(config_path, results_dir):
             nominal_value=1)},
         capacity_loss=in_param['storage_heat','capacity_loss'],
         initial_capacity=0,
-        capacity_max=1,
+        capacity_max=in_param['storage_heat','nominal_capacity'],
         inflow_conversion_factor=1,
         outflow_conversion_factor=1))
 
