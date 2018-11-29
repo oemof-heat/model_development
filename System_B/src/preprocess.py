@@ -32,12 +32,10 @@ def prepare_timeseries_temperature(raw_file, output_file):
     # load temperature data
     filename = abs_path + '/data_raw/' + raw_file
     temperature = pd.read_csv(filename,
-                              skiprows=3,
                               index_col=0,
-                              names=['time', 'utc', 'temperature'],
-                              usecols=['time', 'temperature'],
+                              usecols=['timestamp','T'],
                               parse_dates=True)
-
+    temperature['T'] -= 273.15
     temperature.to_csv(output_file)
 
     return temperature
@@ -98,8 +96,7 @@ def prepare_timeseries(config_path, results_dir):
         cfg = yaml.load(ymlfile)
 
     # temperature
-    temperature = prepare_timeseries_temperature(
-        'ninja_weather/ninja_weather_51.8341_12.2374_uncorrected.csv',
+    temperature = prepare_timeseries_temperature('merra2_dessau/weather_data_merra2_51_11_2017.csv',
         results_dir + '/data_preprocessed/temperature.csv')
 
     # heat demand
