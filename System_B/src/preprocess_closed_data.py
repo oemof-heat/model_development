@@ -83,19 +83,21 @@ def plot_compare_heat_profiles(experiment_cfg, results_dir):
     """
 
     demand_heat = pd.read_csv(os.path.join(results_dir, 'data_preprocessed/demand_heat.csv'), index_col=0,
-        parse_dates=True)
+                              names=['demand_heat'], parse_dates=True)
 
     heat_profile = pd.read_csv(os.path.join(results_dir, 'data_preprocessed/heat_profile_dessau.csv'),
                                names=['feedin_heat'], index_col=0, parse_dates=True)
 
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 5))
-    ax1.plot(heat_profile.resample('1D').min())
-    ax1.plot(heat_profile.resample('1D').max())
-    ax2.plot(demand_heat.resample('1D').min())
-    ax2.plot(demand_heat.resample('1D').max())
-    ax3.plot(heat_profile['2017-1-2 01:00:00':'2017-3-1 01:00:00'])
+    ax1.plot(heat_profile.resample('1D').mean())
+    ax1.plot(demand_heat.resample('1D').mean())
+    fro = 2000
+    to = 4000
+    ax2.plot(heat_profile.iloc[fro:to])
+    ax2.plot(demand_heat.iloc[fro:to])
+    ax3.plot(((heat_profile['feedin_heat'] - demand_heat['demand_heat']) * 1/heat_profile['feedin_heat']).resample('1D').mean())
+    ax3.set_ylim([0, 0.7])
     plt.show()
-
     return None
 
 
@@ -117,7 +119,7 @@ def preprocess_closed_data(config_path, results_dir):
     heat_profile_dessau = preprocess_heat_feedin_timeseries()
     heat_profile_dessau.to_csv(os.path.join(results_dir, 'data_preprocessed/heat_profile_dessau.csv'))
 
-    # plot_compare_heat_profiles(config_path, results_dir)
+    plot_compare_heat_profiles(config_path, results_dir)
 
     return None
 
