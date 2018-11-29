@@ -22,9 +22,9 @@ filename_logfile: 'flexCHB.log'
 # FILE NAMES - READING
 parameters_energy_system: '/data_raw/data_public/parameters_01.csv'
 parameters_load_profile: '/data_raw/data_public/parameters_load_profile_01.csv'
-time_series_loads: '/data_raw/data_confidential/time_series_60min_singleindex.csv'
+time_series_loads_el: '/data_raw/data_confidential/time_series_60min_singleindex.csv'
+time_series_loads_heat: '/data_raw/data_confidential/Lastgang 2011_2012.xls'
 # technology_specifications_file_name: 'MCC Technologieoptionen mit Parametern V1_3.xlsx'
 
 # PREPROCESSED DATA
-demand_time_series: '/data_raw/data_confidential/demand_profile_A_nominal_20180912.csv'
-# weather_time_series: 'weather_time_series.csv'
+demand_time_series: '/data_preprocessed/demand_profiles_nominal.csv'
