@@ -8,7 +8,10 @@ investment:
 
 input_parameter: 'data_raw/input_parameter/input_parameter.csv'
 
+annual_heat_demand: 'data_raw/heat_demand/zensus_annual_heat_demand.csv'
+
 timeseries:
   timeseries_temperature: 'data_preprocessed/temperature.csv'
   timeseries_demand_heat: 'data_preprocessed/heat_profile_dessau.csv'
 
+zensus_url: 'https://ergebnisse.zensus2011.de/auswertungsdb/download?csv=dynTable&tableHash=statUnit=WOHNUNG;absRel=ANZAHL;ags=150010000000;agsAxis=X;yAxis=BAUJAHR_MZ,ZAHLWOHNGN_HHG,WOHNFLAECHE_10S&locale=DE'
