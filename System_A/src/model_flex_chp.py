@@ -86,7 +86,7 @@ def run_model_flexchp(config_path):
     if cfg['debug']:
         number_of_time_steps = 3
     else:
-        number_of_time_steps = 8760
+        number_of_time_steps = 200 #200 #8760
 
     # solver = 'cbc'
     solver = cfg['solver']
@@ -155,7 +155,7 @@ def run_model_flexchp(config_path):
                                   variable_costs=param_value['var_costs_gas'])}))
     energysystem.add(solph.Source(
         label='residual_el',
-        outputs={bel: solph.Flow(actual_value=data['neg_residual'],
+        outputs={bel: solph.Flow(actual_value=data['neg_residual_el'],
                                  nominal_value=param_value['nom_val_neg_residual'],
                                  fixed=True)}))
     energysystem.add(solph.Sink(
@@ -170,22 +170,22 @@ def run_model_flexchp(config_path):
                                 nominal_value=param_value['nom_val_demand_th'],
                                 fixed=True)}))
 
-    #  combined_cycle_extraction_turbine
-    # energysystem.add(solph.components.GenericCHP(
-    #     label='CHP',
-    #     fuel_input={bgas: solph.Flow(
-    #         H_L_FG_share_max=[0.19 for p in range(0, periods)])},
-    #     electrical_output={bel: solph.Flow(
-    #         P_max_woDH=[1200 for p in range(0, periods)],
-    #         P_min_woDH=[500 for p in range(0, periods)],
-    #         Eta_el_max_woDH=[0.5 for p in range(0, periods)],
-    #         Eta_el_min_woDH=[0.4 for p in range(0, periods)])},
-    #     heat_output={bth: solph.Flow(
-    #         Q_CW_min=[30 for p in range(0, periods)])},
-    #     Beta=[0.15 for p in range(0, periods)],
-    #     back_pressure=True))
     energysystem.add(solph.components.GenericCHP(
-        label='CHP',
+        label='CHP_01',
+        fuel_input={bgas: solph.Flow(
+            H_L_FG_share_max=[param_value['H_L_FG_share_max'] for p in range(0, periods)])},
+        electrical_output={bel: solph.Flow(
+            P_max_woDH=[param_value['P_max_woDH'] for p in range(0, periods)],
+            P_min_woDH=[param_value['P_min_woDH'] for p in range(0, periods)],
+            Eta_el_max_woDH=[param_value['Eta_el_max_woDH'] for p in range(0, periods)],
+            Eta_el_min_woDH=[param_value['Eta_el_min_woDH'] for p in range(0, periods)])},
+        heat_output={bth: solph.Flow(
+            Q_CW_min=[param_value['Q_CW_min_chp'] for p in range(0, periods)])},
+        Beta=[param_value['Beta_chp'] for p in range(0, periods)],
+        back_pressure=True))
+
+    energysystem.add(solph.components.GenericCHP(
+        label='CHP_02',
         fuel_input={bgas: solph.Flow(
             H_L_FG_share_max=[param_value['H_L_FG_share_max'] for p in range(0, periods)])},
         electrical_output={bel: solph.Flow(
