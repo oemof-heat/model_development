@@ -11,6 +11,7 @@ import os
 from model_flex_chp import run_model_flexchp
 from preprocessing import preprocess_timeseries
 from plot_and_analyse import analyse_energy_system
+from plot_and_analyse_results_flexCHP import analyse_storages
 import yaml
 import timeit
 
@@ -25,12 +26,28 @@ def main():
 
     start_time = timeit.default_timer()
 
-    if cfg['run_preprocessing']:
-        preprocess_timeseries(config_path=config_file_path)
-    if cfg['run_model']:
-        run_model_flexchp(config_path=config_file_path)
-    if cfg['run_postprocessing']:
-        analyse_energy_system(config_path=config_file_path)
+    global scenario
+    run_single_scenario = False
+    if run_single_scenario:
+        scenario = cfg['scenario_number']
+        if cfg['run_preprocessing']:
+            preprocess_timeseries(config_path=config_file_path)
+        if cfg['run_model']:
+            run_model_flexchp(config_path=config_file_path, scenario=scenario)
+        if cfg['run_postprocessing']:
+            # analyse_energy_system(config_path=config_file_path, scenario=scenario)
+            analyse_storages(config_path=config_file_path)
+    else:
+        scenarios = [1, 2, 3, 4, 5, 6]
+        for scenario in scenarios:
+            if cfg['run_preprocessing']:
+                preprocess_timeseries(config_path=config_file_path)
+            if cfg['run_model']:
+                run_model_flexchp(config_path=config_file_path, scenario=scenario)
+            if cfg['run_postprocessing']:
+                # analyse_energy_system(config_path=config_file_path, scenario=scenario)
+                analyse_storages(config_path=config_file_path)
+            print('')
 
     stop_time = timeit.default_timer()
     run_time_in_sec = stop_time - start_time

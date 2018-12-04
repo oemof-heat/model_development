@@ -78,7 +78,7 @@ import yaml  # pip install pyyaml
 import pprint as pp
 
 
-def run_model_flexchp(config_path):
+def run_model_flexchp(config_path, scenario):
 
     with open(config_path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
@@ -86,7 +86,7 @@ def run_model_flexchp(config_path):
     if cfg['debug']:
         number_of_time_steps = 3
     else:
-        number_of_time_steps = 200 #200 #8760
+        number_of_time_steps = 3#8760
 
     # solver = 'cbc'
     solver = cfg['solver']
@@ -94,11 +94,15 @@ def run_model_flexchp(config_path):
     periods = number_of_time_steps
     solver_verbose = cfg['solver_verbose']  # show/hide solver output
 
+    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+
     # initiate the logger (see the API docs for more information)
-    logger.define_logging(logfile=cfg['filename_logfile'],
+    logger.define_logging(logpath=abs_path+'/results/optimisation_results/log/',
+                          logfile=cfg['filename_logfile']+'_scenario_{0}.log'.format(scenario),
                           screen_level=logging.INFO,
                           file_level=logging.DEBUG)
 
+    logging.info('Use parameters for scenario {0}'.format(scenario))
     logging.info('Initialize the energy system')
     date_time_index = pd.date_range(cfg['start_date'], periods=number_of_time_steps,
                                     freq=cfg['frequency'])
@@ -109,15 +113,10 @@ def run_model_flexchp(config_path):
     # Read time series and parameter values from data files
     ##########################################################################
 
-    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
-
     file_path_demand_ts = abs_path + cfg['demand_time_series']
     data = pd.read_csv(file_path_demand_ts)
 
-    # file_path_weather_ts = abs_path + '/data_preprocessed/' + cfg['weather_time_series']
-    # weather_data = pd.read_csv(file_path_weather_ts)
-
-    file_name_param = cfg['parameters_energy_system']
+    file_name_param = cfg['parameters_energy_system'][scenario-1]
     file_path_param = abs_path + file_name_param
     param_df = pd.read_csv(file_path_param, index_col=1)
     param_value = param_df['value']
@@ -191,8 +190,10 @@ def run_model_flexchp(config_path):
         electrical_output={bel: solph.Flow(
             P_max_woDH=[param_value['P_max_woDH'] for p in range(0, periods)],
             P_min_woDH=[param_value['P_min_woDH'] for p in range(0, periods)],
-            Eta_el_max_woDH=[param_value['Eta_el_max_woDH'] for p in range(0, periods)],
-            Eta_el_min_woDH=[param_value['Eta_el_min_woDH'] for p in range(0, periods)])},
+            Eta_el_max_woDH=[param_value['Eta_el_max_woDH']
+                             for p in range(0, periods)],
+            Eta_el_min_woDH=[param_value['Eta_el_min_woDH']
+                             for p in range(0, periods)])},
         heat_output={bth: solph.Flow(
             Q_CW_min=[param_value['Q_CW_min_chp'] for p in range(0, periods)])},
         Beta=[param_value['Beta_chp'] for p in range(0, periods)],
@@ -266,7 +267,8 @@ def run_model_flexchp(config_path):
     energysystem.results['main'] = outputlib.processing.results(model)
     energysystem.results['meta'] = outputlib.processing.meta_results(model)
 
-    energysystem.dump(dpath=abs_path + "/results/optimisation_results/dumps", filename=cfg['filename_dumb'])
+    energysystem.dump(dpath=abs_path + "/results/optimisation_results/dumps",
+                      filename=cfg['filename_dumb']+'_scenario_{0}.oemof'.format(scenario))
 
 
 
