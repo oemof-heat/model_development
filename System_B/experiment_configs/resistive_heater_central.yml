@@ -1,17 +1,24 @@
 debug: False
 solver: 'cbc'
 
-# optimisation
+# sources for raw data
+raw:
+  temperature: 'merra2_dessau/weather_data_merra2_51_11_2017.csv'
+  annual_heat_demand: 'data_raw/heat_demand/zensus_annual_heat_demand.csv'
+  zensus_url: 'https://ergebnisse.zensus2011.de/auswertungsdb/download?csv=dynTable&tableHash=statUnit=WOHNUNG;absRel=ANZAHL;ags=150010000000;agsAxis=X;yAxis=BAUJAHR_MZ,ZAHLWOHNGN_HHG,WOHNFLAECHE_10S&locale=DE'
+
+# filenames for preprocessed data
+timeseries:
+  timeseries_temperature: 'data_preprocessed/temperature.csv'
+  timeseries_demand_heat: 'data_preprocessed/demand_heat.csv'
+
+# optimisation settings
+input_parameter: 'data_raw/input_parameter/input_parameter_confidential.csv'
 investment:
   invest_chp: False
   invest_pth: False
 
-input_parameter: 'data_raw/input_parameter/input_parameter.csv'
+# filenames for plots
 
-annual_heat_demand: 'data_raw/heat_demand/zensus_annual_heat_demand.csv'
 
-timeseries:
-  timeseries_temperature: 'data_preprocessed/temperature.csv'
-  timeseries_demand_heat: 'data_preprocessed/heat_profile_dessau.csv'
 
-zensus_url: 'https://ergebnisse.zensus2011.de/auswertungsdb/download?csv=dynTable&tableHash=statUnit=WOHNUNG;absRel=ANZAHL;ags=150010000000;agsAxis=X;yAxis=BAUJAHR_MZ,ZAHLWOHNGN_HHG,WOHNFLAECHE_10S&locale=DE'
