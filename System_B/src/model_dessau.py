@@ -44,6 +44,7 @@ def run_model_dessau(config_path, results_dir):
 
     Returns
     -------
+    energysystem.results : Dict containing results
     """
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
     with open(config_path, 'r') as ymlfile:
@@ -190,6 +191,8 @@ def run_model_dessau(config_path, results_dir):
     energysystem.results['meta'] = processing.meta_results(om)
     energysystem.results['param'] = processing.parameter_as_dict(om)
     energysystem.dump(dpath=results_dir + '/optimisation_results', filename='es.dump')
+
+    return energysystem.results
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
