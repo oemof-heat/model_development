@@ -25,12 +25,16 @@ import helpers
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
-def prepare_timeseries_temperature(raw_file, output_file):
+def prepare_timeseries_temperature(config_path, results_dir):
     """
     convert raw temperature data to appropriate format.
     """
+    with open(config_path, 'r') as ymlfile:
+        cfg = yaml.load(ymlfile)
+
     # load temperature data
-    filename = abs_path + '/data_raw/' + raw_file
+    output_file = os.path.join(results_dir, cfg['timeseries']['timeseries_temperature'])
+    filename = os.path.join(abs_path, 'data_raw', cfg['raw']['temperature'])
     temperature = pd.read_csv(filename,
                               index_col=0,
                               usecols=['timestamp','T'],
@@ -96,8 +100,7 @@ def prepare_timeseries(config_path, results_dir):
         cfg = yaml.load(ymlfile)
 
     # temperature
-    temperature = prepare_timeseries_temperature('merra2_dessau/weather_data_merra2_51_11_2017.csv',
-        results_dir + '/data_preprocessed/temperature.csv')
+    temperature = prepare_timeseries_temperature(config_path, results_dir)
 
     # heat demand
     prepare_timeseries_demand_heat(2014, None, temperature, os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))

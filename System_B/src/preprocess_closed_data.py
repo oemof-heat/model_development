@@ -73,7 +73,7 @@ def preprocess_heat_feedin_timeseries():
     return heat_profile_dessau
 
 
-def plot_compare_heat_profiles(experiment_cfg, results_dir):
+def plot_compare_heat_profiles(config_path, results_dir):
     r"""
     Creates a plot to compare to demandlib profile.
 
@@ -125,5 +125,5 @@ def preprocess_closed_data(config_path, results_dir):
 
 
 if __name__ == '__main__':
-    experiment_cfg, results_dir = helpers.setup_experiment()
-    preprocess_closed_data(experiment_cfg, results_dir)
+    config_path, results_dir = helpers.setup_experiment()
+    preprocess_closed_data(config_path, results_dir)
