@@ -34,7 +34,17 @@ logger.define_logging()
 
 
 def run_model_dessau(config_path, results_dir):
+    r"""
+    Create the energy system and run the optimisation model.
 
+    Parameters
+    ----------
+    config_path : Path to experiment config
+    results_dir : Directory for results
+
+    Returns
+    -------
+    """
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
     with open(config_path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
