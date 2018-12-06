@@ -9,6 +9,7 @@ import warnings
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 import subprocess
+from connect_to_oep import connect_to_oep
 from preprocess import prepare_timeseries
 from preprocess_closed_data import preprocess_closed_data
 from model_dessau import run_model_dessau
@@ -18,19 +19,18 @@ import helpers
 import time
 
 
-def main():
+def main(config_path, results_dir):
     r"""
     This function runs the whole analysis pipeline
 
     """
     starttime = time.time()
 
-    config_path, results_dir = helpers.setup_experiment()
-
     logger.define_logging(logpath=results_dir + '/optimisation_results')
 
     # Preproccessing
     logging.info('Preprocess data')
+    connect_to_oep(config_path=config_path, results_dir=results_dir)
     prepare_timeseries(config_path=config_path, results_dir=results_dir)
     preprocess_closed_data(config_path=config_path, results_dir=results_dir)
 
@@ -57,4 +57,5 @@ def main():
     return True
 
 if __name__ == '__main__':
-    main()
+    config_path, results_dir = helpers.setup_experiment()
+    main(config_path, results_dir)
