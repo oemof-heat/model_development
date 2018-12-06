@@ -6,13 +6,13 @@ import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 
 # establish connection to oep
-engine, metadata = coep.connect_oep('Jann Launer','e03959e2846239ca6cc6b210b723696e5c4f83ad')
+engine, metadata = coep.connect_oep()
 print('Connection established')
 
 # load data
 example_df = pd.read_csv('Daten_Beispiel/TemplateData.csv', encoding='utf8', sep=';')
-input_parameters = pd.read_csv('Daten_Beispiel/data_thermal_energy_storage.csv')
-timeseries = pd.read_csv('Daten_Beispiel/Electricity_price_spot_market_2016.csv')
+input_parameters = pd.read_csv('Daten_Beispiel/input_parameter.csv')
+timeseries = pd.read_csv('Daten_Beispiel/timeseries.csv')
 
 ExampleTable = sa.Table(
     'example_dialect_table_5',
