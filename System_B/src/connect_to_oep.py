@@ -110,10 +110,13 @@ def connect_to_oep(config_path, results_dir):
         cfg = yaml.load(ymlfile)
 
     if 'oep_download' in cfg and cfg['oep_download']:
-        engine, metadata = coep.connect_oep()
+        with open('../oep_cred.yml', 'r') as oep_cred:
+            cred = yaml.load(oep_cred)
+
+        engine, metadata = coep.connect_oep(cred['username'], cred['token'])
         print('Connection established')
         tables = define_tables(engine, metadata)
-        upload_data_to_oep(tables, engine, metadata)
+        # upload_data_to_oep(tables, engine, metadata)
         download_data_from_oep(tables, engine, metadata)
 
 if __name__ == '__main__':
