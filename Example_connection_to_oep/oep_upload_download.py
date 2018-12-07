@@ -15,7 +15,7 @@ input_parameters = pd.read_csv('Daten_Beispiel/input_parameter.csv')
 timeseries = pd.read_csv('Daten_Beispiel/timeseries.csv')
 
 ExampleTable = sa.Table(
-    'example_dialect_table_5',
+    'oemof_heat_example_table',
     metadata,
     sa.Column('index', sa.Integer, primary_key=True, autoincrement=True,
               nullable=False),
@@ -27,7 +27,7 @@ ExampleTable = sa.Table(
 )
 
 input_param_table = sa.Table(
-    'example_oea_parameter',
+    'oemof_heat_example_input_parameter',
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True,
               nullable=False),
@@ -41,7 +41,7 @@ input_param_table = sa.Table(
     schema='sandbox')
 
 timeseries_table = sa.Table(
-    'example_oea_timeseries',
+    'oemof_heat_example_timeseries',
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True,
               nullable=False),
