@@ -155,11 +155,17 @@ def run_model_flexchp(config_path, scenario_nr):
         outputs={bgas: solph.Flow(nominal_value=param_value['nom_val_gas'],
                                   summed_max=param_value['sum_max_gas'],
                                   variable_costs=param_value['var_costs_gas'])}))
+    # energysystem.add(solph.Source(
+    #     label='residual_el',
+    #     outputs={bel: solph.Flow(actual_value=data['neg_residual_el'],
+    #                              nominal_value=param_value['nom_val_neg_residual'],
+    #                              fixed=True)}))
     energysystem.add(solph.Source(
-        label='residual_el',
-        outputs={bel: solph.Flow(actual_value=data['neg_residual_el'],
-                                 nominal_value=param_value['nom_val_neg_residual'],
+        label='P2H',
+        outputs={bth: solph.Flow(actual_value=data['neg_residual_el'],
+                                 nominal_value=param_value['nom_val_neg_residual']*param_value['conversion_factor_p2h'],
                                  fixed=True)}))
+
     energysystem.add(solph.Sink(
         label='demand_el',
         inputs={bel: solph.Flow(actual_value=data['demand_el'],
@@ -209,12 +215,12 @@ def run_model_flexchp(config_path, scenario_nr):
                                  variable_costs=param_value['var_costs_boiler'])},
         conversion_factors={bth: param_value['conversion_factor_boiler']}))
 
-    energysystem.add(solph.Transformer(
-        label='P2H',
-        inputs={bel: solph.Flow()},
-        outputs={bth: solph.Flow(nominal_value=param_value['nom_val_p2h_out_bth'],
-                                 variable_costs=param_value['var_costs_p2h_out_bth'])},
-        conversion_factors={bth: param_value['conversion_factor_p2h']}))
+    # energysystem.add(solph.Transformer(
+    #     label='P2H',
+    #     inputs={bel: solph.Flow()},
+    #     outputs={bth: solph.Flow(nominal_value=param_value['nom_val_p2h_out_bth'],
+    #                              variable_costs=param_value['var_costs_p2h_out_bth'])},
+    #     conversion_factors={bth: param_value['conversion_factor_p2h']}))
 
     if param_value['nom_capacity_storage_th'] > 0:
         storage_th = solph.components.GenericStorage(
