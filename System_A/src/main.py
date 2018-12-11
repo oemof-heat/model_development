@@ -10,7 +10,7 @@ Author: Jakob Wolf (jakob.wolf@beuth-hochschule.de)
 import os
 from model_flex_chp import run_model_flexchp
 from preprocessing import preprocess_timeseries
-from plot_and_analyse import analyse_energy_system
+from analyse import analyse_energy_system
 from plot_and_analyse_results_flexCHP import analyse_storages
 import yaml
 import timeit
@@ -26,27 +26,26 @@ def main():
 
     start_time = timeit.default_timer()
 
-    global scenario
-    run_single_scenario = False
+    run_single_scenario = cfg['run_single_scenario']
     if run_single_scenario:
-        scenario = cfg['scenario_number']
         if cfg['run_preprocessing']:
             preprocess_timeseries(config_path=config_file_path)
         if cfg['run_model']:
-            run_model_flexchp(config_path=config_file_path, scenario=scenario)
+            run_model_flexchp(config_path=config_file_path, scenario_nr=cfg['scenario_number'])
         if cfg['run_postprocessing']:
-            # analyse_energy_system(config_path=config_file_path, scenario=scenario)
-            analyse_storages(config_path=config_file_path)
+            analyse_energy_system(config_path=config_file_path, scenario_nr=cfg['scenario_number'])
+            analyse_storages(config_path=config_file_path, scenario_nr=cfg['scenario_number'])
     else:
-        scenarios = [1, 2, 3, 4, 5, 6]
+        scenarios = [1, 2, 3]
         for scenario in scenarios:
             if cfg['run_preprocessing']:
                 preprocess_timeseries(config_path=config_file_path)
             if cfg['run_model']:
-                run_model_flexchp(config_path=config_file_path, scenario=scenario)
+                print('\n*** Scenario {0}***'.format(scenario))
+                run_model_flexchp(config_path=config_file_path, scenario_nr=scenario)
             if cfg['run_postprocessing']:
-                # analyse_energy_system(config_path=config_file_path, scenario=scenario)
-                analyse_storages(config_path=config_file_path)
+                analyse_energy_system(config_path=config_file_path, scenario_nr=scenario)
+                # analyse_storages(config_path=config_file_path, scenario_nr=cfg['scenario_number'])
             print('')
 
     stop_time = timeit.default_timer()
