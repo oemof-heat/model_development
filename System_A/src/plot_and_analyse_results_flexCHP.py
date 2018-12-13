@@ -107,6 +107,11 @@ def analyse_storages(config_path, scenario_nr):
     # excess_electricity = string_results['electricity', 'excess_bel']['sequences']
     # excess_heat = string_results['heat', 'excess_bth']['sequences']
     # residual_el = string_results['residual_el', 'electricity']['sequences']
+    gas_consumption = string_results['rgas', 'natural_gas']['sequences']
+    gas_consumption_CHP = string_results['natural_gas', 'CHP_01']['sequences']
+    eta_el = string_results[('CHP_01', 'electricity')]['sequences']/gas_consumption_CHP
+    omega_CHP = (string_results[('CHP_01', 'electricity')]['sequences']
+                 + string_results[('CHP_01', 'heat')]['sequences'])/gas_consumption_CHP
     if param_value['nom_capacity_storage_th'] > 0:
         TES_discharge = string_results['storage_th', 'heat']['sequences']
         TES_charge = string_results['heat', 'storage_th']['sequences']
@@ -120,8 +125,8 @@ def analyse_storages(config_path, scenario_nr):
     # plt.style.use('ggplot')
     # #         # colors for ggplot: red, bluisch and green = c("#CC6666", "#9999CC", "#66CC99")
     # #
-    start = pd.to_datetime('09.01.2040 00:00:00', format='%d.%m.%Y %H:%M:%S')
-    end = pd.to_datetime('16.01.2040 23:00:00', format='%d.%m.%Y %H:%M:%S')
+    start = pd.to_datetime('29.04.2040 00:00:00', format='%d.%m.%Y %H:%M:%S')
+    end = pd.to_datetime('29.04.2040 23:00:00', format='%d.%m.%Y %H:%M:%S')
     # #     start_axes = pd.to_datetime('01.01.2040 00:00:00', format='%d.%m.%Y %H:%M:%S')
     # #     end_axes = pd.to_datetime('31.01.2040 23:00:00', format='%d.%m.%Y %H:%M:%S')
     # #
@@ -173,7 +178,7 @@ def analyse_storages(config_path, scenario_nr):
 
     bel_plt = electricity_bus
     print(bel_plt.keys())
-    del bel_plt['sequences'][(('electricity', 'excess_bel'), 'flow')]
+    # del bel_plt['sequences'][(('electricity', 'excess_bel'), 'flow')]
     fig, ax = plt.subplots(4, 1, figsize=(10, 5))
     fig.tight_layout()
     bel_plt['sequences'][(('electricity', 'demand_el'), 'flow')][start:end].plot(ax=ax[0])
@@ -181,18 +186,19 @@ def analyse_storages(config_path, scenario_nr):
 
     bth_plt['sequences'][(('CHP_01', 'heat'), 'flow')][start:end].plot(ax=ax[1])
     bth_plt['sequences'][(('heat', 'demand_th'), 'flow')][start:end].plot(ax=ax[1])
-    # bth_plt['sequences'][(('heat', 'excess_bth'), 'flow')].plot(ax=ax[1])
     bth_plt['sequences'][(('boiler', 'heat'), 'flow')][start:end].plot(ax=ax[1])
     if param_value['nom_capacity_storage_el'] > 0:
         # bel_plt['sequences'][(('electricity', 'storage_el'), 'flow')][start:end].plot(ax=ax[3],
         #                                                                               label='Batterie Ladung')
-        battery_soc[start:end].plot(ax=ax[3], label='Batterie Fuellstand')
-        battery_discharge[start:end].plot(ax=ax[3], label='Batterie Entladung')
+        # battery_soc[start:end].plot(ax=ax[3])
+        results[(storage_el_comp, None)]['sequences'][start:end].plot(ax=ax[3])
+        # battery_discharge[start:end].plot(ax=ax[3], label='Batterie Entladung')
     if param_value['nom_capacity_storage_th'] > 0:
-        bth_plt['sequences'][(('heat', 'storage_th'), 'flow')][start:end].plot(ax=ax[2])
-    bel_plt['sequences'][(('electricity', 'P2H'), 'flow')][start:end].plot(ax=ax[2])
-    bel_plt['sequences'][(('residual_el', 'electricity'), 'flow')][start:end].plot(ax=ax[2])
-
+        bth_plt['sequences'][(('heat', 'storage_th'), 'flow')][start:end].plot(ax=ax[3])
+        results[(storage_th_comp, None)]['sequences'][start:end].plot(ax=ax[3])
+    # bth_plt['sequences'][(('P2H', 'heat'), 'flow')][start:end].plot(ax=ax[2])
+    eta_el[start: end].plot(ax=ax[2])
+    omega_CHP[start: end].plot(ax=ax[2])
     # bel_plt['sequences'][(('electricity', 'demand_el'), 'flow')].plot.area(stacked=False)
     ax[0].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
                ncol=4, mode="expand", borderaxespad=0.)
@@ -205,10 +211,10 @@ def analyse_storages(config_path, scenario_nr):
     # plt.legend(loc='upper center', prop={'size': 8}, bbox_to_anchor=(0.5, 1.3), ncol=2)
     fig.subplots_adjust(top=0.8)
     plt.savefig('../results/plots/results_scenario_{0}.png'.format(scenario_nr), dpi=300)
-    plt.show()
+    # plt.show()
 
-    plt.plot(TES_soc_rel)
-    plt.show()
+    # plt.plot(TES_soc_rel)
+    # plt.show()
 
     print(electricity_bus['sequences'].keys())
 

@@ -2,9 +2,9 @@
 # Date: Thu 22nd of November 2018
 # Author: Jakob Wolf (jakob.wolf@beuth-hochschule.de)
 
-run_preprocessing: False
+run_preprocessing: True
 run_model: False
-run_postprocessing: True
+run_postprocessing: False
 
 debug: False
 solver: 'cbc'
@@ -15,7 +15,6 @@ solver_verbose: False
 # If run_single_scenario=True, select single scenario_number.
 run_single_scenario: True
 scenario_number: 3
-
 
 # DATE AND TIME
 start_date: '1/1/2040'
@@ -44,3 +43,4 @@ time_series_loads_heat: '/data_raw/data_confidential/Lastgang 2011_2012.xls'
 
 # PREPROCESSED DATA
 demand_time_series: '/data_preprocessed/demand_profiles_nominal.csv'
+demand_scatter_plot: '../data_preprocessed/demand_scatter_plot.png'

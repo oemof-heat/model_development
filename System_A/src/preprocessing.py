@@ -70,6 +70,12 @@ def preprocess_timeseries(config_path):
     load_and_profiles_szenario2040['residual_load_MW'] = \
         load_and_profiles_szenario2040['load_MW'] - load_and_profiles_szenario2040['EE_generation_MW']
 
+    # Colors
+    beuth_red = (227/255, 35/255, 37/255)
+    beuth_col_1 = (223/255, 242/255, 243/255)
+    beuth_col_2 = (178/255, 225/255, 227/255)
+    beuth_col_3 = (0/255, 152/255, 161/255)
+
     plt.plot(load_and_profiles_szenario2040['utc_timestamp'], load_and_profiles_szenario2040['residual_load_MW'])
     plt.xlabel('Zeit')
     plt.ylabel('Leistung in MW')
@@ -104,4 +110,19 @@ def preprocess_timeseries(config_path):
 
     demand_profiles.to_csv(abs_path + cfg['demand_time_series'], encoding='utf-8', index=False)
 
+    fig, ax = plt.subplots()
+    plt.grid(color='grey' ,#beuth_col_2,
+             linestyle='-',
+             linewidth=0.5,
+             zorder=1)
+    ax.scatter(x=demand_profiles['demand_th']*1000,
+               y=(demand_profiles['demand_el']*1000).add(demand_profiles['neg_residual_el']*-150),
+               marker='.',
+               c=[beuth_col_3],
+               zorder=10)
+    ax.set_ylabel('Strombedarf in $\mathrm{MW_{el}}$', fontsize=12)
+    ax.set_xlabel('Wärmebedarf in $\mathrm{MW_{th}}$', fontsize=12)
+    ax.set_ylim([-250, 1050])
+    # plt.show()
+    plt.savefig(cfg['demand_scatter_plot'], dpi=300)
     print("***Precrocessing: Finish!***")

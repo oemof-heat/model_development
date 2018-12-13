@@ -126,7 +126,23 @@ def analyse_energy_system(config_path, scenario_nr):
 # #
 #     # em_co2 = gas_consumption.flow.sum()*param_value['emission_gas']  # [kg/MWh_th]
 #     # print("CO2-Emission: {:.2f}".format(em_co2/10e6), "t/a")
-#
+
+
+
+    gas_consumption_CHP = string_results['natural_gas', 'CHP_01']['sequences']
+    eta_el = string_results[('CHP_01', 'electricity')]['sequences']/gas_consumption_CHP
+    omega_CHP = (string_results[('CHP_01', 'electricity')]['sequences']
+                 + string_results[('CHP_01', 'heat')]['sequences'])/gas_consumption_CHP
+    eta_el_sum = string_results[('CHP_01', 'electricity')]['sequences'].sum()/gas_consumption_CHP.sum()
+    omega_CHP_sum = (string_results[('CHP_01', 'electricity')]['sequences'].flow.sum()
+                  + string_results[('CHP_01', 'heat')]['sequences'].flow.sum())/gas_consumption_CHP.flow.sum()
+
+    print('--- Wirkungsgrad und Co ---')
+    print('Elektr. Nettowirkungsgrad des CHP: eta_min= {:2.4f}, eta_max= {:2.4f}'.format(eta_el.flow.min(), eta_el.flow.max()))
+    print('Gesamtwirkungsgrad des CHP: omega_min= {:2.4f}, omega_max= {:2.4f}'.format(omega_CHP.flow.min(), omega_CHP.flow.max()))
+    print('Jahresnutzungsgrad: {:2.4f}'.format(omega_CHP_sum))
+    # print('max wärmeauskopplung', string_results[('CHP_01', 'heat')]['sequences'].flow.max())
+
     print('-- Anzahl der Stunden im betrachteten Zeitraum --')
     print(CHP_01_electricity.flow.count(), "h")
     print('-- Stunden mit eingeschränkter Versorgung (Strom) --')
@@ -136,7 +152,7 @@ def analyse_energy_system(config_path, scenario_nr):
     print('-- Betriebsstunden im betrachteten Zeitraum --')
     aux_chp_01_df = CHP_01_heat.add(CHP_01_electricity)
     print('CHP_01:', aux_chp_01_df[aux_chp_01_df > 0].flow.count(), "h")
-
+    print('Boiler:', boiler[boiler > 0].flow.count(), "h")
     # print('-- Stunden im Jahr mit mind. 20% Flexibilität  bei Stromproduktion --')
     # aux_chps_el = CHP_01_electricity
     # print('Flex_hours:', aux_chp_02_df[np.logical_and(aux_chps_el < 800, aux_chps_el > 400)].flow.count(), "h")
@@ -154,6 +170,7 @@ def analyse_energy_system(config_path, scenario_nr):
         # zeitreihen['CHP_02_el'] = CHP_02_electricity
         zeitreihen['CHPs_el'] = CHP_01_electricity
         zeitreihen['Kessel'] = boiler
+        zeitreihen['negative_Residuallast_MW_el'] = P2H_th/param_value['conversion_factor_p2h']
         fig, ax = plt.subplots()
         ax.scatter(x=zeitreihen['Waermebedarf'],
                    y=zeitreihen['Strombedarf'])
@@ -162,6 +179,11 @@ def analyse_energy_system(config_path, scenario_nr):
         ax.scatter(x=zeitreihen['CHPs_th'],
                    y=zeitreihen['CHPs_el'])
         plt.savefig('../results/plots/scatter_plot_scenario_{0}.png'.format(scenario_nr), dpi=300)
-        # zeitreihen['Fuellstand_Waermespeicher_relativ'] = TES_soc_rel
+        if scenario_nr == 2:
+            zeitreihen['Fuellstand_Waermespeicher_relativ'] = TES_soc_rel
+            zeitreihen['Waermespeicher_beladung'] = TES_charge
+            # zeitreihen
+        if scenario_nr == 3:
+            zeitreihen['Fuellstand_Batterie_relativ'] = battery_soc_rel
         #
-        # zeitreihen.to_csv('../results/plots/zeitreihen_A{0}.csv'.format(scenario_nr))
+        zeitreihen.to_csv('../results/data_postprocessed/zeitreihen_A{0}.csv'.format(scenario_nr))
