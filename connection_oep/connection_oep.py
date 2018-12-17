@@ -35,7 +35,11 @@ def upload_to_oep(example_df, ExampleTable, engine, metadata):
 
     # insert data
     try:
-        example_df.to_sql(table_name, engine, schema='sandbox', if_exists='replace')
+        dtype = {key: ExampleTable.columns[key].type for key in ExampleTable.columns.keys()}
+        example_df.to_sql(table_name, engine,
+                          schema='sandbox',
+                          if_exists='replace',
+                          dtype=dtype)
         print('Inserted to ' + table_name)
     except Exception as e:
         Session = sessionmaker(bind=engine)
