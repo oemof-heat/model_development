@@ -23,20 +23,20 @@ def connect_oep(user=None, token=None):
     return engine, metadata
 
 
-def upload_to_oep(example_df, ExampleTable, engine, metadata):
-    table_name = ExampleTable.name
-    schema_name = ExampleTable.schema
+def upload_to_oep(df, Table, engine, metadata):
+    table_name = Table.name
+    schema_name = Table.schema
 
     if not engine.dialect.has_table(engine, table_name, schema_name):
-        ExampleTable.create()
+        Table.create()
         print('Created table')
     else:
         print('Table already exists')
 
     # insert data
     try:
-        dtype = {key: ExampleTable.columns[key].type for key in ExampleTable.columns.keys()}
-        example_df.to_sql(table_name, engine,
+        dtype = {key: Table.columns[key].type for key in Table.columns.keys()}
+        df.to_sql(table_name, engine,
                           schema='sandbox',
                           if_exists='replace',
                           dtype=dtype)
@@ -49,7 +49,7 @@ def upload_to_oep(example_df, ExampleTable, engine, metadata):
         raise
         print('Insert incomplete!')
 
-    return ExampleTable
+    return Table
 
 
 def get_df(engine, table):
