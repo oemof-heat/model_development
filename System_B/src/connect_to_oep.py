@@ -23,10 +23,10 @@ def define_tables(engine, metadata):
         metadata,
         sa.Column('component', sa.String(50)),
         sa.Column('var_name', sa.String(50)),
-        sa.Column('var_value', sa.Float(50)),
+        sa.Column('var_value', sa.Float()),
         sa.Column('var_unit', sa.String(10)),
         sa.Column('reference', sa.String(10)),
-        sa.Column('comment', sa.String(50)),
+        sa.Column('comment', sa.String(70)),
         sa.Column('tags', sa.String(50)),
         schema='sandbox')
 
@@ -34,7 +34,7 @@ def define_tables(engine, metadata):
         'oemof_heat_system_b_timeseries_temperature',
         metadata,
         sa.Column('timestamp', sa.String(50)),
-        sa.Column('T', sa.Float(50)),
+        sa.Column('T', sa.Float()),
         schema='sandbox')
 
     return tables
@@ -116,7 +116,11 @@ def connect_to_oep(config_path, results_dir):
         engine, metadata = coep.connect_oep(cred['username'], cred['token'])
         print('Connection established')
         tables = define_tables(engine, metadata)
-        # upload_data_to_oep(tables, engine, metadata)
+        import time
+        start = time.time()
+        upload_data_to_oep(tables, engine, metadata)
+        end = time.time()
+        print('time', end-start)
         download_data_from_oep(tables, engine, metadata)
 
 if __name__ == '__main__':
