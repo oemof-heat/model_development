@@ -44,7 +44,8 @@ def prepare_timeseries_temperature(config_path, results_dir):
 
     return temperature
 
-def prepare_timeseries_demand_heat(year, building_types, temperature, output_file):
+def prepare_timeseries_demand_heat(year, bdew_parameters, temperature,
+                                   output_file):
     """
     Creates synthetic heat profiles using the BDEW method.
     """
@@ -58,28 +59,17 @@ def prepare_timeseries_demand_heat(year, building_types, temperature, output_fil
                             periods=8760, freq='H'))
     demand = pd.DataFrame(index=temperature.index)
 
-    # Single family house (efh: Einfamilienhaus)
-    demand['efh'] = bdew.HeatBuilding(
-        demand.index, holidays=holidays, temperature=temperature,
-        shlp_type='EFH',
-        building_class=1, wind_class=1, annual_heat_demand=232000000,
-        name='EFH').get_bdew_profile()
-
-    # Multi family house (mfh: Mehrfamilienhaus)
-    demand['mfh'] = bdew.HeatBuilding(
-        demand.index, holidays=holidays, temperature=temperature,
-        shlp_type='MFH',
-        building_class=2, wind_class=0, annual_heat_demand=80000000,
-        name='MFH').get_bdew_profile()
-
-    # Industry, trade, service (ghd: Gewerbe, Handel, Dienstleistung)
-    demand['ghd'] = bdew.HeatBuilding(
-        demand.index, holidays=holidays, temperature=temperature,
-        shlp_type='ghd', wind_class=0, annual_heat_demand=140000000,
-        name='ghd').get_bdew_profile()
+    for key, param in bdew_parameters.items():
+        demand[key] = bdew.HeatBuilding(
+                demand.index, holidays=holidays, temperature=temperature,
+                shlp_type=key,
+                building_class=param['building_class'],
+                wind_class=param['wind_class'],
+                annual_heat_demand=param['annual_demand'],
+                name=key).get_bdew_profile()
 
     # save heat demand time series
-    demand['efh'].to_csv(output_file)
+    demand.sum(axis=1).to_csv(output_file)
 
 def prepare_timeseries_price_gas():
     # prepare gas price time series
@@ -103,7 +93,11 @@ def prepare_timeseries(config_path, results_dir):
     temperature = prepare_timeseries_temperature(config_path, results_dir)
 
     # heat demand
-    prepare_timeseries_demand_heat(2014, None, temperature, os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
+    bdew_parameters = {'efh':{'annual_demand': 0.357205 * 232000000, 'building_class': 4, 'wind_class': 1},
+                       'mfh':{'annual_demand': 0.642795 * 232000000, 'building_class': 4, 'wind_class': 1}}
+
+    prepare_timeseries_demand_heat(2014, bdew_parameters, temperature,
+                                   os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
