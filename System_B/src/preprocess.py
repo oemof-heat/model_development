@@ -96,7 +96,7 @@ def prepare_timeseries(config_path, results_dir):
     bdew_parameters = {'efh':{'annual_demand': 0.357205 * 232000000, 'building_class': 4, 'wind_class': 1},
                        'mfh':{'annual_demand': 0.642795 * 232000000, 'building_class': 4, 'wind_class': 1}}
 
-    prepare_timeseries_demand_heat(2014, bdew_parameters, temperature,
+    prepare_timeseries_demand_heat(2017, bdew_parameters, temperature,
                                    os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
 
 if __name__ == '__main__':
