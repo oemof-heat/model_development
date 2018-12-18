@@ -33,6 +33,8 @@ def upload_to_oep(df, Table, engine, metadata):
     else:
         print('Table already exists')
 
+    Session = sessionmaker(bind=engine)
+    session = Session()
     # insert data
     try:
         dtype = {key: Table.columns[key].type for key in Table.columns.keys()}
@@ -42,12 +44,12 @@ def upload_to_oep(df, Table, engine, metadata):
                           dtype=dtype)
         print('Inserted to ' + table_name)
     except Exception as e:
-        Session = sessionmaker(bind=engine)
-        session = Session()
         session.rollback()
         session.close()
         raise
         print('Insert incomplete!')
+    finally:
+        session.close()
 
     return Table
 
