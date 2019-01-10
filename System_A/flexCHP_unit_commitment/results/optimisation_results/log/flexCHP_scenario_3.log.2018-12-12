@@ -1,0 +1,13 @@
+******************************************************
+2018-12-12 10:08:51,191 - INFO - logger - Path for logging: C:\Users\jwolf\Documents\oemof_heat\System_A/results/optimisation_results/log/flexCHP_scenario_3.log
+2018-12-12 10:08:51,191 - INFO - logger - Used oemof version: 0.2.2
+2018-12-12 10:08:51,191 - INFO - model_flex_chp - Use parameters for scenario 3
+2018-12-12 10:08:51,191 - INFO - model_flex_chp - Initialize the energy system
+2018-12-12 10:08:51,223 - INFO - model_flex_chp - Create oemof objects
+2018-12-12 10:08:51,551 - INFO - model_flex_chp - Optimise the energy system
+2018-12-12 10:09:05,188 - INFO - model_flex_chp - Solve the optimization problem
+2018-12-12 10:11:31,406 - INFO - models - Optimization successful...
+2018-12-12 10:11:31,422 - INFO - model_flex_chp - Store the energy system with the results.
+2018-12-12 10:11:36,250 - DEBUG - energy_system - Attributes dumped to: C:\Users\jwolf\Documents\oemof_heat\System_A/results/optimisation_results/dumps\flexCHP_scenario_3.oemof
+2018-12-12 10:11:36,265 - INFO - energy_system - Restoring attributes will overwrite existing attributes.
+2018-12-12 10:11:36,281 - DEBUG - energy_system - Attributes restored from: C:\Users\jwolf\Documents\oemof_heat\System_A/results/optimisation_results/dumps\flexCHP_scenario_3.oemof

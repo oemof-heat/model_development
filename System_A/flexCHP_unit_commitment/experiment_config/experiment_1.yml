@@ -1,0 +1,46 @@
+# Configuration for RET.Con-Paper
+# Date: Thu 22nd of November 2018
+# Author: Jakob Wolf (jakob.wolf@beuth-hochschule.de)
+
+run_preprocessing: True
+run_model: True
+run_postprocessing: False
+
+debug: True
+solver: 'cbc'
+solver_verbose: False
+
+# Scenario [1, 2 or 3 (high efficiency); 4, 5 or 6 (low efficiency)
+# Set False to run all six scenarios.
+# If run_single_scenario=True, select single scenario_number.
+run_single_scenario: True
+scenario_number: 3
+
+# DATE AND TIME
+start_date: '1/1/2040'
+frequency: 'H'
+
+# FILE NAMES - WRITING
+filename_dumb: 'flexCHP'
+filename_logfile: 'flexCHP'
+
+# FILE NAMES - READING
+parameters_energy_system:
+  - '/data_raw/data_public/parameters_energy_system_01.csv'  # high efficiency GT; Storage: None
+  - '/data_raw/data_public/parameters_energy_system_02.csv'  # high efficiency GT; Storage: TES
+  - '/data_raw/data_public/parameters_energy_system_03.csv'  # high efficiency GT; Storage: Battery
+  - '/data_raw/data_public/parameters_energy_system_04.csv'  # low efficiency GT; Storage: None
+  - '/data_raw/data_public/parameters_energy_system_05.csv'  # low efficiency GT; Storage: TES
+  - '/data_raw/data_public/parameters_energy_system_06.csv'  # low efficiency GT; Storage: Battery
+  - '/data_raw/data_public/parameters_energy_system_07.csv' # low efficiency GT; Storage: Battery and TES
+  - '/data_raw/data_public/parameters_energy_system_08.csv' # high efficiency GT; Storage: Battery and TES
+#  - '/data_raw/data_public/parameters_energy_system_09.csv' # high efficiency GT; Storage: Battery and TES (Testing!)
+
+parameters_all_energy_systems: '/data_raw/data_public/parameters_all_energy_systems.csv'
+parameters_load_profile: '/data_raw/data_public/parameters_load_profiles.csv'
+time_series_loads_el: '/data_raw/data_confidential/time_series_60min_singleindex.csv'
+time_series_loads_heat: '/data_raw/data_confidential/Lastgang 2011_2012.xls'
+
+# PREPROCESSED DATA
+demand_time_series: '/data_preprocessed/demand_profiles_nominal.csv'
+demand_scatter_plot: '../data_preprocessed/demand_scatter_plot.png'
