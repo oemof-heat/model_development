@@ -13,4 +13,4 @@ data_output/
 __pycache__
 .idea
 *.xlsx
-*/venv/*
+**/venv/**
