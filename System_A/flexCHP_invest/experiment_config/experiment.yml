@@ -1,0 +1,37 @@
+# Configuration for IRES2019-Paper
+# Date: Thu 7th of January 2019
+# Author: Jakob Wolf (jakob.wolf@beuth-hochschule.de)
+
+run_preprocessing: False
+run_model: False
+run_postprocessing: True
+
+debug: False
+solver: 'cbc'
+solver_verbose: False
+
+# If run_single_scenario=True, select single scenario_number.
+run_single_scenario: True
+scenario_number: 1
+
+# DATE AND TIME
+start_date: '1/1/2040'
+frequency: 'H'
+
+# FILE NAMES - WRITING
+filename_dumb: 'flexCHP'
+filename_logfile: 'flexCHP'
+
+# FILE NAMES - READING
+parameters_energy_system:
+  - '/data_raw/data_public/parameters_energy_system.csv'
+
+
+parameters_all_energy_systems: '/data_raw/data_public/parameters_all_energy_systems.csv'
+parameters_load_profile: '/data_raw/data_public/parameters_load_profiles.csv'
+time_series_loads_el: '/data_raw/data_confidential/time_series_60min_singleindex.csv'
+time_series_loads_heat: '/data_raw/data_confidential/Lastgang 2011_2012.xls'
+
+# PREPROCESSED DATA
+demand_time_series: '/data_preprocessed/demand_profiles_nominal.csv'
+demand_scatter_plot: '../data_preprocessed/demand_scatter_plot.png'
