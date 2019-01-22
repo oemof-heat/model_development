@@ -23,6 +23,8 @@ from oemof.tools import logger, economics
 import oemof.tools.helpers
 import oemof.solph as solph
 from oemof.outputlib import processing
+import oemof.graph as graph
+import networkx as nx
 import logging
 import os
 import pandas as pd
@@ -167,6 +169,9 @@ def run_model_dessau(config_path, results_dir):
         inflow_conversion_factor=1,
         outflow_conversion_factor=1))
 
+    energysystem_graph = graph.create_nx_graph(energysystem)
+    graph_file_name = os.path.join(results_dir, 'energysystem_graph.pkl')
+    nx.readwrite.write_gpickle(G=energysystem_graph, path=graph_file_name)
 
     #####################################################################
     logging.info('Solve the optimization problem')
