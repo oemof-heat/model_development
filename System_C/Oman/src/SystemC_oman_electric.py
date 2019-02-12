@@ -4,45 +4,36 @@ Created on Dez 06 2018
 
 @author: Franziska Pleissner
 
-System C: concrete example: Model of cooling process with a solar collector
+System C: concrete example: Model of cooling process with a compression chiller and a pv modul
 
 
-             input/output     gas   thermal  electr.  cool   waste   ambient(/ground)
+             input/output    electr.  cool   waste   ambient(/ground)
 
-naturalgas         |---------->|       |       |       |       |
-                   |           |       |       |       |       |
-grid_el            |-------------------------->|       |       |
-                   |           |       |       |       |       |
-pv                 |-------------------------->|       |       |
-                   |           |       |       |       |       |
-collector          |------------------>|       |       |       |
-                   |           |       |       |       |       |
-boiler             |           |------>|       |       |       |
-                   |           |       |       |       |       |
-                   |<------------------|       |       |       |
-absorption_chiller |---------------------------------->|       |
-                   |------------------------------------------>|
-                   |           |       |       |       |       |
-cooling_tower      |<------------------------------------------|
-                   |<--------------------------|       |       |       |
-                   |-------------------------------------------------->|
-                   |           |       |       |       |       |
-aquifer            |<------------------------------------------|
-                   |<--------------------------|       |       |       |
-                   |-------------------------------------------------->|
-                   |           |       |       |       |       |
-storage_thermal    |------------------>|       |       |       |
-                   |<------------------|       |       |       |
-                   |           |       |       |       |       |
-storage_electricity|-------------------------->|       |       |
-                   |<--------------------------|       |       |
-                   |           |       |       |       |       |
-storage_cool       |---------------------------------->|       |
-                   |<----------------------------------|       |
-                   |           |       |       |       |       |
-demand             |<----------------------------------|       |
-                   |           |       |       |       |       |
-excess             |<------------------|       |       |       |
+grid_el            |---------->|       |       |
+                   |           |       |       |
+pv                 |---------->|       |       |
+                   |           |       |       |
+                   |<----------|       |       |
+compression_chiller|------------------>|       |
+                   |-------------------------->|
+                   |           |       |       |
+cooling_tower      |<--------------------------|
+                   |<----------|       |       |       |
+                   |---------------------------------->|
+                   |           |       |       |
+aquifer            |<--------------------------|
+                   |<----------|       |       |       |
+                   |---------------------------------->|
+                   |           |       |       |
+storage_electricity|---------->|       |       |
+                   |<----------|       |       |
+                   |           |       |       |
+storage_cool       |------------------>|       |
+                   |<------------------|       |
+                   |           |       |       |
+demand             |<------------------|       |
+                   |           |       |       |
+excess             |<----------|       |       |
 
 
 """
@@ -74,13 +65,13 @@ def ep_costs_func(capex, n, opex, wacc):
     return ep_costs
 
 
-def run_model_thermal(config_path, var_number):
+def run_model_electric(config_path, var_number):
 
     with open(config_path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
     if cfg['debug']:
-        number_of_time_steps = 3
+        number_of_time_steps = 2
     else:
         number_of_time_steps = cfg['number_timesteps']
 
@@ -109,12 +100,12 @@ def run_model_thermal(config_path, var_number):
         return ep_costs_func(capex, n, opex, param_value['wacc'])
 
     # initiate the logger
-    logger.define_logging(logfile='Oman_thermal_{0}_{1}.log'.format(cfg['exp_number'], var_number),
+    logger.define_logging(logfile='Oman_electric_{0}_{1}.log'.format(cfg['exp_number'], var_number),
                           logpath=results_path + '/logs',
                           screen_level=logging.INFO,
                           file_level=logging.DEBUG)
 
-    date_time_index = pd.date_range('1/1/2017', periods=(2 if debug is True else number_of_time_steps), freq='H')
+    date_time_index = pd.date_range('1/1/2017', periods=number_of_time_steps, freq='H')
 
     # Initialise the energysystem
     logging.info('Initialize the energy system')
@@ -127,70 +118,43 @@ def run_model_thermal(config_path, var_number):
 
     # Busses
 
-    bth = solph.Bus(label='thermal')
     bco = solph.Bus(label="cool")
     bwh = solph.Bus(label="waste")
     bel = solph.Bus(label="electricity")
-    bga = solph.Bus(label="gas")
     bam = solph.Bus(label="ambient")
 
-    energysystem.add(bth, bco, bwh, bel, bga, bam)
+    energysystem.add(bco, bwh, bel, bam)
 
     # Sinks and sources
 
     ambience = solph.Sink(label='ambience', inputs={bam: solph.Flow()})
 
-    grid_ga = solph.Source(label='naturalgas', outputs={bga: solph.Flow(variable_costs=param_value['price_gas'])})
-
     grid_el = solph.Source(label='grid_el', outputs={bel: solph.Flow(variable_costs=param_value['price_electr'])})
-
-    collector = solph.Source(label='collector', outputs={bth: solph.Flow(
-        fixed=True, actual_value=data['solar gain kWprom2'],
-        investment=solph.Investment(ep_costs=ep_costs_f(param_value['invest_costs_collect_output_th'],
-                                                        param_value['lifetime_collector'],
-                                                        param_value['opex_collector'])))})        # Has to be developed
 
     pv = solph.Source(label='pv', outputs={bel: solph.Flow(
         fixed=True, actual_value=data['solar gain relativ'],
-        investment=solph.Investment(ep_costs=ep_costs_f(param_value['invest_costs_pv_output_th'],
+        investment=solph.Investment(ep_costs=ep_costs_f(param_value['invest_costs_pv_output_th_07616'],
                                                         param_value['lifetime_pv'],
                                                         param_value['opex_pv'])))})  # Einheit: 0,7616 kWpeak
 
     demand = solph.Sink(label='demand', inputs={bco: solph.Flow(
         fixed=True, actual_value=data['Cooling load kW'], nominal_value=1)})
 
-    excess = solph.Sink(label='excess_thermal', inputs={bth: solph.Flow()})
-
     excess_el = solph.Sink(label='excess_el', inputs={bel: solph.Flow()})
 
-    energysystem.add(ambience, grid_ga, grid_el, collector, pv, demand, excess, excess_el)
+    energysystem.add(ambience, grid_el, pv, demand, excess_el)
 
     # Transformers
 
-    if param_value['nominal_value_boiler_output_thermal'] == 0:
-        boil = solph.Transformer(
-            label='boiler',
-            inputs={bga: solph.Flow()},
-            outputs={bth: solph.Flow(investment=solph.Investment(
-                ep_costs=ep_costs_f(param_value['invest_costs_boiler_output_th'], param_value['lifetime_boiler'],
-                                    param_value['opex_boiler'])))},
-            conversion_factors={bth: param_value['conv_factor_boiler_output_thermal']})
-    else:
-        boil = solph.Transformer(
-            label='boiler',
-            inputs={bga: solph.Flow()},
-            outputs={bth: solph.Flow(nominal_value=param_value['nominal_value_boiler_output_thermal'])},
-            conversion_factors={bth: param_value['conv_factor_boiler_output_thermal']})
-
     chil = solph.Transformer(
-        label='absorption_chiller',
-        inputs={bth: solph.Flow()},
+        label='compression_chiller',
+        inputs={bel: solph.Flow()},
         outputs={bco: solph.Flow(investment=solph.Investment(
-                    ep_costs=ep_costs_f(param_value['invest_costs_absorption_output_cool'],
-                                        param_value['lifetime_absorption'], param_value['opex_absorption']))),
+                    ep_costs=ep_costs_f(param_value['invest_costs_compression_output_cool'],
+                                        param_value['lifetime_compression'], param_value['opex_compression']))),
                  bwh: solph.Flow()},
-        conversion_factors={bco: param_value['conv_factor_absorption_output_cool'],
-                            bwh: param_value['conv_factor_absorption_output_waste']})
+        conversion_factors={bco: param_value['conv_factor_compression_output_cool'],
+                            bwh: param_value['conv_factor_compression_output_waste']})
 
     aqui = solph.Transformer(
         label='aquifer',
@@ -212,7 +176,7 @@ def run_model_thermal(config_path, var_number):
         conversion_factors={bwh: param_value['conv_factor_tower_input_waste'],
                             bel: param_value['conv_factor_tower_input_el']})
 
-    energysystem.add(chil, boil, aqui, towe)
+    energysystem.add(chil, aqui, towe)
 
     # storages
 
@@ -241,31 +205,6 @@ def run_model_thermal(config_path, var_number):
             outflow_conversion_factor=param_value['conv_factor_stor_cool_output'],
             nominal_capacity=param_value['nominal_capacitiy_stor_cool'])
 
-    if param_value['nominal_capacitiy_stor_thermal'] == 0:
-        stor_th = solph.components.GenericStorage(
-            label='storage_thermal',
-            inputs={bth: solph.Flow()},
-            outputs={bth: solph.Flow()},
-            capacity_loss=param_value['capac_loss_stor_thermal'],
-            # invest_relation_input_capacity=1 / 6,
-            # invest_relation_output_capacity=1 / 6,
-            inflow_conversion_factor=param_value['conv_factor_stor_thermal_input'],
-            outflow_conversion_factor=param_value['conv_factor_stor_thermal_output'],
-            investment=solph.Investment(
-                ep_costs=ep_costs_f(param_value['invest_costs_stor_thermal_capacity'],
-                                    param_value['lifetime_stor_thermal'], param_value['opex_stor_thermal'])))
-    else:
-        stor_th = solph.components.GenericStorage(
-            label='storage_thermal',
-            inputs={bth: solph.Flow()},
-            outputs={bth: solph.Flow()},
-            capacity_loss=param_value['capac_loss_stor_thermal'],
-            # invest_relation_input_capacity=1 / 6,
-            # invest_relation_output_capacity=1 / 6,
-            inflow_conversion_factor=param_value['conv_factor_stor_thermal_input'],
-            outflow_conversion_factor=param_value['conv_factor_stor_thermal_output'],
-            nominal_capacity=param_value['nominal_capacitiy_stor_thermal'])
-
     if param_value['nominal_capacitiy_stor_el'] == 0:
         stor_el = solph.components.GenericStorage(
             label='storage_electricity',
@@ -292,7 +231,7 @@ def run_model_thermal(config_path, var_number):
             outflow_conversion_factor=param_value['conv_factor_stor_el_output'],
             nominal_capacity=param_value['nominal_capacitiy_stor_el'])
 
-    energysystem.add(stor_co, stor_th, stor_el)
+    energysystem.add(stor_co, stor_el)
 
     ########################################
     # Create a model and solve the problem #
@@ -305,7 +244,7 @@ def run_model_thermal(config_path, var_number):
     model.solve(solver=solver, solve_kwargs={'tee': solver_verbose})
 
     if cfg['debug']:
-        filename = results_path + '/lp_files/' + 'Oman_thermal_{0}_{1}.lp'.format(cfg['exp_number'], var_number)
+        filename = results_path + '/lp_files/' + 'Oman_electric_{0}_{1}.lp'.format(cfg['exp_number'], var_number)
         logging.info('Store lp-file in {0}.'.format(filename))
         model.write(filename, io_options={'symbolic_solver_labels': True})
 
@@ -316,4 +255,4 @@ def run_model_thermal(config_path, var_number):
     energysystem.results['param'] = outputlib.processing.parameter_as_dict(model)
 
     energysystem.dump(dpath=(results_path + '/dumps'),
-                      filename='oman_thermal_{0}_{1}.oemof'.format(cfg['exp_number'], var_number))
+                      filename='oman_electric_{0}_{1}.oemof'.format(cfg['exp_number'], var_number))
