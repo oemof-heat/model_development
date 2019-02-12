@@ -1,0 +1,6 @@
+id,component_id,version,var_name,var_value,var_unit,updated,reference
+1,1,1,capacity,600,MWh,12.10.18,Ref2018
+2,1,1,loss,0.5,kW,12.10.18,Ref2019
+3,1,1,capex,600,Eur/MW,12.10.18,Ref2020
+4,2,1,opex,30,Eur/MWh,12.10.18,Ref2021
+5,2,1,o_m_cost_fix,10,Eur/MW,12.10.18,Ref2022

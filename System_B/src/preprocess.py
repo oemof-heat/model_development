@@ -1,5 +1,5 @@
 """
-This application creates time series input for 
+This script creates time series input for
 optimise_district_heating.py
 
 * heat demand time series
@@ -20,25 +20,34 @@ import matplotlib.pyplot as plt
 import datetime
 import os
 from workalendar.europe import Germany
+import yaml
+import helpers
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
-def prepare_timeseries_temperature(raw_file, output_file):
+def prepare_timeseries_temperature(config_path, results_dir):
     """
     convert raw temperature data to appropriate format.
     """
+    with open(config_path, 'r') as ymlfile:
+        cfg = yaml.load(ymlfile)
+
     # load temperature data
-    filename = abs_path + '/data_raw/' + raw_file # 'temperature_data.csv'
-    temperature = pd.read_csv(filename, skiprows=2)  # ["temperature"]
-    temperature.columns = ['utc_time','time','temp']
-    temperature = temperature[['time','temp']]
-    temperature.set_index('time')
+    output_file = os.path.join(results_dir, cfg['timeseries']['timeseries_temperature'])
+    filename = os.path.join(abs_path, 'data_raw', cfg['raw']['temperature'])
+    temperature = pd.read_csv(filename,
+                              index_col=0,
+                              usecols=['timestamp','T'],
+                              parse_dates=True)
+    temperature['T'] -= 273.15
     temperature.to_csv(output_file)
+
     return temperature
 
-def prepare_timeseries_demand_heat(year, building_types, temperature, output_file):
+def prepare_timeseries_demand_heat(year, bdew_parameters, temperature,
+                                   output_file):
     """
-    Creates synthetic heat profiles via BDEW method.
+    Creates synthetic heat profiles using the BDEW method.
     """
     # get holidays for germany
     cal = Germany()
@@ -48,30 +57,19 @@ def prepare_timeseries_demand_heat(year, building_types, temperature, output_fil
     demand = pd.DataFrame(
         index=pd.date_range(pd.datetime(year, 1, 1, 0),
                             periods=8760, freq='H'))
+    demand = pd.DataFrame(index=temperature.index)
 
-    # Single family house (efh: Einfamilienhaus)
-    demand['efh'] = bdew.HeatBuilding(
-        demand.index, holidays=holidays, temperature=temperature['temp'],
-        shlp_type='EFH',
-        building_class=1, wind_class=1, annual_heat_demand=232000000,
-        name='EFH').get_bdew_profile()
-
-    # Multi family house (mfh: Mehrfamilienhaus)
-    demand['mfh'] = bdew.HeatBuilding(
-        demand.index, holidays=holidays, temperature=temperature['temp'],
-        shlp_type='MFH',
-        building_class=2, wind_class=0, annual_heat_demand=80000000,
-        name='MFH').get_bdew_profile()
-
-    # Industry, trade, service (ghd: Gewerbe, Handel, Dienstleistung)
-    demand['ghd'] = bdew.HeatBuilding(
-        demand.index, holidays=holidays, temperature=temperature['temp'],
-        shlp_type='ghd', wind_class=0, annual_heat_demand=140000000,
-        name='ghd').get_bdew_profile()
+    for key, param in bdew_parameters.items():
+        demand[key] = bdew.HeatBuilding(
+                demand.index, holidays=holidays, temperature=temperature,
+                shlp_type=key,
+                building_class=param['building_class'],
+                wind_class=param['wind_class'],
+                annual_heat_demand=param['annual_demand'],
+                name=key).get_bdew_profile()
 
     # save heat demand time series
-    demand.to_csv(output_file)
-    print(demand['efh'].sum(), demand['efh'][0])
+    demand.sum(axis=1).to_csv(output_file)
 
 def prepare_timeseries_price_gas():
     # prepare gas price time series
@@ -81,14 +79,26 @@ def prepare_timeseries_price_gas():
     ger_day_ahead_prices_2006_2018.to_csv(abs_path+'/data/'+'day_ahead_price_el_2006_2018.csv')
     ger_day_ahead_prices_2014.to_csv(abs_path+'/data/'+'day_ahead_price_el_2014.csv')
 
-
 def prepare_timeseries_price_electricity():
     # prepare electricity price time series
     pass
 
-def prepare_timeseries(results_dir):
-    temperature = prepare_timeseries_temperature('ninja_weather/ninja_weather_51.8341_12.2374_uncorrected.csv', results_dir + '/data_preprocessed/temperature.csv')
-    prepare_timeseries_demand_heat(2010, None, temperature, results_dir + '/data_preprocessed/demand_heat.csv')
+def prepare_timeseries(config_path, results_dir):
+    # open config
+    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+    with open(config_path, 'r') as ymlfile:
+        cfg = yaml.load(ymlfile)
+
+    # temperature
+    temperature = prepare_timeseries_temperature(config_path, results_dir)
+
+    # heat demand
+    bdew_parameters = {'efh':{'annual_demand': 0.357205 * 232000000, 'building_class': 4, 'wind_class': 1},
+                       'mfh':{'annual_demand': 0.642795 * 232000000, 'building_class': 4, 'wind_class': 1}}
+
+    prepare_timeseries_demand_heat(2017, bdew_parameters, temperature,
+                                   os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
 
 if __name__ == '__main__':
-    prepare_timeseries()
+    config_path, results_dir = helpers.setup_experiment()
+    prepare_timeseries(config_path, results_dir)

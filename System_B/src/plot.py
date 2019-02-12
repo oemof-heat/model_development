@@ -18,6 +18,8 @@ import oemof.graph as graph
 import oemof.solph as solph
 import oemof.outputlib as outputlib
 import networkx as nx
+import yaml
+import helpers
 
 
 def plot_heat_demand(df, filename):
@@ -98,15 +100,37 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
 
 
 def plot_dispatch(df, filename):
+    r"""
+    Creates and saves a plot of the heat
+    dispatch.
+
+    Parameters
+    ----------
+    df: DataFrame
+        Containing flows from and to
+        heat bus.
+
+    filename: path
+        Path to store plot.
+
+    Returns
+    -------
+    None
     """
-    """
+
     # preprocessing
     heat_in = [key for key in df.keys() if key[0][1] == 'heat_prim']
     heat_to_storage = (('heat_prim', 'storage_heat'), 'flow')
     heat_to_dhn = (('heat_prim', 'dhn_prim'), 'flow')
-    df_plot = df[heat_in + [heat_to_storage, heat_to_dhn]]
-    df_plot[heat_to_storage] *= -1
-    df_resam = df_plot.resample('1D').mean()
+
+    # round
+    df = df.round(10)
+
+    # resample
+    df_resam = df.resample('1D').mean()
+
+    # invert heat to storage
+    df_resam[heat_to_storage] *= -1
 
     # plot
     fig, ax = plt.subplots(figsize=(12, 6))
@@ -122,9 +146,18 @@ def plot_dispatch(df, filename):
     # save figure
     fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
 
+    return None
 
-def create_plots(results_dir):
+
+def create_plots(config_path, results_dir):
+    r"""
+    Runs the plot production pipeline.
+    """
+    # open config
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+    with open(config_path, 'r') as ymlfile:
+        cfg = yaml.load(ymlfile)
+
     energysystem = solph.EnergySystem()
     energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
     energysystem_graph = graph.create_nx_graph(energysystem)
@@ -146,7 +179,7 @@ def create_plots(results_dir):
                node_color=node_color)
     rcParams['figure.figsize'] = [10.0, 10.0]
 
-    demand = pd.read_csv(results_dir + '/data_preprocessed/' + 'demand_heat.csv')
+    demand = pd.read_csv(os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
     plot_heat_demand(demand, filename=results_dir + '/plots/heat_demand.pdf')
 
     node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
@@ -154,5 +187,6 @@ def create_plots(results_dir):
 
 
 if __name__ == '__main__':
-    create_plots()
+    config_path, results_dir = helpers.setup_experiment()
+    create_plots(config_path, results_dir)
 

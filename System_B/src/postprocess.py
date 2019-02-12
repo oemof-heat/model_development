@@ -23,6 +23,8 @@ import os
 import pandas as pd
 import oemof.solph as solph
 import oemof.outputlib as outputlib
+import yaml
+import helpers
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
@@ -69,12 +71,21 @@ def print_summed_heat(energysystem):
 def get_param_as_dict(energysystem):
     param = energysystem.results['param']
 
-def postprocess(results_dir):
+def postprocess(config_path, results_dir):
+    # open config
+    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+    with open(config_path, 'r') as ymlfile:
+        cfg = yaml.load(ymlfile)
+
+    # restore energysystem
     energysystem = solph.EnergySystem()
     energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
     print_summed_heat(energysystem)
     get_param_as_dict(energysystem)
 
 if __name__ == '__main__':
-    postprocess()
+    config_path, results_dir = helpers.setup_experiment()
+    postprocess(config_path, results_dir)
+
+
 

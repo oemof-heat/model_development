@@ -1,4 +1,4 @@
-debug: False
+debug: True
 solver: 'cbc'
 
 # sources for raw data
@@ -13,7 +13,7 @@ timeseries:
   timeseries_demand_heat: 'data_preprocessed/demand_heat.csv'
 
 # optimisation settings
-input_parameter: 'data_raw/input_parameter/input_parameter_confidential.csv'
+input_parameter: 'data_raw/input_parameter/input_parameter.csv'
 investment:
   invest_chp: False
   invest_pth: False

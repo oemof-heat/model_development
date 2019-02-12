@@ -1,0 +1,20 @@
+debug: True
+solver: 'cbc'
+
+# sources for raw data
+oep_download: True
+raw:
+  temperature: 'oep_data/weather_data.csv'
+
+# filenames for preprocessed data
+timeseries:
+  timeseries_temperature: 'data_preprocessed/temperature.csv'
+  timeseries_demand_heat: 'data_preprocessed/demand_heat.csv'
+
+# optimisation
+input_parameter: 'data_raw/oep_data/input_parameter.csv'
+investment:
+  invest_chp: False
+  invest_pth: False
+
+# filenames for plots
