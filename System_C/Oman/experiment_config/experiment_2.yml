@@ -1,0 +1,37 @@
+# Configuration for Oman_model
+# Date: Thu 26th of November 2018
+# Author: Franziska
+
+exp_name: WS mittel, KS 25-4000
+exp_number: 2
+number_of_variations:  12
+
+run_preprocessing: False
+run_model: True
+run_postprocessing: True
+debug: False
+solver: 'cbc'
+solver_verbose: True
+number_timesteps: 8760
+
+# Parameters for the energy system
+parameters_file_name:
+  - 'parameters_experiment_2_0.csv'
+  - 'parameters_experiment_2_1.csv'
+  - 'parameters_experiment_2_2.csv'
+  - 'parameters_experiment_2_3.csv'
+  - 'parameters_experiment_2_4.csv'
+  - 'parameters_experiment_2_5.csv'
+  - 'parameters_experiment_2_6.csv'
+  - 'parameters_experiment_2_7.csv'
+  - 'parameters_experiment_2_8.csv'
+  - 'parameters_experiment_2_9.csv'
+  - 'parameters_experiment_2_10.csv'
+  - 'parameters_experiment_2_11.csv'
+
+# Preprocessed data
+time_series_file_name: 'time_series.csv'
+
+# plot data
+start_of_plot: 4000
+end_of_plot: 4100
