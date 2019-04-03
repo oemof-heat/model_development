@@ -16,8 +16,10 @@ timeseries:
 # optimisation
 input_parameter: 'data_raw/input_parameter/input_parameter.csv'
 investment:
-  invest_chp: False
   invest_pth: False
+
+# CHP representation
+chp_repr: 'option_1'
 
 # filenames for plots
 

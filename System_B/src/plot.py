@@ -160,7 +160,7 @@ def create_plots(config_path, results_dir):
 
     energysystem = solph.EnergySystem()
     energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
-    energysystem_graph = graph.create_nx_graph(energysystem)
+    energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'energysystem_graph.pkl'))
 
     node_color = { 'natural gas': '#19A8B8',
                    'ccgt': '#19A8B8',
