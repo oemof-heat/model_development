@@ -12,7 +12,6 @@ System C: concrete example: Plot ocooling process with a solar collector
 ############
 
 # Import packages
-from oemof.tools import logger
 import oemof.solph as solph
 
 import oemof.outputlib as outputlib
@@ -47,10 +46,32 @@ def make_csv_and_plot_electric(config_path, var_number):
 
     energysystem = solph.EnergySystem()
     energysystem.restore(dpath=(results_path + '/dumps'),
-                         filename='oman_electric_{0}_{1}.oemof'.format(cfg['exp_number'], var_number))
+                         filename='oman_electric_Ires_{0}_{1}.oemof'.format(
+                             cfg['exp_number'], var_number))
 
     sp = cfg['start_of_plot']
     ep = cfg['end_of_plot']
+
+    # Look up investment costs. Therefor parameters must read again.
+    if type(cfg['parameters_variation']) == list:
+        file_path_param_01 = abs_path + '/data/data_public/' + cfg[
+            'parameters_system']
+        file_path_param_02 = abs_path + '/data/data_public/' + cfg[
+            'parameters_variation'][var_number]
+    elif type(cfg['parameters_system']) == list:
+        file_path_param_01 = abs_path + '/data/data_public/' + cfg[
+            'parameters_system'][var_number]
+        file_path_param_02 = abs_path + '/data/data_public/' + cfg[
+            'parameters_variation']
+    else:
+        file_path_param_01 = abs_path + '/data/data_public/' + cfg[
+            'parameters_system']
+        file_path_param_02 = abs_path + '/data/data_public/' + cfg[
+            'parameters_variation']
+    param_df_01 = pd.read_csv(file_path_param_01, index_col=1, sep=';')
+    param_df_02 = pd.read_csv(file_path_param_02, index_col=1, sep=';')
+    param_df = pd.concat([param_df_01, param_df_02], sort=True)
+    param_value = param_df['value']
 
     logging.info('results received')
 
@@ -58,7 +79,8 @@ def make_csv_and_plot_electric(config_path, var_number):
     # Work with the results #
     #########################
 
-    results_strings = outputlib.views.convert_keys_to_strings(energysystem.results['main'])
+    results_strings = outputlib.views.convert_keys_to_strings(
+        energysystem.results['main'])
 
     cool_bus = outputlib.views.node(energysystem.results['main'], 'cool')
     waste_bus = outputlib.views.node(energysystem.results['main'], 'waste')
@@ -76,17 +98,22 @@ def make_csv_and_plot_electric(config_path, var_number):
     cool_scal = cool_bus['scalars']
     waste_scal = waste_bus['scalars']
     el_scal = el_bus['scalars']
-    # non_scal = none_res['scalars']
-    none_scal_given = outputlib.views.node(energysystem.results['param'], 'None')['scalars']
-    el_scal[(('pv', 'electricity'), 'invest')] = el_scal[(('pv', 'electricity'), 'invest')]*0.7616
-    # Umrechnung, da das Invest-object der pv auf 0.7616 kWpeak normiert ist.
+    none_scal = none_res['scalars']
+    none_scal_given = outputlib.views.node(
+        energysystem.results['param'], 'None')['scalars']
+    el_scal[(('pv', 'electricity'), 'invest')] = (
+            el_scal[(('pv', 'electricity'), 'invest')]*param_value['size_pv'])
+    # Conversion of the pv-investment-size, because Invest-object is normalized
+    # at 0.970873786 kWpeak
 
-    # solarer Deckungsanteil
-    # elektrisch:
+    # solar fraction
+    # electric:
+    # control_el (No Power must go from grid to excess)
     df_control_el = pd.DataFrame()
     df_control_el['grid_el'] = el_seq[(('grid_el', 'electricity'), 'flow')]
     df_control_el['excess'] = el_seq[(('electricity', 'excess_el'), 'flow')]
-    df_control_el['Product'] = df_control_el['grid_el'] * df_control_el['excess']
+    df_control_el['Product'] = (df_control_el['grid_el']
+                                * df_control_el['excess'])
 
     el_from_grid = el_seq[(('grid_el', 'electricity'), 'flow')].sum()
     el_from_pv = el_seq[(('pv', 'electricity'), 'flow')].sum()
@@ -94,75 +121,144 @@ def make_csv_and_plot_electric(config_path, var_number):
     el_pv_used = el_from_pv - el_to_excess
     sol_fraction_el = el_pv_used / (el_pv_used + el_from_grid)
 
-    # Stromverbrauch:
+    # Power usage:
     el_used = el_seq[(('grid_el', 'electricity'), 'flow')].sum()
 
-    ### Kosten ###
-    costs_total = energysystem.results['meta']['objective']
-        # Speicherkosten müssen im Basisfall abgezogen werden, oder bei den anderen Beispielen hinzugerechnet werden.
+    # Power to the output:
+    electricity_output = el_seq[(('electricity', 'excess_el'), 'flow')].sum()
+    electricity_output_pv = el_seq[(('pv', 'electricity'), 'flow')].sum()
 
-    # für Basisfall:
-    if cfg['exp_number'] == 20:
-        costs_total_wo_stor = costs_total - ((none_scal[(('storage_electricity', 'None'), 'invest')]
-                                              * none_scal_given[(('storage_electricity', 'None'), 'investment_ep_costs')]) +
-                                             (none_scal[(('storage_cool', 'None'), 'invest')]
-                                              * none_scal_given[(('storage_cool', 'None'), 'investment_ep_costs')]))
-    # für alle anderen Fälle:
+    # ## Kosten ## #
+
+    costs_total = energysystem.results['meta']['objective']
+
+    # storage costs must be subtract for reference scenario or added
+    # for the other scenarios.
+
+    # reference scenario:
+    if param_value['nominal_capacitiy_stor_el'] == 0:
+        costs_total_wo_stor = (
+            costs_total
+            - (none_scal[(('storage_electricity', 'None'), 'invest')]
+                * none_scal_given[
+                    (('storage_electricity', 'None'), 'investment_ep_costs')])
+            - (none_scal[(('storage_cool', 'None'), 'invest')]
+                * none_scal_given[
+                    (('storage_cool', 'None'), 'investment_ep_costs')]))
+    # other scenarios:
     else:
-        # Kosten für die Investition müssen ermittelt werden. Dafür müssen die Parameter hier auch eignelesen werden.
-        filename_param = abs_path + '/data/data_public/' + cfg['parameters_file_name'][var_number]
-        param_df = pd.read_csv(filename_param, index_col=1, sep=';')  # uses second column of csv-file for indexing
-        param_value = param_df['value']
-        # Berechnung der ep_costs
-        ep_costs_el_stor = ep_costs_func(param_value['invest_costs_stor_el_capacity'],
-                           param_value['lifetime_stor_el'], param_value['opex_stor_el'], param_value['wacc'])
-        ep_costs_cool_stor = ep_costs_func(param_value['invest_costs_stor_cool_capacity'],
-                             param_value['lifetime_stor_cool'], param_value['opex_stor_cool'], param_value['wacc'])
-        # Berechnung der Kosten der Variante inklusive der Speicher
-        costs_total_w_stor = costs_total + ((none_scal_given[(('storage_cool', 'None'), 'nominal_capacity')]
-                                            * ep_costs_cool_stor) +
-                                            (none_scal_given[(('storage_electricity', 'None'), 'nominal_capacity')]
-                                            * ep_costs_el_stor))
+        # calculation of ep_costs
+        ep_costs_el_stor = ep_costs_func(
+            param_value['invest_costs_stor_el_capacity'],
+            param_value['lifetime_stor_el'],
+            param_value['opex_stor_el'],
+            param_value['wacc'])
+        ep_costs_cool_stor = ep_costs_func(
+            param_value['invest_costs_stor_cool_capacity'],
+            param_value['lifetime_stor_cool'],
+            param_value['opex_stor_cool'],
+            param_value['wacc'])
+        # calculation of the scenario costs inclusive storage costs
+        costs_total_w_stor = (
+                costs_total
+                + (none_scal_given[
+                        (('storage_cool', 'None'), 'nominal_capacity')]
+                   * ep_costs_cool_stor)
+                + (none_scal_given[
+                        (('storage_electricity', 'None'), 'nominal_capacity')]
+                   * ep_costs_el_stor))
 
     ########################
     # Write results in csv #
     ########################
 
-    # scalars:
-    scalars_all = cool_scal.append(waste_scal).append(el_scal)
+    # ## scalars ## #
+    # base scalars:
+    scalars_all = cool_scal\
+        .append(waste_scal)\
+        .append(el_scal)\
+        .append(none_scal)
     for i in range(0, none_scal_given.count()):
         if 'nominal_capacity' in none_scal_given.index[i]:
-            scalars_all = pd.concat([scalars_all, pd.Series([none_scal_given[i]], index=[none_scal_given.index[i]])])
-    scalars_all = pd.concat([scalars_all, pd.Series([sol_fraction_el], index=["('solar fraction', 'electric'), ' ')"])])
+            scalars_all = pd.concat(
+                [scalars_all,
+                 pd.Series([none_scal_given[i]],
+                           index=[none_scal_given.index[i]])])
+
+    # solar fractions
+    scalars_all = pd.concat(
+        [scalars_all,
+         pd.Series([sol_fraction_el],
+                   index=["('solar fraction', 'electric'), ' ')"])])
     if df_control_el['Product'].sum() != 0:
-        scalars_all = pd.concat([scalars_all, pd.Series([df_control_el['Product'].sum()], index=["Has to be 0!!!"])])
-    scalars_all = pd.concat([scalars_all, pd.Series([el_used], index=["('grid_el', 'electricity'), 'summe')"])])
-    if cfg['exp_number'] != 20:
         scalars_all = pd.concat(
-            [scalars_all, pd.Series([costs_total_w_stor], index=["('costs', 'w_stor'), 'per year')"])])
-    scalars_all = pd.concat([scalars_all, pd.Series([costs_total], index=["('costs', 'wo_stor'), 'per year')"])])
-    if cfg['exp_number'] == 20:
+            [scalars_all,
+             pd.Series([df_control_el['Product'].sum()],
+                       index=["Has to be 0!!!"])])
+
+    # various results
+    scalars_all = pd.concat(
+        [scalars_all,
+         pd.Series([el_used],
+                   index=["('grid_el', 'electricity'), 'summe')"])])
+    scalars_all = pd.concat(
+        [scalars_all,
+         pd.Series([electricity_output],
+                   index=["('electricity', 'output'), 'summe')"])])
+    scalars_all = pd.concat(
+        [scalars_all,
+         pd.Series([electricity_output_pv],
+                   index=["('pv', 'electricity'), 'summe')"])])
+
+    # costs with or without storage (depends on reference scenario or not)
+    if param_value['nominal_capacitiy_stor_el'] != 0:
         scalars_all = pd.concat(
-            [scalars_all, pd.Series([costs_total_wo_stor], index=["('costs', 'wo stor'), 'per year')"])])
-    scalars_all = pd.concat([scalars_all, pd.Series(['{0}_{1}'.format(cfg['exp_number'], var_number)], index=["('Exp', 'Var'), 'number')"])])
+            [scalars_all,
+             pd.Series([costs_total_w_stor],
+                       index=["('costs', 'w_stor'), 'per year')"])])
+    scalars_all = pd.concat(
+        [scalars_all,
+         pd.Series([costs_total],
+                   index=["('costs', 'wo_stor'), 'per year')"])])
+    if param_value['nominal_capacitiy_stor_el'] == 0:
+        scalars_all = pd.concat(
+            [scalars_all,
+             pd.Series([costs_total_wo_stor],
+                       index=["('costs', 'wo stor'), 'per year')"])])
 
-    scalars_all.to_csv(csv_path + 'Oman_electric_{0}_{1}_scalars.csv'.format(cfg['exp_number'], var_number))
+    # experiment number and variation
+    scalars_all = pd.concat(
+        [scalars_all,
+         pd.Series(['{0}_{1}'.format(cfg['exp_number'], var_number)],
+                   index=["('Exp', 'Var'), 'number')"])])
 
+    # write scalars into csv for this experiment and variation
+    scalars_all.to_csv(
+        csv_path + 'Oman_electric_IRES_{0}_{1}_scalars.csv'.format(
+            cfg['exp_number'], var_number))
+
+    # write scalars for all variations of the experiment into csv
     df_all_var = pd.concat([df_all_var, scalars_all], axis=1, sort=True)
     if var_number == (cfg['number_of_variations']-1):
-        df_all_var.to_csv(csv_path + 'Oman_electric_{0}_scalars_all_variations.csv'.format(cfg['exp_number']))
+        df_all_var.to_csv(
+            csv_path
+            + 'Oman_electric_Ires_{0}_scalars_all_variations.csv'.format(
+                cfg['exp_number']))
         logging.info('Writing DF_all_variations into csv')
 
-    # sequences:
-        # If you just want to add some parts of the sequences, not all:
-        #               mydf[('boiler', 'thermal'), 'flow'] = thermal_seq[(('boiler', 'thermal'), 'flow')]
-    sequences_df = pd.merge(ambient_seq, waste_seq, left_index=True, right_index=True)
-    sequences_df = pd.merge(sequences_df, el_seq, left_index=True, right_index=True)
-    sequences_df = pd.merge(sequences_df, cool_seq, left_index=True, right_index=True)
-    sequences_df.to_csv(csv_path + 'Oman_electric_{0}_{1}_sequences.csv'.format(cfg['exp_number'], var_number))
+    # ## sequences ## #
+    sequences_df = pd.merge(ambient_seq, waste_seq, left_index=True,
+                            right_index=True)
+    sequences_df = pd.merge(sequences_df, el_seq, left_index=True,
+                            right_index=True)
+    sequences_df = pd.merge(sequences_df, cool_seq,
+                            left_index=True, right_index=True)
+    sequences_df.to_csv(
+        csv_path + 'Oman_electric_Ires_{0}_{1}_sequences.csv'.format(
+            cfg['exp_number'], var_number))
 
     ########################
-    # Plotting the results #
+    # Plotting the results # # to adapt for the use case
     ########################
 
     cool_seq_resample = cool_seq.iloc[sp:ep]
@@ -237,10 +333,9 @@ def make_csv_and_plot_electric(config_path, var_number):
     fig = plt.figure(figsize=(15, 15))
 
     # plot electrical energy
-    my_plot_el = oev.plot.io_plot(
-            'electricity', el_seq_resample, cdict=cdict,
-            inorder=inorderel, outorder=outorderel,
-            ax=fig.add_subplot(2, 2, 1), smooth=False)
+    my_plot_el = oev.plot.io_plot('electricity', el_seq_resample, cdict=cdict,
+                                  inorder=inorderel, outorder=outorderel,
+                                  ax=fig.add_subplot(2, 2, 1), smooth=False)
 
     ax_el = shape_legend('electricity', **my_plot_el)
     oev.plot.set_datetime_ticks(ax_el, el_seq_resample.index, tick_distance=14,
@@ -282,7 +377,7 @@ def make_csv_and_plot_electric(config_path, var_number):
     #         labels = labels.reverse()
     #
     #     box = axes.get_position()
-    #     axes.set_position([box.x0, box.y0, box.width * plotshare, box.height])
+    #     axes.set_position([box.x0, box.y0,box.width * plotshare, box.height])
     #
     #     parameter['handles'] = handels
     #     parameter['labels'] = labels
@@ -305,10 +400,16 @@ def make_csv_and_plot_electric(config_path, var_number):
     # ax_stor.set_xlabel('time')
     # ax_stor.set_title("cooling storage")
 
-    plt.savefig(plot_path + 'Oman_electric_{0}_{1}.png'.format(cfg['exp_number'], var_number))
-    csv_plot = pd.merge(el_seq_resample, cool_seq_resample, left_index=True, right_index=True)
-    csv_plot = pd.merge(csv_plot, el_seq_resample, left_index=True, right_index=True)
-    csv_plot.to_csv(plot_path + 'Oman_telectric_plot_{0}_{1}.csv'.format(cfg['exp_number'], var_number))
+    plt.savefig(
+        plot_path + 'Oman_electric_{0}_{1}.png'.format(
+            cfg['exp_number'], var_number))
+    csv_plot = pd.merge(el_seq_resample, cool_seq_resample,
+                        left_index=True, right_index=True)
+    csv_plot = pd.merge(csv_plot, el_seq_resample,
+                        left_index=True, right_index=True)
+    csv_plot.to_csv(
+        plot_path + 'Oman_telectric_plot_{0}_{1}.csv'.format(
+            cfg['exp_number'], var_number))
 
     # plt.show()
 
