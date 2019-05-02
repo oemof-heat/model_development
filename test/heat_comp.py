@@ -32,9 +32,9 @@ def create_model(data, timesteps):
     b_heat = solph.Bus(label='b_heat')
 
     # Create Sources
-    s_gas = solph.Source(label='s_elec',
-                         outputs={b_elec: solph.Flow(
-                             nominal_value=200)})
+    s_elec = solph.Source(label='s_elec',
+                          outputs={b_elec: solph.Flow(
+                              nominal_value=200)})
 
     # Create Sink
     demand = solph.Sink(label='demand',
@@ -45,8 +45,8 @@ def create_model(data, timesteps):
 
     # Create Heat Pump
     chp = solph.custom.HeatPump(label='chp',
-                                electrical_input={b_elec: solph.Flow()},
-                                heat_output={b_heat: solph.Flow(
+                                inputs={b_elec: solph.Flow()},
+                                outputs={b_heat: solph.Flow(
                                     variable_costs=50)},
                                 conversion_factors={b_heat: 0.5})
 
