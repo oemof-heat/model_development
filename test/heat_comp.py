@@ -48,7 +48,8 @@ def create_model(data, timesteps):
                                 inputs={b_elec: solph.Flow()},
                                 outputs={b_heat: solph.Flow(
                                     variable_costs=50)},
-                                conversion_factors={b_heat: 0.5})
+                                conversion_factors={b_heat: 0.5},
+                                consider_icing=True)
 
     # Create Model
     m = solph.Model(es)
