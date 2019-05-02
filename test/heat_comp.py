@@ -5,14 +5,14 @@ import pandas as pd
 
 def create_model(data, timesteps):
     """
-                    input/output  b_gas   b_elec
+                        i/o      b_elec   b_heat
                          |          |        |
-    s_gas(Source)        |--------->|        |
+    s_elec(Source)       |--------->|        |
                          |          |        |
     demand(Sink)         |<------------------|
                          |          |        |
                          |          |        |
-    t_gas(Transformer)   |<---------|        |
+    chp(HeatPump)        |<---------|        |
                          |------------------>|
                          |          |        |
     """
@@ -28,27 +28,27 @@ def create_model(data, timesteps):
     data = data
 
     # Create Busses
-    b_gas = solph.Bus(label='b_gas')
     b_elec = solph.Bus(label='b_elec')
+    b_heat = solph.Bus(label='b_heat')
 
     # Create Sources
-    s_gas = solph.Source(label='s_gas',
-                         outputs={b_gas: solph.Flow(
+    s_gas = solph.Source(label='s_elec',
+                         outputs={b_elec: solph.Flow(
                              nominal_value=200)})
 
     # Create Sink
     demand = solph.Sink(label='demand',
-                        inputs={b_elec: solph.Flow(
+                        inputs={b_heat: solph.Flow(
                             actual_value=100,
                             fixed=True,
                             nominal_value=1)})
 
-    # Create Transformer
-    t_gas = solph.Transformer(label='t_gas',
-                              inputs={b_gas: solph.Flow()},
-                              outputs={b_elec: solph.Flow(
-                                  variable_costs=50)},
-                              conversion_factors={b_elec: 0.5})
+    # Create Heat Pump
+    chp = solph.custom.HeatPump(label='chp',
+                                electrical_input={b_elec: solph.Flow()},
+                                heat_output={b_heat: solph.Flow(
+                                    variable_costs=50)},
+                                conversion_factors={b_heat: 0.5})
 
     # Create Model
     m = solph.Model(es)
@@ -101,11 +101,12 @@ if __name__ == '__main__':
     es.restore(dpath=None, filename=None)
 
     # Show Results
-    b_gas = outputlib.views.node(es.results['main'], 'b_gas')
     b_elec = outputlib.views.node(es.results['main'], 'b_elec')
+    b_heat = outputlib.views.node(es.results['main'], 'b_heat')
 
-    print('-----------------------------------------------------')
-    print('Bus Gas\n', b_gas['sequences'])
     print('-----------------------------------------------------')
     print('Bus Elec\n', b_elec['sequences'])
     print('-----------------------------------------------------')
+    print('Bus Heat\n', b_heat['sequences'])
+    print('-----------------------------------------------------')
+    print('OBJ: ', model.objective())
