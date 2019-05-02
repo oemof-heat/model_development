@@ -5,8 +5,18 @@ import pandas as pd
 
 def create_model(data, timesteps):
     """
-    A basic model for new heat components
+                    input/output  b_gas   b_elec
+                         |          |        |
+    s_gas(Source)        |--------->|        |
+                         |          |        |
+    demand(Sink)         |<------------------|
+                         |          |        |
+                         |          |        |
+    t_gas(Transformer)   |<---------|        |
+                         |------------------>|
+                         |          |        |
     """
+
     # Adjust Timesteps
     timesteps = pd.date_range('1/1/2019', periods=timesteps, freq='H')
 
