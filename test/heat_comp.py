@@ -1,6 +1,7 @@
 from oemof import solph, outputlib
 from oemof.network import Node
 import pandas as pd
+import os
 
 
 def create_model(data, timesteps):
@@ -44,18 +45,23 @@ def create_model(data, timesteps):
                             nominal_value=1)})
 
     # Create Heat Pump
-    chp = solph.custom.HeatPump(label='chp',
-                                inputs={b_elec: solph.Flow()},
-                                outputs={b_heat: solph.Flow(
-                                    variable_costs=50)},
-                                conversion_factors={b_heat: 0.5},
-                                consider_icing=True)
+    chp = solph.custom.CompressionHeatPump(
+              label='chp',
+              inputs={b_elec: solph.Flow()},
+              outputs={b_heat: solph.Flow(
+                  variable_costs=50)},
+              conversion_factors={b_heat: 0.5},
+              consider_icing=True)
 
     # Create Model
     m = solph.Model(es)
 
     # Solve Model
     m.solve(solver='cbc', solve_kwargs={'tee': False})
+
+    # Write LP File
+    filename = os.path.join(os.path.dirname(__file__), 'model.lp')
+    m.write(filename, io_options={'symbolic_solver_labels': True})
 
     # Save Results
     es.results['main'] = outputlib.processing.results(m)
@@ -92,7 +98,7 @@ def create_model(data, timesteps):
 if __name__ == '__main__':
     # Input Data & Timesteps
     data = None
-    timesteps = 10
+    timesteps = 1
 
     # Create & Solve Model
     model = create_model(data, timesteps)
