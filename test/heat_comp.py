@@ -44,6 +44,14 @@ def create_model(data, timesteps):
                             fixed=True,
                             nominal_value=1)})
 
+    th = {0: 50,
+          1: 40,
+          2: 30}
+
+    tl = {0: 25,
+          1: 36,
+          2: 15}
+
     # Create Heat Pump
     chp = solph.custom.CompressionHeatPump(
               label='chp',
@@ -51,7 +59,9 @@ def create_model(data, timesteps):
               outputs={b_heat: solph.Flow(
                   variable_costs=50)},
               conversion_factors={b_heat: 0.5},
-              consider_icing=True)
+              temp_high=th,
+              temp_low=tl,
+              quality_grade=1)
 
     # Create Model
     m = solph.Model(es)
@@ -98,7 +108,7 @@ def create_model(data, timesteps):
 if __name__ == '__main__':
     # Input Data & Timesteps
     data = None
-    timesteps = 1
+    timesteps = 3
 
     # Create & Solve Model
     model = create_model(data, timesteps)
