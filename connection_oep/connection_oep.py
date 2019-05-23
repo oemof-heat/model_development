@@ -39,7 +39,7 @@ def upload_to_oep(df, Table, engine, metadata):
     try:
         dtype = {key: Table.columns[key].type for key in Table.columns.keys()}
         df.to_sql(table_name, engine,
-                          schema='sandbox',
+                          schema=schema_name,
                           if_exists='replace',
                           dtype=dtype)
         print('Inserted to ' + table_name)
