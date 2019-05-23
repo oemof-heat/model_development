@@ -9,7 +9,6 @@ from sqlalchemy.orm import sessionmaker
 import connection_oep as coep
 
 
-
 # establish connection to oep
 engine, metadata = coep.connect_oep()
 print('Connection established')
