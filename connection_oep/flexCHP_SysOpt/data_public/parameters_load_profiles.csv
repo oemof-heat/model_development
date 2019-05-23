@@ -1,0 +1,7 @@
+id,var_name,value,unit,component
+1,cap_inst_wind_onshore_2040,69.7,GW,scenario
+2,cap_inst_wind_offshore_2040,15,GW,scenario
+3,cap_inst_PV_2040,52,GW,scenario
+4,misc_renewables_gen_2040_TWh,18.1,TWh/a,scenario
+5,biomass_gen_2040_TWh,15.6,TWh/a,scenario
+6,biomass_CHP_gen_2040_TWh,30.1,TWh/a,scenario

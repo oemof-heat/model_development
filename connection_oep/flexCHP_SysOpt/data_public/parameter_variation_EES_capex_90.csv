@@ -1,0 +1,5 @@
+id,var_name,value,unit,component
+1,el_price_variation,1,,
+2,gas_price_variation,1,,
+3,EES_capex_variation,0.9,,
+4,TES_capex_variation,1,,
