@@ -8,6 +8,26 @@ import getpass
 Base = declarative_base()
 
 def connect_oep(user=None, token=None):
+    """ Creates engine/metadata and connects the engine to OEP
+
+    Parameters
+    ----------
+    user : string
+        OEP username
+    token : string
+        OEP API-token (can be retrieved in OEP under
+        'Your Security Information')
+
+    Returns
+    -------
+    engine and metadata
+
+    Note
+    ----
+    If none attributes are given, then this function asks user the OEP-username
+    and the OEP-API-token via input() and getpass()
+
+    """
     if user is None or token is None:
         user = input('Enter OEP-username:')
         token = getpass.getpass('Token:')
@@ -24,6 +44,29 @@ def connect_oep(user=None, token=None):
 
 
 def upload_to_oep(df, Table, engine, metadata):
+    """ Opens session for uploading data and uploads data to OEP
+
+    Parameters
+    ----------
+    df : pandas dataframe
+        data which is planned to upload
+    Table : sqlalchemy table object
+        structure of the data, contains also OEP table and schema name
+    engine : sqlalchemy engine object
+        engine which is created by connect_oep()
+    metadata : sqlalchemy metadata object
+        metadata which is created by connect_oep()
+
+    Returns
+    -------
+    Table
+
+    Note
+    ----
+    Table.name should not include UPPERCASE letters
+    Table.name should not include '.'
+
+    """
     table_name = Table.name
     schema_name = Table.schema
 
@@ -55,6 +98,20 @@ def upload_to_oep(df, Table, engine, metadata):
 
 
 def get_df(engine, table):
+    """ Downloads the data from the OEP as pandas dataframe
+
+    Parameters
+    ----------
+    engine : sqlalchemy engine object
+        engine which is created by connect_oep()
+    table : sqlalchemy table object
+        structure of the data, contains also OEP table and schema name
+
+    Returns
+    -------
+    df
+
+    """
     Session = sessionmaker(bind=engine)
     session = Session()
     df = pd.DataFrame(session.query(table).all())
