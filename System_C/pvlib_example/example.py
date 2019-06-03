@@ -100,11 +100,11 @@ poa_direct = np.maximum(cs['dni'] * np.cos(np.radians(mc.aoi)), 0)
 
 # Alternative Get POA Direct w/out tracking (3a/b)
 total_irrad = pvlib.irradiance.get_total_irradiance(system.surface_tilt,
-													system.surface_azimuth,
-													solpos['apparent_zenith'],
-													solpos['azimuth'],
-													cs['dni'], cs['ghi'], cs['dhi'],
-													dni_extra=dni_extra,
+                                                    system.surface_azimuth,
+                                                    solpos['apparent_zenith'],
+                                                    solpos['azimuth'],
+                                                    cs['dni'], cs['ghi'], cs['dhi'],
+                                                    dni_extra=dni_extra,
                                                     model='haydavies')
 poa_direct_alt = total_irrad['poa_direct']
 
