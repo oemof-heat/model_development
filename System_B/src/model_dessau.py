@@ -192,13 +192,13 @@ def run_model_dessau(config_path, results_dir):
 
     energysystem.add(solph.components.GenericStorage(
         label='storage_heat',
-        nominal_capacity=in_param['storage_heat','nominal_capacity'],
+        nominal_storage_capacity=in_param['storage_heat','nominal_capacity'],
         inputs={bth_prim: solph.Flow(
             variable_costs=0,
             nominal_value=in_param['storage_heat','input_nominal_value'])},
         outputs={bth_prim: solph.Flow(
             nominal_value=in_param['storage_heat','output_nominal_value'])},
-        capacity_loss=in_param['storage_heat','capacity_loss'],
+        loss_rate=in_param['storage_heat','capacity_loss'],
         inflow_conversion_factor=1,
         outflow_conversion_factor=1))
 
