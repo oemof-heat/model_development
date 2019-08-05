@@ -121,12 +121,21 @@ def run_model_dessau(config_path, results_dir):
             conversion_factors={bel: 0.5, bth_prim: 0.5}))
 
     if cfg['chp_repr'] == 'option_2':
-        energysystem.add(solph.Transformer(
+        energysystem.add(
+        solph.components.GenericCHP(
             label='GuD',
-            inputs={bgas: solph.Flow(variable_costs=in_param['bgas','price_gas'])},
-            outputs={bel: solph.Flow(nominal_value=in_param['ccgt','nominal_value']),
-                     bth_prim: solph.Flow(nominal_value=in_param['ccgt','nominal_value'])},
-            conversion_factors={bel: 0.5, bth_prim: 0.5}))
+            fuel_input={bgas: solph.Flow(
+                H_L_FG_share_max=[0.19 for p in range(0, number_timesteps)],
+                variable_costs=in_param['bgas', 'price_gas'])},
+            electrical_output={bel: solph.Flow(
+                P_max_woDH=[25 for p in range(0, number_timesteps)],
+                P_min_woDH=[12.5 for p in range(0, number_timesteps)],
+                Eta_el_max_woDH=[0.53 for p in range(0, number_timesteps)],
+                Eta_el_min_woDH=[0.43 for p in range(0, number_timesteps)])},
+            heat_output={bth_prim: solph.Flow(
+                Q_CW_min=[0 for p in range(0, number_timesteps)])},
+            Beta=[0 for p in range(0, number_timesteps)],
+            back_pressure=True))
 
         energysystem.add(solph.Transformer(
             label='SDEuD',
