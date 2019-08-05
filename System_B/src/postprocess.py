@@ -70,6 +70,19 @@ def print_summed_heat(energysystem):
 
 def get_param_as_dict(energysystem):
     param = energysystem.results['param']
+    
+# Jahresdauerlinien GuD und PtH
+# Volllaststunden GuD und PtH
+# summierte Nutzung Gas
+# summierte Nutzung Strom
+# summierte Speichernutzung
+# summierte Wärmeverluste
+# summierte Pumpenergie
+# Jahresarbeitszahl Wärmepumpen
+# Gesamtkosten Betrieb
+# Gesamtkosten Investition
+# Wärmegestehungskosten
+# Treibhausgasemissionen
 
 def postprocess(config_path, results_dir):
     # open config
