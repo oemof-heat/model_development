@@ -99,7 +99,7 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
         plt.show()
 
 
-def plot_dispatch(df, filename):
+def plot_dispatch(df, color_dict, filename):
     r"""
     Creates and saves a plot of the heat
     dispatch.
@@ -132,9 +132,15 @@ def plot_dispatch(df, filename):
     # invert heat to storage
     df_resam[heat_to_storage] *= -1
 
+    # prepare colors
+    labels = [i[0][0] for i in heat_in]
+    print(labels)
+    colors_heat_in = [color_dict[label] for label in labels]
+    colors = colors_heat_in + ['k']
+
     # plot
     fig, ax = plt.subplots(figsize=(12, 6))
-    df_resam[heat_in + [heat_to_storage]].plot.area(ax=ax, color=['#19A8B8','#F9FF00','#FF0000','k','k'])
+    df_resam[heat_in + [heat_to_storage]].plot.area(ax=ax, color=colors)
     df_resam[heat_to_dhn].plot(ax=ax, color='r', linewidth=3)
 
     # set title, labels and legend
@@ -162,8 +168,10 @@ def create_plots(config_path, results_dir):
     energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
     energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'energysystem_graph.pkl'))
 
-    node_color = { 'natural gas': '#19A8B8',
-                   'ccgt': '#19A8B8',
+    color_dict = { 'natural gas': '#19A8B8',
+                   'GuD': '#19A8B8',
+                   'SDEuD': '#19A8B8',
+                   'hwe': '#19A8B8',
                    'electricity': '#F9FF00',
                    'power_to_heat': '#F9FF00',
                    'storage_heat': '#FF0000',
@@ -176,14 +184,14 @@ def create_plots(config_path, results_dir):
                    'demand_heat': '#eeac7e'}
     draw_graph(energysystem_graph, plot=False, store=True, filename=results_dir + '/plots/' + 'es_graph.pdf',
                node_size=5000, edge_color='k',
-               node_color=node_color)
+               node_color=color_dict)
     rcParams['figure.figsize'] = [10.0, 10.0]
 
     demand = pd.read_csv(os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
     plot_heat_demand(demand, filename=results_dir + '/plots/heat_demand.pdf')
 
     node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
-    plot_dispatch(node_results_bel, filename=results_dir + '/plots/' + 'dispatch_stack_plot.pdf')
+    plot_dispatch(node_results_bel, color_dict, filename=results_dir + '/plots/' + 'dispatch_stack_plot.pdf')
 
 
 if __name__ == '__main__':
