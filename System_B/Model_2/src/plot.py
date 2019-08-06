@@ -161,30 +161,21 @@ def create_plots(config_path, results_dir):
     """
     # open config
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
-    with open(config_path, 'r') as ymlfile:
-        cfg = yaml.load(ymlfile)
+
+    with open(config_path, 'r') as config_file:
+        cfg = yaml.load(config_file)
+
+    with open(os.path.join(abs_path, 'experiment_configs/color_dict.yml'), 'r') as color_file:
+        color_dict = yaml.load(color_file)
 
     energysystem = solph.EnergySystem()
     energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
     energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'plot_data/energysystem_graph.pkl'))
 
-    color_dict = { 'natural gas': '#19A8B8',
-                   'GuD': '#19A8B8',
-                   'SDEuD': '#19A8B8',
-                   'hwe': '#19A8B8',
-                   'electricity': '#F9FF00',
-                   'power_to_heat': '#F9FF00',
-                   'storage_heat': '#FF0000',
-                   'heat_prim': '#FF0000',
-                   'dhn_prim': '#686868',
-                   'heat_sec': '#FF5300',
-                   'dhn_sec': '#686868',
-                   'heat_end': '#FF9900',
-                   'shortage_heat': '#FF0000',
-                   'demand_heat': '#eeac7e'}
     draw_graph(energysystem_graph, plot=False, store=True, filename=results_dir + '/plots/' + 'es_graph.pdf',
                node_size=5000, edge_color='k',
                node_color=color_dict)
+
     rcParams['figure.figsize'] = [10.0, 10.0]
 
     # demand = pd.read_csv(os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
