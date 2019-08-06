@@ -4,7 +4,6 @@ optimise_district_heating.py
 
 * heat demand time series
 * electricity price time series
-* 
 
 """
 
@@ -12,17 +11,16 @@ __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
 
-import pandas as pd
-import demandlib.bdew as bdew
-import matplotlib
-import matplotlib.pyplot as plt
-import datetime
 import os
+import pandas as pd
+import datetime
 from workalendar.europe import Germany
 import yaml
+import demandlib.bdew as bdew
 import helpers
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+
 
 def prepare_timeseries_temperature(config_path, results_dir):
     """
@@ -42,6 +40,7 @@ def prepare_timeseries_temperature(config_path, results_dir):
     temperature.to_csv(output_file)
 
     return temperature
+
 
 def prepare_timeseries_demand_heat(year, bdew_parameters, temperature,
                                    output_file):
@@ -70,17 +69,11 @@ def prepare_timeseries_demand_heat(year, bdew_parameters, temperature,
     # save heat demand time series
     demand.sum(axis=1).to_csv(output_file)
 
-def prepare_timeseries_price_gas():
-    # prepare gas price time series
-    ger_day_ahead_prices_2006_2018 = pd.read_csv(abs_path +'/data/opsd-time_series-2018-06-30/time_series_60min_singleindex.csv', index_col='cet_cest_timestamp')['DE_price_day_ahead']
-    print(ger_day_ahead_prices_2006_2018)
-    ger_day_ahead_prices_2014 = ger_day_ahead_prices_2006_2018.loc['2014-01-01T00:00:00+0100':'2014-12-31T23:00:00+0100']
-    ger_day_ahead_prices_2006_2018.to_csv(abs_path+'/data/'+'day_ahead_price_el_2006_2018.csv')
-    ger_day_ahead_prices_2014.to_csv(abs_path+'/data/'+'day_ahead_price_el_2014.csv')
 
 def prepare_timeseries_price_electricity():
     # prepare electricity price time series
     pass
+
 
 def prepare_timeseries(config_path, results_dir):
     # open config
@@ -98,8 +91,10 @@ def prepare_timeseries(config_path, results_dir):
     prepare_timeseries_demand_heat(2017, bdew_parameters, temperature,
                                    os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
 
+
 def preprocess(config_path, results_dir):
     return None
+
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
