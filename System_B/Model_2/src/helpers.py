@@ -1,5 +1,7 @@
 import sys
 import os
+import yaml
+import pandas as pd
 
 __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
@@ -44,3 +46,10 @@ def setup_experiment():
         os.makedirs(results_dir + '/presentation')
 
     return config_path, results_dir
+
+
+def run_scenarios(run_model, config_path, results_dir):
+    with open(config_path, 'r') as ymlfile:
+        config = yaml.load(ymlfile)
+    scenarios = pd.read_csv(config['data_raw']['scenarios'])
+    print(scenarios)

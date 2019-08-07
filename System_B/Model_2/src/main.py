@@ -13,7 +13,7 @@ import warnings
 import subprocess
 
 from oemof.tools import logger
-from helpers import setup_experiment
+from helpers import setup_experiment, run_scenarios
 from preprocess import preprocess
 from model import run_model
 from postprocess import postprocess
@@ -32,9 +32,13 @@ def main(config_path, results_dir):
 
     logger.define_logging(logpath=results_dir + '/optimisation_results')
 
-    # Preproccess
+    # Preprocess
     logging.info('Preprocess data')
     preprocess(config_path, results_dir)
+
+    # Run scenarios
+    logging.info('Create scenarios')
+    run_scenarios(run_model, config_path, results_dir)
 
     # Run the optimisation model
     logging.info('Run optimisation model')
