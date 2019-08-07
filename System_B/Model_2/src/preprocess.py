@@ -88,7 +88,7 @@ def preprocess(config_path, results_dir):
     timeseries_reference = os.path.join(abs_path, config['data_raw']['timeseries'])
     files = pd.read_csv(timeseries_reference).groupby('parameter_name')
     files_temperature = files.get_group('temperature')
-    files_electricity_spot_price = files.get_group('electricity_spot_price')
+    files_price_electricity_spot = files.get_group('price_electricity_spot')
 
     # Load bdew parameters
     filename_input_data = os.path.join(abs_path, config['data_raw']['scalars']['parameters'])
@@ -117,7 +117,7 @@ def preprocess(config_path, results_dir):
         prepare_timeseries_demand_heat(file['year'], parameter_bdew, temperature, output_filename)
 
     # Prepare spot market electricity price timeseries
-    for i, file in files_electricity_spot_price.iterrows():
+    for i, file in files_price_electricity_spot.iterrows():
         input_filename = os.path.join(abs_path, 'data', file['path'])
         output_filename = os.path.join(results_dir,
                                        'data_preprocessed',
