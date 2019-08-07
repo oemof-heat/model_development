@@ -7,8 +7,8 @@ solver: 'cbc'
 data_raw:
   timeseries: 'data/timeseries.csv'
   scalars:
-    annual_heat_demand: 'data_raw/heat_demand/zensus_annual_heat_demand.csv'
-    input_parameter: 'data_raw/input_parameter/input_parameter.csv'
+    parameters: 'data/parameters.csv'
+  scenarios: 'data/scenarios.csv'
 
 # optimisation settings
 investment:
