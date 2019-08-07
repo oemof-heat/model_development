@@ -5,7 +5,6 @@ __author__ = "c-moeller, jnnr"
 import pandas as pd
 import numpy as np
 import networkx as nx
-import matplotlib.pyplot as plt
 import os
 import yaml
 import logging
@@ -17,9 +16,10 @@ from oemof.solph import (Source, Sink, Transformer, Bus, Flow,
                          Model, EnergySystem)
 from oemof.solph.components import GenericStorage
 import oemof.graph as graph
+import helpers
 
 
-def run_model(config_path, results_dir):
+def model(input_parameter, demand_heat, price_electricity, results_dir, solver='cbc', debug=True):
     r"""
     Create the energy system and run the optimisation model.
 
@@ -34,25 +34,14 @@ def run_model(config_path, results_dir):
     """
     logger.define_logging()
 
-    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
-    with open(config_path, 'r') as ymlfile:
-        cfg = yaml.load(ymlfile)
-
     # Set timeindex
-    if cfg['debug']:
+    if debug:
         periods = 20
     else:
         periods = 8760
     datetimeindex = pd.date_range('1/1/2019', periods=periods, freq='H')
 
-    # Create data
-    x = np.arange(periods)
-    demand = np.zeros(20)
-    demand[-3:] = 2
-    wind = np.zeros(20)
-    wind[:3] = 3
-
-    timeseries = pd.DataFrame()
+    demand_heat = demand_heat['demand_1']
 
     # Set up EnergySystem
     logging.info('Initialize the energy system')
@@ -67,7 +56,7 @@ def run_model(config_path, results_dir):
     b_heat_2 = Bus(label='heat_2')
     b_gas = Bus(label='gas', balanced=False)
 
-    sold_el = Sink(label='sold_el', inputs={b_el: Flow()})
+    sold_el = Sink(label='sold_el', inputs={b_el: Flow(variable_costs=-1*price_electricity)})
 
     chp = Transformer(label='chp',
                       inputs={b_gas: Flow()},
@@ -110,7 +99,7 @@ def run_model(config_path, results_dir):
 
     demand_th = Sink(label='demand_th',
                      inputs={b_heat_2: Flow(nominal_value=1,
-                             actual_value=demand,
+                             actual_value=demand_heat,
                              fixed=True)})
 
     energysystem.add(b_el, b_heat_1, b_heat_2, b_gas, chp, sold_el,
@@ -122,9 +111,9 @@ def run_model(config_path, results_dir):
     #####################################################################
 
     om = Model(energysystem)
-    om.solve(solver=cfg['solver'], solve_kwargs={'tee': True}, cmdline_options={'AllowableGap=': '0.01'})
+    om.solve(solver=solver, solve_kwargs={'tee': True}, cmdline_options={'AllowableGap=': '0.01'})
 
-    if cfg['debug']:
+    if debug:
         filename = os.path.join(
             oemof.tools.helpers.extend_basic_path('lp_files'),
             'app_district_heating.lp')
@@ -150,3 +139,36 @@ def run_model(config_path, results_dir):
     save_es_graph(energysystem, results_dir)
 
     return energysystem.results
+
+
+def run_model(config_path, results_dir):
+    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+    with open(config_path, 'r') as ymlfile:
+        cfg = yaml.load(ymlfile)
+
+    # Load data
+    # load input parameter
+    file_input_parameter = os.path.join(abs_path, cfg['data_raw']['scalars']['parameters'])
+    input_parameter = pd.read_csv(file_input_parameter, index_col=[1, 2])['var_value']
+
+    # load timeseries
+    file_timeseries_demand_heat = os.path.join(results_dir,
+                                               'data_preprocessed',
+                                               'scenario_basic',  # TODO: variable instead of fixed
+                                               cfg['data_preprocessed']['timeseries']['demand_heat'])
+    demand_heat = pd.read_csv(file_timeseries_demand_heat, index_col=0, sep=',')
+
+    file_timeseries_price_electricity = os.path.join(results_dir,
+                                                     'data_preprocessed',
+                                                     'scenario_basic', # TODO: variable instead of fixed
+                                                     cfg['data_preprocessed']['timeseries']['price_electricity_spot'])
+    price_electricity = pd.read_csv(file_timeseries_price_electricity, index_col=0)['price_electricity_spot'].values
+    solver = cfg['solver']
+    debug = cfg['debug']
+    results = model(input_parameter, demand_heat, price_electricity, results_dir, solver, debug)
+    return results
+
+if __name__ == '__main__':
+    config_path, results_dir = helpers.setup_experiment()
+    run_model(config_path, results_dir)
+
