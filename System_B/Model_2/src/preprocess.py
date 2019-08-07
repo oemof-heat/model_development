@@ -13,6 +13,7 @@ __author__ = "c-moeller, jnnr"
 
 import os
 import pandas as pd
+from ast import literal_eval
 # import datetime
 from workalendar.europe import Germany
 import yaml
@@ -47,7 +48,7 @@ def prepare_timeseries_price_electricity(input_filename, output_filename):
     return None
 
 
-def prepare_timeseries_demand_heat(year, bdew_parameters,
+def prepare_timeseries_demand_heat(year, parameter_bdew,
                                    temperature, output_filename):
     """
     Create synthetic heat profiles using the BDEW method.
@@ -58,20 +59,22 @@ def prepare_timeseries_demand_heat(year, bdew_parameters,
 
     # create a DataFrame to hold the timeseries
     demand = pd.DataFrame(index=temperature.index)
-
-    for key, param in bdew_parameters.items():
-        demand[key] = bdew.HeatBuilding(
-                demand.index, holidays=holidays, temperature=temperature,
-                shlp_type=key,
-                building_class=param['building_class'],
-                wind_class=param['wind_class'],
-                annual_heat_demand=param['annual_demand'],
-                name=key).get_bdew_profile()
-
-    # save heat demand time series
+    for component, parameter_list in parameter_bdew.items():
+        print(component)
+        component_demand = pd.DataFrame()
+        for item in parameter_list:
+            timeseries_demand = bdew.HeatBuilding(demand.index,
+                                                  holidays=holidays,
+                                                  temperature=temperature,
+                                                  name=item['shlp_type'],
+                                                  **item).get_bdew_profile()
+            component_demand[item['shlp_type']] = timeseries_demand
+        demand[component] = component_demand.sum(axis=1)
+    print(output_filename)
+    print(demand.head())
     if not os.path.exists(os.path.dirname(output_filename)):
         os.makedirs(os.path.dirname(output_filename))
-    demand.sum(axis=1).rename('demand_heat').to_csv(output_filename, header=True)
+    demand.to_csv(output_filename)
     return None
 
 
@@ -87,7 +90,17 @@ def preprocess(config_path, results_dir):
     files_temperature = files.get_group('temperature')
     files_electricity_spot_price = files.get_group('electricity_spot_price')
 
+    # Load bdew parameters
+    filename_input_data = os.path.join(abs_path, config['data_raw']['scalars']['parameters'])
+    input_parameter = pd.read_csv(filename_input_data)
+    parameter_bdew = {}
+    for label, group in input_parameter.groupby('component'):
+        parameter_bdew[label] = []
+        for i, row in group[['var_name', 'var_value']].iterrows():
+            parameter_bdew[label].append({'shlp_type': row['var_name'], **literal_eval(row['var_value'])})
+
     for i, file in files_temperature.iterrows():
+        # Create temperature profiles
         input_filename = os.path.join(abs_path, 'data', file['path'])
         output_filename = os.path.join(results_dir,
                                        'data_preprocessed',
@@ -95,16 +108,15 @@ def preprocess(config_path, results_dir):
                                        f'{"_".join(map(str, file[["parameter_name", "year"]].values))}.csv')
         temperature = prepare_timeseries_temperature(input_filename, output_filename)
 
-        # # bdew_parameters = config['data_raw']['scalars']['bdew_parameters']
-        bdew_parameters = {'efh': {'annual_demand': 0.357205 * 232000000, 'building_class': 4, 'wind_class': 1},
-                           'mfh': {'annual_demand': 0.642795 * 232000000, 'building_class': 4, 'wind_class': 1}}
+        # heat demand profiles for each temperature profile
         output_filename = os.path.join(results_dir,
                                        'data_preprocessed',
                                        file['scenario'],
                                        'demand_heat',
                                        f'{"_".join(["demand_heat", str(file["year"])])}.csv')
-        prepare_timeseries_demand_heat(file['year'], bdew_parameters, temperature, output_filename)
+        prepare_timeseries_demand_heat(file['year'], parameter_bdew, temperature, output_filename)
 
+    # Prepare spot market electricity price timeseries
     for i, file in files_electricity_spot_price.iterrows():
         input_filename = os.path.join(abs_path, 'data', file['path'])
         output_filename = os.path.join(results_dir,
