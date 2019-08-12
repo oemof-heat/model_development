@@ -170,7 +170,7 @@ def create_plots(config_path, results_dir):
 
     energysystem = solph.EnergySystem()
     energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
-    energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'plot_data/energysystem_graph.pkl'))
+    energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'data_plots/energysystem_graph.pkl'))
 
     draw_graph(energysystem_graph, plot=False, store=True, filename=results_dir + '/plots/' + 'es_graph.pdf',
                node_size=5000, edge_color='k',

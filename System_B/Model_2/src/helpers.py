@@ -40,8 +40,8 @@ def setup_experiment():
     if not os.path.exists(results_dir):
         os.makedirs(results_dir + '/data_preprocessed')
         os.makedirs(results_dir + '/optimisation_results')
-        os.makedirs(results_dir + '/postprocessed')
-        os.makedirs(results_dir + '/plot_data')
+        os.makedirs(results_dir + '/data_postprocessed')
+        os.makedirs(results_dir + '/data_plots')
         os.makedirs(results_dir + '/plots')
         os.makedirs(results_dir + '/presentation')
 
