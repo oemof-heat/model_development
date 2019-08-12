@@ -61,7 +61,7 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     chp = Transformer(label='chp',
                       inputs={b_gas: Flow()},
                       outputs={b_heat_1: Flow(),
-                               b_el: Flow()}, 
+                               b_el: Flow()},
                       conversion_factors={b_heat_1: 1,
                                           b_el: 1})
     pth_central = Source(label='pth_central', outputs={b_heat_1: Flow(variable_costs=1e6)})
@@ -114,9 +114,12 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     om.solve(solver=solver, solve_kwargs={'tee': True}, cmdline_options={'AllowableGap=': '0.01'})
 
     if debug:
+        abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
         filename = os.path.join(
-            oemof.tools.helpers.extend_basic_path('lp_files'),
-            'app_district_heating.lp')
+            abs_path,
+            results_dir,
+            'optimisation_results',
+            'model.lp')
         logging.info('Store lp-file in {0}.'.format(filename))
         om.write(filename, io_options={'symbolic_solver_labels': True})
 
