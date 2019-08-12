@@ -38,12 +38,49 @@ Preprocessing yields the following directory structure:
 |--scenarios.csv
 |--model_runs.csv
 ```
-Postprocessing gives back the following:
+
+Postprocessing gives back the following. 
+
+`timeseries/` contains
+flows
+variable_costs
+emissions
+
+`parameters.csv` contains:  
+* hours_full_load
+* hours_operating_sum
+* number_starts
+* energy_produced_sum
+* energy_produced_max
+* energy_produced_min
+* energy_heat_storage_discharge_sum
+* energy_losses_heat_dhn_sum
+* energy_produced_during_operation_sum
+* energy_excess_sum
+* energy_excess_max
+* energy_import_sum
+* energy_import_max
+* energy_consumed_gas_sum
+* energy_consumed_electricity_sum
+* energy_consumed_pump_sum
+* cost_operation_sum
+* cost_investment_sum
+* cost_specific_heat_mean (Wärmegestehungskosten)
+* seasonal_performance_factor_heat_pumps_mean
+* fraction_renewables
+
+### Plots
+Jahresdauerlinien GuD und PtH
+Volllaststunden GuD und PtH
+load duration curves
+
 
 ```
 .data_postprocessed
 |--timeseries/
-|--|--
+   |--flows
+   |--costs
+   |--emissions
 |--parameters.csv
 |--timeseries.csv
 |--scenarios.csv
