@@ -20,31 +20,45 @@ To specify file paths for an experiment run, provide a config file in `.yml`-for
 A `color_dict.yml` defines colors for plots.
 
 ```
-experiment_configs/
+.experiment_configs/
 |--experiment.yml
 |--color_dict.yml
 ```
 
-Preprocessing yields the following directory structure:
+Preprocessing yields the following directory structure, contained within `results/<name of experiment_config>`:
 
 ```
-.data_preprocessed
-|--timeseries/
-   |--demand_heat
-   |--price_electricity_spot
-   |--temperature
-|--parameters.csv
-|--timeseries.csv
-|--scenarios.csv
-|--model_runs.csv
+.experiment_1/
+|--data_preprocessed
+   |--timeseries/
+     |--demand_heat
+     |--price_electricity_spot
+     |--temperature
+   |--parameters.csv
+   |--timeseries.csv
+   |--scenarios.csv
+   |--model_runs.csv
 ```
 
-Postprocessing gives back the following. 
+Postprocessing gives back the following:
+
+```
+.experiment_1/
+|--data_postprocessed/
+   |--timeseries/
+      |--flows
+      |--costs
+      |--emissions
+   |--parameters.csv
+   |--timeseries.csv
+   |--scenarios.csv
+   |--model_runs.csv
+```
 
 `timeseries/` contains
-flows
-variable_costs
-emissions
+* flows
+* variable_costs
+* emissions
 
 `parameters.csv` contains:  
 * hours_full_load
@@ -70,22 +84,6 @@ emissions
 * fraction_renewables
 
 ### Plots
-Jahresdauerlinien GuD und PtH
-Volllaststunden GuD und PtH
-load duration curves
-
-
-```
-.data_postprocessed
-|--timeseries/
-   |--flows
-   |--costs
-   |--emissions
-|--parameters.csv
-|--timeseries.csv
-|--scenarios.csv
-|--model_runs.csv
-```
 
 Run the plot scripts to produce plot data and plots:
 
@@ -93,3 +91,6 @@ Run the plot scripts to produce plot data and plots:
 data_plots/
 plots/
 ```
+
+* Load duration curves CHP und PtH
+* Full load hours GuD und PtH
