@@ -14,7 +14,7 @@ import oemof.outputlib as outputlib
 from oemof.tools import logger
 from oemof.solph import (Source, Sink, Transformer, Bus, Flow,
                          Model, EnergySystem)
-from oemof.solph.components import GenericStorage
+from oemof.solph.components import GenericStorage, GenericCHP
 import oemof.graph as graph
 import helpers
 
@@ -64,6 +64,22 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
                                b_el: Flow()},
                       conversion_factors={b_heat_1: 1,
                                           b_el: 1})
+
+    # chp = GenericCHP(
+    #         label='chp',
+    #         fuel_input={b_gas: Flow(
+    #             H_L_FG_share_max=[0.19]*periods,
+    #             variable_costs=[0.2]*periods)},
+    #         electrical_output={b_el: Flow(
+    #             P_max_woDH=[25]*periods,
+    #             P_min_woDH=[12.5]*periods,
+    #             Eta_el_max_woDH=[0.53]*periods,
+    #             Eta_el_min_woDH=[0.43]*periods)},
+    #         heat_output={b_heat_1: Flow(
+    #             Q_CW_min=[0]*periods)},
+    #         Beta=[0]*periods,
+    #         back_pressure=True)
+
     pth_central = Source(label='pth_central', outputs={b_heat_1: Flow(variable_costs=1e6)})
 
     tes_central = GenericStorage(label='storage_central',
