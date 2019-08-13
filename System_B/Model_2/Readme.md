@@ -69,7 +69,6 @@ Preprocessing yields the following directory structure, contained within `result
      |--temperature
    |--parameters.csv
    |--timeseries.csv
-   |--scenarios.csv
    |--model_runs.csv
 ```
 
@@ -82,10 +81,8 @@ Postprocessing gives back the following:
       |--flows
       |--costs
       |--emissions
-   |--parameters.csv
-   |--timeseries.csv
-   |--scenarios.csv
-   |--model_runs.csv
+   |--parameters_scalar.csv
+   |--results_scalar.csv
 ```
 
 `timeseries/` contains
