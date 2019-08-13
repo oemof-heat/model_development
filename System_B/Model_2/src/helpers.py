@@ -37,13 +37,16 @@ def setup_experiment():
     results_dir = abs_path + '/results/' + config_filename[:-4]
 
     # create results directory if it does not exist
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir + '/data_preprocessed')
-        os.makedirs(results_dir + '/optimisation_results')
-        os.makedirs(results_dir + '/data_postprocessed')
-        os.makedirs(results_dir + '/data_plots')
-        os.makedirs(results_dir + '/plots')
-        os.makedirs(results_dir + '/presentation')
+    list_dir = ['data_preprocessed',
+                'optimisation_results',
+                'data_postprocessed/timeseries',
+                'data_plots',
+                'plots',
+                'presentation']
+    for directory in [os.path.join(results_dir, dir) for dir in list_dir]:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
 
     return config_path, results_dir
 
