@@ -59,8 +59,8 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     sold_el = Sink(label='sold_el', inputs={b_el: Flow(variable_costs=-1*price_electricity)})
 
     chp = Transformer(label='chp',
-                      inputs={b_gas: Flow()},
-                      outputs={b_heat_1: Flow(),
+                      inputs={b_gas: Flow(emission_specific=0.1)},
+                      outputs={b_heat_1: Flow(nominal_value=1000000000),
                                b_el: Flow()},
                       conversion_factors={b_heat_1: 1,
                                           b_el: 1})
@@ -80,7 +80,8 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     #         Beta=[0]*periods,
     #         back_pressure=True)
 
-    pth_central = Source(label='pth_central', outputs={b_heat_1: Flow(variable_costs=1e6)})
+    pth_central = Source(label='pth_central', outputs={b_heat_1: Flow(nominal_value=2,
+                                                                      variable_costs=1e6)})
 
     tes_central = GenericStorage(label='storage_central',
                           inputs={b_heat_1: Flow(variable_costs=0.0001)},
@@ -99,7 +100,8 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
                       outputs={b_heat_2: Flow()}, 
                       conversion_factors={b_heat_2: 1})
 
-    pth_decentral = Source(label='pth_decentral', outputs={b_heat_2: Flow(variable_costs=1e6)})
+    pth_decentral = Source(label='pth_decentral', outputs={b_heat_2: Flow(nominal_value=2,
+                                                                          variable_costs=1e6)})
 
     tes_decentral = GenericStorage(label='storage_decentral',
                                    inputs={b_heat_2: Flow(variable_costs=0.0001)},

@@ -24,6 +24,7 @@ __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
 
 import os
+import re
 import pandas as pd
 import yaml
 
@@ -100,8 +101,70 @@ def get_derived_results_timeseries_costs_variable(energysystem):
     return timeseries_cost_variable
 
 
-def get_derived_results_scalar(energysystem):
-    return pd.DataFrame()
+def get_derived_results_scalar(param_scalar,
+                               results_scalar,
+                               results_timeseries_flows,
+                               derived_results_timeseries_costs_variable,
+                               derived_results_timeseries_emissions):
+    r"""
+    Parameters
+    ----------
+    energysystem : oemof.solph.EnergySystem
+
+    Production (for each producer)
+    * energy_thermal_produced_sum
+    * power_thermal_max
+    * power_thermal_min
+    * power_thermal_during_operation_mean
+    * hours_operating_sum
+    * hours_full_load for each producer
+    * number_starts
+
+    Storage operation
+    * energy_heat_storage_discharge_sum
+
+    Heat pump operation
+    * seasonal_performance_factor_heat_pumps_mean
+
+    DHN operation
+    * energy_losses_heat_dhn_sum
+    * energy_consumed_pump_sum
+
+    Whole system energy
+    * energy_excess_sum
+    * energy_excess_max
+    * energy_import_sum
+    * energy_import_max
+    * energy_consumed_gas_sum
+    * energy_consumed_electricity_sum
+    * fraction_renewables
+
+    Whole system cost
+    * cost_operation_sum
+    * cost_investment_sum
+    * cost_specific_heat_mean
+    """
+    producers_heat = [component for component in results_timeseries_flows.columns
+                      if component[1] in ['heat_1', 'heat_2']
+                      and not bool(re.search('storage', component[0]))
+                      and not bool(re.search('dhn', component[0]))]
+    energy_thermal_produced_sum = results_timeseries_flows[producers_heat].sum()
+    energy_thermal_produced_sum.index = energy_thermal_produced_sum.index.droplevel('variable_name')
+    power_thermal_max = results_timeseries_flows[producers_heat].max()
+    power_thermal_min = results_timeseries_flows[producers_heat].max()
+    operating = (results_timeseries_flows[producers_heat] > 0)
+    power_thermal_during_operation_mean = results_timeseries_flows[producers_heat][operating].mean()
+    hours_operating_sum = operating.sum()
+    number_starts = (operating[:-1].reset_index(drop=True) < operating[1:].reset_index(drop=True)).sum()
+
+    installed_production_capacity = param_scalar.loc[param_scalar['var_name']=='nominal_value']
+
+    # hours_full_load = energy_thermal_produced_sum * 1/installed_capacity
+
+    installed_production_capacity.index = pd.MultiIndex.from_tuples(installed_production_capacity['component'])
+    installed_production_capacity = installed_production_capacity['var_value']
+    hours_full_load = energy_thermal_produced_sum * 1/installed_production_capacity
+    return pd.Series()
 
 
 def postprocess(config_path, results_dir):
@@ -120,21 +183,25 @@ def postprocess(config_path, results_dir):
     param_scalar.to_csv(os.path.join(dir_postproc, 'parameters_scalar.csv'))
     results_scalar = get_results_scalar(energysystem)
     results_scalar.to_csv(os.path.join(dir_postproc, 'results_scalar.csv'))
-    results_flows = get_results_flows(energysystem)
-    results_flows.to_csv(os.path.join(dir_postproc, 'timeseries/results_flows.csv'))
+    results_timeseries_flows = get_results_flows(energysystem)
+    results_timeseries_flows.to_csv(os.path.join(dir_postproc, 'timeseries/results_flows.csv'))
 
     # Calculate derived results
-    get_derived_results_timeseries_emissions(energysystem)\
-        .to_csv(os.path.join(dir_postproc,
-                             'timeseries/' +
-                              'results_timeseries_emissions_variable.csv'))
-    get_derived_results_timeseries_costs_variable(energysystem)\
-        .to_csv(os.path.join(dir_postproc,
+    derived_results_timeseries_emissions = get_derived_results_timeseries_emissions(energysystem)
+    derived_results_timeseries_emissions.to_csv(os.path.join(dir_postproc,
+                                                             'timeseries/' +
+                                                             'results_timeseries_emissions_variable.csv'))
+    derived_results_timeseries_costs_variable = get_derived_results_timeseries_costs_variable(energysystem)
+    derived_results_timeseries_costs_variable.to_csv(os.path.join(dir_postproc,
                              'timeseries/' +
                              'results_timeseries_costs_variable.csv'))
-    get_derived_results_scalar(energysystem)\
-        .to_csv(os.path.join(dir_postproc,
-                             'results_scalar_derived.csv'))
+    derived_results_scalar = get_derived_results_scalar(param_scalar,
+                                                        results_scalar,
+                                                        results_timeseries_flows,
+                                                        derived_results_timeseries_costs_variable,
+                                                        derived_results_timeseries_emissions)
+    derived_results_scalar.to_csv(os.path.join(dir_postproc,
+                                               'results_scalar_derived.csv'), header=True)
 
 
 if __name__ == '__main__':
