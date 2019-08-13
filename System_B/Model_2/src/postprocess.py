@@ -29,71 +29,65 @@ import yaml
 
 import oemof.solph as solph
 import oemof.outputlib as outputlib
-import oemof.graph as graph
 import helpers
 
-# def get_variable_costs():
-# def get_summed operating hours():
-# def get_summed Production():
-# def get_mean Production during operation hours():
-# def get_maximal Production():
-# def get_minimal Production():
-# def get_full load hours():
-# def get_start count():
 
-# def get_load_duration_curves():
-# def get_coverage_through_renewables():
-# def get_summed_excess():
-# def get_max_excess():
-# def get_summed_import():
-# def get_max_import():
-# def get_emmission():
-
-# Jahresdauerlinien GuD und PtH
-# Volllaststunden GuD und PtH
-# summierte Nutzung Gas
-# summierte Nutzung Strom
-# summierte Speichernutzung
-# summierte Wärmeverluste
-# summierte Pumpenergie
-# Jahresarbeitszahl Wärmepumpen
-# Gesamtkosten Betrieb
-# Gesamtkosten Investition
-# Wärmegestehungskosten
-# Treibhausgasemissionen
-
-# Create a table of the scenario
-
-def print_summed_heat(energysystem):
-    heat_prim = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
-    heat_to_storage = (('heat_prim', 'storage_heat'), 'flow')
-    heat_to_dhn = (('heat_prim', 'dhn_prim'), 'flow')
-    print('heat_prim to dhn_prim', heat_prim[heat_to_dhn].sum())
-    print('heat_prim to storage', heat_prim[heat_to_storage].sum())
-
-    # print('dhn_prim to heat_sec', dhn_prim[(('dhn_prim', 'heat_sec'), 'flow')].sum())
-
-    heat_sec = outputlib.views.node(energysystem.results['main'], 'heat_sec')['sequences']
-    print('heat_sec to  dhn_sec', heat_sec[(('heat_sec', 'dhn_sec'), 'flow')].sum())
-
-
-    sink = outputlib.views.node(energysystem.results['main'], 'demand_heat')['sequences']
-    print('heat_end to demand_heat', sink[(('heat_end', 'demand_heat'), 'flow')].sum())
-
-
-def get_param_as_dict(energysystem):
+def get_param_scalar(energysystem):
     param = energysystem.results['param']
-    
+    param = outputlib.processing.convert_keys_to_strings(param)
+    scalars = {k: v['scalars'] for k, v in param.items()}
+    component = []
+    var_name = []
+    var_value = []
+    for comp, series in scalars.items():
+        if not series.empty:
+            for name, value in series.iteritems():
+                component.append(comp[0])
+                var_name.append(name)
+                var_value.append(value)
+    param_scalars = pd.DataFrame({'component': component, 'var_name': var_name, 'var_value': var_value})
+    return param_scalars
+
+
+def get_results_scalar(energysystem):
+    results = energysystem.results['main']
+    results = outputlib.processing.convert_keys_to_strings(results)
+    scalars = {k: v['scalars'] for k, v in results.items()}
+    component = []
+    var_name = []
+    var_value = []
+    for comp, series in scalars.items():
+        if not series.empty:
+            for name, value in series.iteritems():
+                component.append(comp[0])
+                var_name.append(name)
+                var_value.append(value)
+    results_scalar = pd.DataFrame({'component': component, 'var_name': var_name, 'var_value': var_value})
+    return results_scalar
+
+
+def get_results_flows(energysystem):
+    results = energysystem.results['main']
+    results = outputlib.processing.convert_keys_to_strings(results)
+    flows = {k: v['sequences'] for k, v in results.items()}
+    flows = pd.concat(flows, axis=1)
+    return flows
+
 
 def postprocess(config_path, results_dir):
-    # open config
-    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
-    with open(config_path, 'r') as ymlfile:
-        cfg = yaml.load(ymlfile)
+    # # open config
+    # abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+    # with open(config_path, 'r') as ymlfile:
+    #     cfg = yaml.load(ymlfile)
 
     # restore energysystem
     energysystem = solph.EnergySystem()
     energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
+
+    dir_postproc = os.path.join(results_dir, 'data_postprocessed')
+    get_param_scalar(energysystem).to_csv(os.path.join(dir_postproc, 'parameters_scalar.csv'))
+    get_results_scalar(energysystem).to_csv(os.path.join(dir_postproc, 'results_scalar.csv'))
+    get_results_flows(energysystem).to_csv(os.path.join(dir_postproc, 'timeseries/results_flows.csv'))
 
 
 if __name__ == '__main__':
