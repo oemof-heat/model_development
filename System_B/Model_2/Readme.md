@@ -1,5 +1,38 @@
 District heating model
 ----------------------
+## Scenario and uncertainty handling
+
+Scenarios are described in `scenarios.csv`. Each parameter has a scenario attribute. Do we need the scenario file at all?
+
+| scenario_id | param_1        |
+|-------------|----------------|
+| scenario_1  | 0.5            |
+| scenario_1  | 0.2            |
+| scenario_1  | 0.2            |
+| scenario_2  | 0.5            |
+| scenario_2  | 0.5            |
+| scenario_2  | 0.5            |
+
+Each parameter has an uncertainty attribute (high, low, ref). The function `generate_uncertainty_sampling` generates
+a AAT sampling scheme for the uncertain parameters and timeseries.
+
+| uncertainty_id |                |
+|----------------|----------------|
+| 0              | 0              |
+| 1              | 1              |
+| 2              | 2              |
+
+Preprocessing creates a file `model_runs.csv` containing a number of runs for the optimisation model according
+to the scenarios and an uncertainty sampling scheme:
+
+| run_id | scenario_id | uncertainty_id |
+|--------|-------------|----------------|
+| 0      | scenario_1  | 0              |
+| 1      | scenario_1  | 1              |
+| 2      | scenario_1  | 2              |
+| 3      | scenario_2  | 0              |
+| 4      | scenario_2  | 1              |
+| 5      | scenario_2  | 2              |
 
 ## Analysis pipeline
 
@@ -83,7 +116,7 @@ Postprocessing gives back the following:
 * seasonal_performance_factor_heat_pumps_mean
 * fraction_renewables
 
-### Plots
+## Plots
 
 Run the plot scripts to produce plot data and plots:
 
@@ -91,6 +124,11 @@ Run the plot scripts to produce plot data and plots:
 data_plots/
 plots/
 ```
+Timeseries plots
+* Dispatch plot
+* Load duration curves CHP and PtH
 
-* Load duration curves CHP und PtH
-* Full load hours GuD und PtH
+Bar plots
+* Full load hours CHP and PtH
+* Summed costs
+* Summed emissions
