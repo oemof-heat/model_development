@@ -42,7 +42,7 @@ def get_param_scalar(energysystem):
     for comp, series in scalars.items():
         if not series.empty:
             for name, value in series.iteritems():
-                component.append(comp[0])
+                component.append(comp)
                 var_name.append(name)
                 var_value.append(value)
     param_scalars = pd.DataFrame({'component': component, 'var_name': var_name, 'var_value': var_value})
@@ -59,7 +59,7 @@ def get_results_scalar(energysystem):
     for comp, series in scalars.items():
         if not series.empty:
             for name, value in series.iteritems():
-                component.append(comp[0])
+                component.append(comp)
                 var_name.append(name)
                 var_value.append(value)
     results_scalar = pd.DataFrame({'component': component, 'var_name': var_name, 'var_value': var_value})
@@ -74,6 +74,36 @@ def get_results_flows(energysystem):
     return flows
 
 
+def get_derived_results_timeseries_emissions(energysystem):
+    param_scalar = get_param_scalar(energysystem)
+    flows = get_results_flows(energysystem)
+
+    emission_specific = param_scalar.loc[param_scalar['var_name']=='emission_specific']
+    flows_with_emission_specific = flows[[(*component, 'flow') for component in emission_specific['component']]]
+    def func(x):
+        factor = emission_specific.loc[emission_specific['component']==x.name[:2]]['var_value'].squeeze()
+        return x*factor
+    timeseries_emission_specific = flows_with_emission_specific.apply(func, axis=0)
+    return timeseries_emission_specific
+
+
+def get_derived_results_timeseries_costs_variable(energysystem):
+    param_scalar = get_param_scalar(energysystem)
+    flows = get_results_flows(energysystem)
+
+    cost_variable = param_scalar.loc[param_scalar['var_name']=='variable_costs']
+    flows_with_cost_variable = flows[[(*component, 'flow') for component in cost_variable['component']]]
+    def func(x):
+        factor = cost_variable.loc[cost_variable['component']==x.name[:2]]['var_value'].squeeze()
+        return x*factor
+    timeseries_cost_variable = flows_with_cost_variable.apply(func, axis=0)
+    return timeseries_cost_variable
+
+
+def get_derived_results_scalar(energysystem):
+    return pd.DataFrame()
+
+
 def postprocess(config_path, results_dir):
     # # open config
     # abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
@@ -83,11 +113,28 @@ def postprocess(config_path, results_dir):
     # restore energysystem
     energysystem = solph.EnergySystem()
     energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
-
     dir_postproc = os.path.join(results_dir, 'data_postprocessed')
-    get_param_scalar(energysystem).to_csv(os.path.join(dir_postproc, 'parameters_scalar.csv'))
-    get_results_scalar(energysystem).to_csv(os.path.join(dir_postproc, 'results_scalar.csv'))
-    get_results_flows(energysystem).to_csv(os.path.join(dir_postproc, 'timeseries/results_flows.csv'))
+
+    # Collect primary results
+    param_scalar = get_param_scalar(energysystem)
+    param_scalar.to_csv(os.path.join(dir_postproc, 'parameters_scalar.csv'))
+    results_scalar = get_results_scalar(energysystem)
+    results_scalar.to_csv(os.path.join(dir_postproc, 'results_scalar.csv'))
+    results_flows = get_results_flows(energysystem)
+    results_flows.to_csv(os.path.join(dir_postproc, 'timeseries/results_flows.csv'))
+
+    # Calculate derived results
+    get_derived_results_timeseries_emissions(energysystem)\
+        .to_csv(os.path.join(dir_postproc,
+                             'timeseries/' +
+                              'results_timeseries_emissions_variable.csv'))
+    get_derived_results_timeseries_costs_variable(energysystem)\
+        .to_csv(os.path.join(dir_postproc,
+                             'timeseries/' +
+                             'results_timeseries_costs_variable.csv'))
+    get_derived_results_scalar(energysystem)\
+        .to_csv(os.path.join(dir_postproc,
+                             'results_scalar_derived.csv'))
 
 
 if __name__ == '__main__':
