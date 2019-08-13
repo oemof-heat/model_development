@@ -12,6 +12,7 @@ __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
 
 import os
+import re
 import pandas as pd
 from ast import literal_eval
 # import datetime
@@ -95,9 +96,10 @@ def preprocess(config_path, results_dir):
     input_parameter = pd.read_csv(filename_input_data)
     parameter_bdew = {}
     for label, group in input_parameter.groupby('component'):
-        parameter_bdew[label] = []
-        for i, row in group[['var_name', 'var_value']].iterrows():
-            parameter_bdew[label].append({'shlp_type': row['var_name'], **literal_eval(row['var_value'])})
+        if bool(re.search("demand", label)):
+            parameter_bdew[label] = []
+            for i, row in group[['var_name', 'var_value']].iterrows():
+                parameter_bdew[label].append({'shlp_type': row['var_name'], **literal_eval(row['var_value'])})
 
     for i, file in files_temperature.iterrows():
         # Create temperature profiles
