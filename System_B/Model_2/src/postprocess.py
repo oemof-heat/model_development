@@ -81,11 +81,13 @@ def get_derived_results_timeseries_emissions(energysystem):
 
     emission_specific = param_scalar.loc[param_scalar['var_name']=='emission_specific']
     flows_with_emission_specific = flows[[(*component, 'flow') for component in emission_specific['component']]]
+    flows_with_emission_specific.columns = flows_with_emission_specific.columns.remove_unused_levels()
     def func(x):
         factor = emission_specific.loc[emission_specific['component']==x.name[:2]]['var_value'].squeeze()
         return x*factor
-    timeseries_emission_specific = flows_with_emission_specific.apply(func, axis=0)
-    return timeseries_emission_specific
+    timeseries_emission = flows_with_emission_specific.apply(func, axis=0)
+    timeseries_emission.columns = timeseries_emission.columns.set_levels(['emission'], level=2)
+    return timeseries_emission
 
 
 def get_derived_results_timeseries_costs_variable(energysystem):
@@ -94,10 +96,12 @@ def get_derived_results_timeseries_costs_variable(energysystem):
 
     cost_variable = param_scalar.loc[param_scalar['var_name']=='variable_costs']
     flows_with_cost_variable = flows[[(*component, 'flow') for component in cost_variable['component']]]
+    flows_with_cost_variable.columns = flows_with_cost_variable.columns.remove_unused_levels()
     def func(x):
         factor = cost_variable.loc[cost_variable['component']==x.name[:2]]['var_value'].squeeze()
         return x*factor
     timeseries_cost_variable = flows_with_cost_variable.apply(func, axis=0)
+    timeseries_cost_variable.columns = timeseries_cost_variable.columns.set_levels(['cost_variable'], level=2)
     return timeseries_cost_variable
 
 
@@ -184,7 +188,7 @@ def postprocess(config_path, results_dir):
     results_scalar = get_results_scalar(energysystem)
     results_scalar.to_csv(os.path.join(dir_postproc, 'results_scalar.csv'))
     results_timeseries_flows = get_results_flows(energysystem)
-    results_timeseries_flows.to_csv(os.path.join(dir_postproc, 'timeseries/results_flows.csv'))
+    results_timeseries_flows.to_csv(os.path.join(dir_postproc, 'timeseries/results_timeseries.csv'))
 
     # Calculate derived results
     derived_results_timeseries_emissions = get_derived_results_timeseries_emissions(energysystem)
