@@ -135,10 +135,6 @@ def get_derived_results_scalar(param_scalar,
     * energy_consumed_pump_sum
 
     Whole system energy
-    * energy_excess_sum
-    * energy_excess_max
-    * energy_import_sum
-    * energy_import_max
     * energy_consumed_gas_sum
     * energy_consumed_electricity_sum
     * fraction_renewables
@@ -148,30 +144,125 @@ def get_derived_results_scalar(param_scalar,
     * cost_investment_sum
     * cost_specific_heat_mean
     """
+    # Production
     producers_heat = [component for component in results_timeseries_flows.columns
                       if component[1] in ['heat_1', 'heat_2']
                       and not bool(re.search('storage', component[0]))
                       and not bool(re.search('dhn', component[0]))]
+
     energy_thermal_produced_sum = results_timeseries_flows[producers_heat].sum()
-    energy_thermal_produced_sum.index = energy_thermal_produced_sum.index.droplevel('variable_name')
+    energy_thermal_produced_sum.index = energy_thermal_produced_sum.index.\
+        remove_unused_levels().\
+        set_levels(['energy_thermal_produced_sum'], level=2)
+
     power_thermal_max = results_timeseries_flows[producers_heat].max()
-    power_thermal_min = results_timeseries_flows[producers_heat].max()
+    power_thermal_max.index = power_thermal_max.index. \
+        remove_unused_levels().\
+        set_levels(['power_thermal_max'], level=2)
+
+    power_thermal_min = results_timeseries_flows[producers_heat].min()
+    power_thermal_min.index = power_thermal_min.index. \
+        remove_unused_levels().\
+        set_levels(['power_thermal_min'], level=2)
+
     operating = (results_timeseries_flows[producers_heat] > 0)
+    operating.columns = operating.columns.\
+        remove_unused_levels()\
+        .set_levels(['status_operating'], level=2)
+
     power_thermal_during_operation_mean = results_timeseries_flows[producers_heat][operating].mean()
+    power_thermal_during_operation_mean.index = power_thermal_during_operation_mean.index.\
+        remove_unused_levels().\
+        set_levels(['power_thermal_during_operation_mean'], level=2)
+
     hours_operating_sum = operating.sum()
+    hours_operating_sum.index = hours_operating_sum.index.\
+        remove_unused_levels().\
+        set_levels(['hours_operating_sum'], level=2)
+
     number_starts = (operating[:-1].reset_index(drop=True) < operating[1:].reset_index(drop=True)).sum()
+    number_starts.index = number_starts.index.\
+        remove_unused_levels().\
+        set_levels(['number_starts'], level=2)
 
     installed_production_capacity = param_scalar.loc[param_scalar['var_name']=='nominal_value']
-
-    # hours_full_load = energy_thermal_produced_sum * 1/installed_capacity
-
     installed_production_capacity.index = pd.MultiIndex.from_tuples(installed_production_capacity['component'])
     installed_production_capacity = installed_production_capacity['var_value']
-    hours_full_load = energy_thermal_produced_sum * 1/installed_production_capacity
-    return pd.Series()
+    hours_full_load = energy_thermal_produced_sum.reset_index(level=2, drop=True) * 1/installed_production_capacity
+    hours_full_load = pd.DataFrame(hours_full_load)
+    hours_full_load['variable_name'] = 'hours_full_load'
+    hours_full_load.set_index('variable_name', append=True, inplace=True)
+    hours_full_load = hours_full_load[0]
+
+    # Storage operation
+    storage_discharge = [component for component in results_timeseries_flows.columns
+                         if component[1]!='None'
+                         and bool(re.search('storage', component[0]))]
+    energy_heat_storage_discharge_sum = results_timeseries_flows[storage_discharge].sum()
+    energy_heat_storage_discharge_sum.index = energy_heat_storage_discharge_sum.index.\
+        remove_unused_levels().\
+        set_levels(['energy_heat_storage_discharge_sum'], level=2)
+    # TODO: number_storage_cycles = 0 # equivalent full cycles?
+
+    # Heat pump operation
+    # TODO: seasonal_performance_factor_heat_pumps_mean = 0 # heat produced / electricity consumed
+
+    # DHN operation
+    energy_losses_heat_dhn = results_timeseries_flows.loc[:, (slice(None), 'dhn', slice(None))].sum(axis=1)\
+        - results_timeseries_flows.loc[:, ('dhn', slice(None), slice(None))].sum(axis=1)
+    energy_losses_heat_dhn_sum = pd.Series(energy_losses_heat_dhn.sum(),
+                                           index=pd.MultiIndex.from_tuples([('dhn', 'None', 'energy_losses_heat_dhn_sum')],
+                                           names=[None,None,'variable_name']))
+    # TODO: energy_consumed_pump_sum = 0
+
+    # Whole system energy
+    energy_consumed_gas_sum = results_timeseries_flows.loc[:, ('gas', slice(None), slice(None))].sum()
+    energy_consumed_gas_sum.index = energy_consumed_gas_sum.index.\
+        remove_unused_levels().\
+        set_levels(['energy_consumed_gas_sum'], level=2)
+
+    energy_consumed_electricity_sum = results_timeseries_flows.loc[:, ('electricity', slice(None), slice(None))].sum()
+    energy_consumed_electricity_sum.index = energy_consumed_electricity_sum.index.\
+        remove_unused_levels().\
+        set_levels(['energy_consumed_electricity_sum'], level=2)
+
+    # TODO: fraction_renewable_energy_thermal = 0 # renewable energy / total energy consumed
+
+    # Whole system cost
+    cost_variable_sum = derived_results_timeseries_costs_variable.sum()
+    cost_vom_sum = 0
+    cost_fom = 0
+    cost_capital = 0
+    cost_total_system = cost_variable_sum #  + cost_vom_sum + cost_fom + cost_capital
+    cost_total_system.index = cost_total_system.index.\
+        remove_unused_levels().\
+        set_levels(['cost_total_system'], level=2)
+    cost_specific_heat_mean = 0 # Durchschnittliche Waermegestehungskosten
+
+    # Emissions
+    emissions_sum = derived_results_timeseries_emissions.sum()
+
+    get_derived_results_scalar = pd.concat([energy_thermal_produced_sum,
+                                            power_thermal_max,
+                                            power_thermal_min,
+                                            power_thermal_during_operation_mean,
+                                            hours_operating_sum,
+                                            number_starts,
+                                            hours_full_load,
+                                            energy_consumed_gas_sum,
+                                            energy_consumed_electricity_sum,
+                                            cost_variable_sum,
+                                            energy_heat_storage_discharge_sum,
+                                            energy_losses_heat_dhn_sum,
+                                            cost_total_system,
+                                            emissions_sum])
+    return get_derived_results_scalar
 
 
 def postprocess(config_path, results_dir):
+    r'''
+    Runs the whole postprocessing pipeline and saves the results.
+    '''
     # # open config
     # abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
     # with open(config_path, 'r') as ymlfile:
