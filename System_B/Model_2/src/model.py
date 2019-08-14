@@ -170,7 +170,8 @@ def run_model(config_path, results_dir):
     # Load data
     # load input parameter
     file_input_parameter = os.path.join(abs_path, cfg['data_raw']['scalars']['parameters'])
-    input_parameter = pd.read_csv(file_input_parameter, index_col=[1, 2])['var_value']
+    input_parameter = pd.read_csv(file_input_parameter, index_col=[1, 2])
+    input_parameter = input_parameter[['component', 'var_name', 'var_value']].set_index(['component', 'var_name'])
 
     # load timeseries
     file_timeseries_demand_heat = os.path.join(results_dir,
