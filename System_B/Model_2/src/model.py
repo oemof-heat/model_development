@@ -51,7 +51,7 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     #####################################################################
 
     b_el = Bus(label='bus_el')
-    b_th_central = Bus(label='bus_th')
+    b_th_central = Bus(label='bus_th_central')
     b_gas = Bus(label='gas', balanced=False)
 
     sold_el = Sink(label='sold_el', inputs={b_el: Flow(variable_costs=-1*price_electricity)})
