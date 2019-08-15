@@ -50,18 +50,17 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     logging.info('Create oemof objects')
     #####################################################################
 
-    b_el = Bus(label='electricity')
-    b_heat_1 = Bus(label='heat_1')
-    b_heat_2 = Bus(label='heat_2')
+    b_el = Bus(label='bus_el')
+    b_th_central = Bus(label='bus_th')
     b_gas = Bus(label='gas', balanced=False)
 
     sold_el = Sink(label='sold_el', inputs={b_el: Flow(variable_costs=-1*price_electricity)})
 
     chp = Transformer(label='chp',
                       inputs={b_gas: Flow(emission_specific=0.1)},
-                      outputs={b_heat_1: Flow(nominal_value=1000000000),
+                      outputs={b_th_central: Flow(nominal_value=1000000000),
                                b_el: Flow()},
-                      conversion_factors={b_heat_1: 1,
+                      conversion_factors={b_th_central: 1,
                                           b_el: 1})
 
     # chp = GenericCHP(
@@ -79,12 +78,12 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     #         Beta=[0]*periods,
     #         back_pressure=True)
 
-    pth_central = Source(label='pth_central', outputs={b_heat_1: Flow(nominal_value=2,
-                                                                      variable_costs=1e6)})
+    pth_central = Source(label='pth_central', outputs={b_th_central: Flow(nominal_value=2,
+                                                                          variable_costs=1e6)})
 
     tes_central = GenericStorage(label='storage_central',
-                          inputs={b_heat_1: Flow(variable_costs=0.0001)},
-                          outputs={b_heat_1: Flow()},
+                          inputs={b_th_central: Flow(variable_costs=0.0001)},
+                          outputs={b_th_central: Flow()},
                           nominal_storage_capacity=15,
                           initial_storage_level=0.75,
                           #min_storage_level=0.4,
@@ -105,7 +104,7 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
         name_subnet = find_subnet(column)
         bus_th = Bus(label=name_subnet+'_bus_th')
         pipe = Transformer(label=name_subnet+'_pipe',
-                           inputs={b_heat_1: Flow()},
+                           inputs={b_th_central: Flow()},
                            outputs={bus_th: Flow()},
                            conversion_factors={bus_th: 1})
         pth_decentral = Source(label=name_subnet+'_pth_decentral',
@@ -132,7 +131,7 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
         list_tes_decentral.append(tes_decentral)
         list_demand_th.append(demand_th)
 
-    energysystem.add(b_el, b_heat_1, b_heat_2, b_gas, chp, sold_el,
+    energysystem.add(b_el, b_th_central, b_gas, chp, sold_el,
                      pth_central, tes_central, *list_pipes,
                      *list_bus_th_decentral, *list_pth_decentral,
                      *list_tes_decentral, *list_demand_th)

@@ -223,7 +223,7 @@ def get_derived_results_scalar(param_scalar,
         remove_unused_levels().\
         set_levels(['energy_consumed_gas_sum'], level=2)
 
-    energy_consumed_electricity_sum = results_timeseries_flows.loc[:, ('electricity', slice(None), slice(None))].sum()
+    energy_consumed_electricity_sum = results_timeseries_flows.loc[:, ('bus_el', slice(None), slice(None))].sum()
     energy_consumed_electricity_sum.index = energy_consumed_electricity_sum.index.\
         remove_unused_levels().\
         set_levels(['energy_consumed_electricity_sum'], level=2)
