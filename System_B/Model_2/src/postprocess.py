@@ -208,8 +208,10 @@ def get_derived_results_scalar(param_scalar,
     # TODO: seasonal_performance_factor_heat_pumps_mean = 0 # heat produced / electricity consumed
 
     # DHN operation
-    energy_losses_heat_dhn = results_timeseries_flows.loc[:, (slice(None), 'dhn', slice(None))].sum(axis=1)\
-        - results_timeseries_flows.loc[:, ('dhn', slice(None), slice(None))].sum(axis=1)
+    pipes = [component[0] for component in results_timeseries_flows.columns
+             if bool(re.search('_pipe', component[0]))]
+    energy_losses_heat_dhn = results_timeseries_flows.loc[:, (slice(None), pipes, slice(None))].sum(axis=1)\
+        - results_timeseries_flows.loc[:, (pipes, slice(None), slice(None))].sum(axis=1)
     energy_losses_heat_dhn_sum = pd.Series(energy_losses_heat_dhn.sum(),
                                            index=pd.MultiIndex.from_tuples([('dhn', 'None', 'energy_losses_heat_dhn_sum')],
                                            names=[None,None,'variable_name']))
