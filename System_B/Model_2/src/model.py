@@ -2,12 +2,13 @@ __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
 
+import os
+import re
+import logging
+import yaml
 import pandas as pd
 import numpy as np
 import networkx as nx
-import os
-import yaml
-import logging
 
 import oemof
 import oemof.outputlib as outputlib
@@ -40,8 +41,6 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     else:
         periods = 8760
     datetimeindex = pd.date_range('1/1/2019', periods=periods, freq='H')
-
-    demand_heat = demand_heat['demand_1']
 
     # Set up EnergySystem
     logging.info('Initialize the energy system')
@@ -95,34 +94,48 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
                           inflow_conversion_factor=1.,
                           outflow_conversion_factor=1.)
 
-    dhn = Transformer(label='dhn',
-                      inputs={b_heat_1: Flow()},
-                      outputs={b_heat_2: Flow()}, 
-                      conversion_factors={b_heat_2: 1})
-
-    pth_decentral = Source(label='pth_decentral', outputs={b_heat_2: Flow(nominal_value=2,
-                                                                          variable_costs=1e6)})
-
-    tes_decentral = GenericStorage(label='storage_decentral',
-                                   inputs={b_heat_2: Flow(variable_costs=0.0001)},
-                                   outputs={b_heat_2: Flow()},
-                                   nominal_storage_capacity=15,
-                                   initial_storage_level=0.75,
-                                   #min_storage_level=0.4,
-                                   #max_storage_level=0.9,
-                                   loss_rate=0.1,
-                                   loss_constant=0.,
-                                   inflow_conversion_factor=1.,
-                                   outflow_conversion_factor=1.)
-
-    demand_th = Sink(label='demand_th',
-                     inputs={b_heat_2: Flow(nominal_value=1,
-                             actual_value=demand_heat,
-                             fixed=True)})
+    list_bus_th_decentral = []
+    list_pipes = []
+    list_pth_decentral = []
+    list_tes_decentral = []
+    list_demand_th = []
+    regex = re.compile(r"^[^_]*")
+    find_subnet = lambda str: re.search(regex, str).group(0)
+    for column in demand_heat.columns:
+        name_subnet = find_subnet(column)
+        bus_th = Bus(label=name_subnet+'_bus_th')
+        pipe = Transformer(label=name_subnet+'_pipe',
+                           inputs={b_heat_1: Flow()},
+                           outputs={bus_th: Flow()},
+                           conversion_factors={bus_th: 1})
+        pth_decentral = Source(label=name_subnet+'_pth_decentral',
+                               outputs={bus_th: Flow(nominal_value=2,
+                                                     variable_costs=1e6)})
+        tes_decentral = GenericStorage(label=name_subnet+'_storage_decentral',
+                                       inputs={bus_th: Flow(variable_costs=0.0001)},
+                                       outputs={bus_th: Flow()},
+                                       nominal_storage_capacity=15,
+                                       initial_storage_level=0.75,
+                                       # min_storage_level=0.4,
+                                       # max_storage_level=0.9,
+                                       loss_rate=0.1,
+                                       loss_constant=0.,
+                                       inflow_conversion_factor=1.,
+                                       outflow_conversion_factor=1.)
+        demand_th = Sink(label=name_subnet+'_demand_th',
+                         inputs={bus_th: Flow(nominal_value=1,
+                                              actual_value=demand_heat[column],
+                                              fixed=True)})
+        list_bus_th_decentral.append(bus_th)
+        list_pipes.append(pipe)
+        list_pth_decentral.append(pth_decentral)
+        list_tes_decentral.append(tes_decentral)
+        list_demand_th.append(demand_th)
 
     energysystem.add(b_el, b_heat_1, b_heat_2, b_gas, chp, sold_el,
-                     pth_central, tes_central, dhn, 
-                     pth_decentral, tes_decentral, demand_th)
+                     pth_central, tes_central, *list_pipes,
+                     *list_bus_th_decentral, *list_pth_decentral,
+                     *list_tes_decentral, *list_demand_th)
 
     #####################################################################
     logging.info('Solve the optimization problem')
