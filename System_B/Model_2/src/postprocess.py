@@ -265,10 +265,10 @@ def postprocess(config_path, results_dir):
     r'''
     Runs the whole postprocessing pipeline and saves the results.
     '''
-    # # open config
-    # abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
-    # with open(config_path, 'r') as ymlfile:
-    #     cfg = yaml.load(ymlfile)
+    # open config
+    abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+    with open(config_path, 'r') as ymlfile:
+        cfg = yaml.load(ymlfile)
 
     # restore energysystem
     energysystem = solph.EnergySystem()
@@ -281,24 +281,22 @@ def postprocess(config_path, results_dir):
     results_scalar = get_results_scalar(energysystem)
     results_scalar.to_csv(os.path.join(dir_postproc, 'results_scalar.csv'))
     results_timeseries_flows = get_results_flows(energysystem)
-    results_timeseries_flows.to_csv(os.path.join(dir_postproc, 'timeseries/results_timeseries.csv'))
+    results_timeseries_flows.to_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['timeseries']['timeseries']))
 
     # Calculate derived results
     derived_results_timeseries_emissions = get_derived_results_timeseries_emissions(energysystem)
     derived_results_timeseries_emissions.to_csv(os.path.join(dir_postproc,
-                                                             'timeseries/' +
-                                                             'results_timeseries_emissions_variable.csv'))
+                                                             cfg['data_postprocessed']['timeseries']['emissions']))
     derived_results_timeseries_costs_variable = get_derived_results_timeseries_costs_variable(energysystem)
     derived_results_timeseries_costs_variable.to_csv(os.path.join(dir_postproc,
-                             'timeseries/' +
-                             'results_timeseries_costs_variable.csv'))
+                                                                  cfg['data_postprocessed']['timeseries']['cost_variable']))
     derived_results_scalar = get_derived_results_scalar(param_scalar,
                                                         results_scalar,
                                                         results_timeseries_flows,
                                                         derived_results_timeseries_costs_variable,
                                                         derived_results_timeseries_emissions)
     derived_results_scalar.to_csv(os.path.join(dir_postproc,
-                                               'results_scalar_derived.csv'), header=True)
+                                               cfg['data_postprocessed']['scalars']), header=True)
 
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ solver: 'cbc'
 data_raw:
   timeseries: 'data/timeseries.csv'
   scalars:
-    parameters: 'data/parameters.csv'
+    parameters: 'data/parameter_JL_v0-1.csv'
   scenarios: 'data/scenarios.csv'
 
 # Preprocessed data to use
@@ -15,6 +15,7 @@ data_preprocessed:
   timeseries:
     demand_heat: 'demand_heat/demand_heat_1998.csv'
     price_electricity_spot: 'price_electricity_spot/price_electricity_spot_2015.csv'
+
 # optimisation settings
 investment:
   invest_pth: False
@@ -22,5 +23,12 @@ investment:
 # CHP representation
 chp_repr: 'option_2'
 
+# Postprocessed data
+data_postprocessed:
+  timeseries:
+    timeseries: 'timeseries/results_timeseries.csv'
+    cost_variable: 'timeseries/results_timeseries_costs_variable.csv'
+    emissions: 'timeseries/results_timeseries_emissions_variable.csv'
+  scalars: 'results_scalar_derived.csv'
 
-
+# TODO: Plots
