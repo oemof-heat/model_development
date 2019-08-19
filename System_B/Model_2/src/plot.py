@@ -131,7 +131,7 @@ def plot_dispatch(timeseries, color_dict, filename):
     feedin_heat = [*feedin_heat_central, *feedin_heat_decentral]
 
     # resample
-    df_resam = timeseries
+    df_resam = timeseries.copy()
     df_resam = df_resam.loc['2019-01-01 00:00:00':'2019-03-01 00:00:00']
 
     # invert heat to storage
@@ -158,6 +158,87 @@ def plot_dispatch(timeseries, color_dict, filename):
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
 
     # save figure
+    fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
+    return None
+
+
+def plot_storage_level(timeseries, color_dict, filename):
+    r"""
+    Creates and saves a plot of storage level, charge and discharge.
+
+    Parameters
+    ----------
+    timeseries : DataFrame
+        Containing flows from and to heat bus.
+
+    color_dict : dict
+        Defining colors for the plot
+
+    filename : path
+        Path to store plot.
+
+    Returns
+    -------
+    None
+    """
+    storage_heat_charge_central = [component for component in timeseries.columns
+                                   if bool(re.search('bus_th_central', component[0]))
+                                   and bool(re.search('storage', component[1]))]
+    storage_heat_charge_decentral = [component for component in timeseries.columns
+                                     if bool(re.search('bus_th', component[0]))
+                                     and bool(re.search('storage_decentral', component[1]))]
+
+    storage_heat_discharge_central = [component for component in timeseries.columns
+                                      if bool(re.search('bus_th_central', component[1]))
+                                      and bool(re.search('storage', component[0]))]
+    storage_heat_discharge_decentral = [component for component in timeseries.columns
+                                        if bool(re.search('bus_th', component[1]))
+                                        and bool(re.search('storage_decentral', component[0]))]
+    storage_heat_level_central = [component for component in timeseries.columns
+                                  if bool(re.search('storage', component[0]))
+                                  and component[1]=='None']
+    storage_heat_level_decentral = [component for component in timeseries.columns
+                                    if bool(re.search('storage_decentral', component[0]))
+                                    and component[1]=='None']
+    storage_heat_charge = [*storage_heat_charge_central, *storage_heat_charge_decentral]
+    storage_heat_discharge = [*storage_heat_discharge_central, *storage_heat_discharge_decentral]
+    storage_heat_level = [*storage_heat_level_central, *storage_heat_level_decentral]
+
+    # resample
+    df_resam = timeseries.copy()
+    # df_resam = df_resam.loc['2019-01-01 00:00:00':'2019-03-01 00:00:00']
+
+    # invert heat to storage
+    df_resam[storage_heat_charge] *= -1
+
+    # prepare colors
+    labels = [re.sub('subnet-._', '', i[0]) for i in storage_heat_charge]
+    colors_charge = [color_dict[label] for label in labels]
+    labels = [re.sub('subnet-._', '', i[0]) for i in storage_heat_discharge]
+    colors_discharge = [color_dict[label] for label in labels]
+    labels = [re.sub('subnet-._', '', i[0]) for i in storage_heat_level]
+    colors_level = [color_dict[label] for label in labels]
+
+    # plot
+    fig, ax = plt.subplots(figsize=(12, 6))
+    df_resam[storage_heat_charge].plot.area(ax=ax, color=colors_charge)
+    df_resam[storage_heat_discharge].plot.area(ax=ax, color=colors_discharge)
+    ax2 = ax.twinx()
+    df_resam[storage_heat_level].plot.area(ax=ax2, color=colors_level, alpha=0.3)
+
+    ax.set_ylim(-50, 50)
+    ax.grid(axis='y', color='b')
+    ax2.set_ylim(-500, 500)
+    ax2.grid(axis='y', color='k')
+
+    # set title, labels and legend
+    ax.set_ylabel('Power in MW')
+    ax2.set_ylabel('Storage level in MWh')
+    ax.set_xlabel('Time')
+    ax.set_title('Heat demand and generation')
+    ax.legend(loc='upper left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
+    ax2.legend(loc='lower left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
+
     fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
     return None
 
@@ -195,6 +276,7 @@ def create_plots(config_path, results_dir):
                              header=[0,1,2], index_col=0, parse_dates=True)
 
     plot_dispatch(timeseries, color_dict, filename=results_dir + '/plots/' + 'dispatch_stack_plot.pdf')
+    plot_storage_level(timeseries, color_dict, filename=results_dir + '/plots/' + 'storage_level.pdf')
 
 
 if __name__ == '__main__':
