@@ -11,14 +11,13 @@ __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
 
 import os
+import re
+import yaml
 import pandas as pd
+import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib import rcParams as rcParams
-import oemof.graph as graph
 import oemof.solph as solph
-import oemof.outputlib as outputlib
-import networkx as nx
-import yaml
 import helpers
 
 
@@ -99,10 +98,9 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
         plt.show()
 
 
-def plot_dispatch(df, color_dict, filename):
+def plot_dispatch(timeseries, color_dict, filename):
     r"""
-    Creates and saves a plot of the heat
-    dispatch.
+    Creates and saves a plot of the heat dispatch.
 
     Parameters
     ----------
@@ -117,41 +115,51 @@ def plot_dispatch(df, color_dict, filename):
     -------
     None
     """
-
-    # preprocessing
-    heat_in = [key for key in df.keys() if key[0][1] == 'heat_prim']
-    heat_to_storage = (('heat_prim', 'storage_heat'), 'flow')
-    heat_to_dhn = (('heat_prim', 'dhn_prim'), 'flow')
+    storage_heat_charge_central = [component for component in timeseries.columns
+                                   if bool(re.search('bus_th_central', component[0]))
+                                   and bool(re.search('storage', component[1]))]
+    feedin_heat_central = [component for component in timeseries.columns
+                           if bool(re.search('bus_th_central', component[1]))]
+    storage_heat_charge_decentral = [component for component in timeseries.columns
+                                     if bool(re.search('bus_th', component[0]))
+                                     and bool(re.search('storage_decentral', component[1]))]
+    feedin_heat_decentral = [component for component in timeseries.columns
+                             if bool(re.search('bus_th_decentral', component[1]))
+                             and not bool(re.search('pipe', component[0]))]
+    feedin_heat_decentral = sorted(feedin_heat_decentral, key=lambda x: re.sub('subnet-._', '', x[0]))
+    storage_heat_charge = [*storage_heat_charge_central, *storage_heat_charge_decentral]
+    feedin_heat = [*feedin_heat_central, *feedin_heat_decentral]
 
     # round
-    df = df.round(10)
+    timeseries = timeseries.round(10)
 
     # resample
-    df_resam = df.resample('1D').mean()
+    df_resam = timeseries.resample('1D').mean()
 
     # invert heat to storage
-    df_resam[heat_to_storage] *= -1
+    df_resam[storage_heat_charge] *= -1
 
     # prepare colors
-    labels = [i[0][0] for i in heat_in]
-    print(labels)
-    colors_heat_in = [color_dict[label] for label in labels]
-    colors = colors_heat_in + ['k']
+    labels = [re.sub('subnet-._', '', i[0]) for i in feedin_heat]
+    colors_heat_feedin = [color_dict[label] for label in labels]
+    colors = colors_heat_feedin + ['k']
 
     # plot
     fig, ax = plt.subplots(figsize=(12, 6))
-    df_resam[heat_in + [heat_to_storage]].plot.area(ax=ax, color=colors)
-    df_resam[heat_to_dhn].plot(ax=ax, color='r', linewidth=3)
+    df_resam[storage_heat_charge].plot.area(ax=ax)
+    df_resam[feedin_heat].plot.area(ax=ax, color=colors)
+    print(df_resam[feedin_heat].max())
+    # df_resam[storage_discharge_heat].plot(ax=ax, color='r', linewidth=3)
+    ax.set_ylim(-10, 400000)
 
     # set title, labels and legend
-    ax.set_ylabel('Power in kW')
+    ax.set_ylabel('Power in MW')
     ax.set_xlabel('Time')
     ax.set_title('Heat demand and generation')
-    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5)) # place legend outside of plot
+    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
 
     # save figure
     fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
-
     return None
 
 
@@ -161,6 +169,7 @@ def create_plots(config_path, results_dir):
     """
     # open config
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+    dir_postproc = os.path.join(results_dir, 'data_postprocessed')
 
     with open(config_path, 'r') as config_file:
         cfg = yaml.load(config_file)
@@ -181,8 +190,12 @@ def create_plots(config_path, results_dir):
     # demand = pd.read_csv(os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
     # plot_heat_demand(demand, filename=results_dir + '/plots/heat_demand.pdf')
 
-    # node_results_bel = outputlib.views.node(energysystem.results['main'], 'heat_prim')['sequences']
-    # plot_dispatch(node_results_bel, color_dict, filename=results_dir + '/plots/' + 'dispatch_stack_plot.pdf')
+    timeseries = pd.read_csv(os.path.join(results_dir,
+                                          os.path.join(dir_postproc,
+                                                       cfg['data_postprocessed']['timeseries']['timeseries'])),
+                             header=[0,1,2], index_col=0, parse_dates=True)
+
+    plot_dispatch(timeseries, color_dict, filename=results_dir + '/plots/' + 'dispatch_stack_plot.pdf')
 
 
 if __name__ == '__main__':
