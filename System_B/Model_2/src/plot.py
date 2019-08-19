@@ -130,11 +130,9 @@ def plot_dispatch(timeseries, color_dict, filename):
     storage_heat_charge = [*storage_heat_charge_central, *storage_heat_charge_decentral]
     feedin_heat = [*feedin_heat_central, *feedin_heat_decentral]
 
-    # round
-    timeseries = timeseries.round(10)
-
     # resample
-    df_resam = timeseries.resample('1D').mean()
+    df_resam = timeseries
+    df_resam = df_resam.loc['2019-01-01 00:00:00':'2019-03-01 00:00:00']
 
     # invert heat to storage
     df_resam[storage_heat_charge] *= -1
@@ -148,9 +146,10 @@ def plot_dispatch(timeseries, color_dict, filename):
     fig, ax = plt.subplots(figsize=(12, 6))
     df_resam[storage_heat_charge].plot.area(ax=ax)
     df_resam[feedin_heat].plot.area(ax=ax, color=colors)
-    print(df_resam[feedin_heat].max())
     # df_resam[storage_discharge_heat].plot(ax=ax, color='r', linewidth=3)
-    ax.set_ylim(-10, 400000)
+
+    ax.set_ylim(-50, 200)
+    ax.grid(axis='y')
 
     # set title, labels and legend
     ax.set_ylabel('Power in MW')
