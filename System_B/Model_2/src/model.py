@@ -102,7 +102,7 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     find_subnet = lambda str: re.search(regex, str).group(0)
     for column in demand_heat.columns:
         name_subnet = find_subnet(column)
-        bus_th = Bus(label=name_subnet+'_bus_th')
+        bus_th = Bus(label=name_subnet+'_bus_th_decentral')
         pipe = Transformer(label=name_subnet+'_pipe',
                            inputs={b_th_central: Flow()},
                            outputs={bus_th: Flow()},
