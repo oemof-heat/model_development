@@ -146,9 +146,9 @@ def get_derived_results_scalar(param_scalar,
     """
     # Production
     producers_heat = [component for component in results_timeseries_flows.columns
-                      if component[1] in ['heat_1', 'heat_2']
+                      if bool(re.search('bus_th', component[1]))
                       and not bool(re.search('storage', component[0]))
-                      and not bool(re.search('dhn', component[0]))]
+                      and not bool(re.search('pipe', component[0]))]
 
     energy_thermal_produced_sum = results_timeseries_flows[producers_heat].sum()
     energy_thermal_produced_sum.index = energy_thermal_produced_sum.index.\
