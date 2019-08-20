@@ -12,7 +12,7 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 40;scenario_basic;reference;district_heating_network;costs_heat_distribution_var;23;Eur/MWh;BLESL 2002;
 41;scenario_basic;reference;district_heating_network;fom;18;Eur/m;Totschnig2017a  ;S. 103
 42;scenario_basic;reference;district_heating_network;costs_heat_distribution_cap;;;;
-20;scenario_basic;reference;gas_boiler_central;efficiency;1.03;;DanishEnergyAgency2018; District heating boiler, natural gas fired (0.5 - 10 MW_th)
+20;scenario_basic;reference;gas_boiler_central;efficiency;0.98;;Henning2014a;
 22;scenario_basic;reference;gas_boiler_central;lifetime;25;a;DanishEnergyAgency2018;
 48;scenario_basic;reference;gas_boiler_central;overnight_cost;60000;Eur/MW_th;DanishEnergyAgency2018;capacities: 0.5 - 10 MW_th
 49;scenario_basic;reference;gas_boiler_central;lifetime;25;a;DanishEnergyAgency2018;capacities: 0.5 - 10 MW_th
