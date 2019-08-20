@@ -52,7 +52,9 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
 
     b_el = Bus(label='bus_el')
     b_th_central = Bus(label='bus_th_central')
-    b_gas = Bus(label='gas', balanced=False)
+    b_gas = Bus(label='gas')
+
+    source_gas = Source(label='source_gas', outputs={b_gas: Flow(variable_costs=20)})
 
     sold_el = Sink(label='sold_el', inputs={b_el: Flow(variable_costs=-1*np.nan_to_num(price_electricity))})
 
@@ -158,7 +160,7 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
         list_tes_decentral.append(tes_decentral)
         list_demand_th.append(demand_th)
 
-    energysystem.add(b_el, b_th_central, b_gas, chp, sold_el,
+    energysystem.add(b_el, b_th_central, b_gas, chp, sold_el, source_gas,
                      pth_central, tes_central, *list_pipes,
                      *list_bus_th_decentral, *list_pth_decentral,
                      *list_tes_decentral, *list_demand_th)
