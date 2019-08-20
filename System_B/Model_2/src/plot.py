@@ -14,11 +14,14 @@ import os
 import re
 import yaml
 import pandas as pd
+from pandas.plotting import register_matplotlib_converters
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib import rcParams as rcParams
 import oemof.solph as solph
 import helpers
+
+register_matplotlib_converters()
 
 
 def plot_heat_demand(df, filename):
@@ -132,7 +135,7 @@ def plot_dispatch(timeseries, color_dict, filename):
 
     # resample
     df_resam = timeseries.copy()
-    df_resam = df_resam.loc['2019-01-01 00:00:00':'2019-03-01 00:00:00']
+    df_resam = df_resam.resample('24H').mean()
 
     # invert heat to storage
     df_resam[storage_heat_charge] *= -1
@@ -143,11 +146,22 @@ def plot_dispatch(timeseries, color_dict, filename):
     colors = colors_heat_feedin + ['k']
 
     # plot
-    fig, ax = plt.subplots(figsize=(12, 6))
-    df_resam[storage_heat_charge].plot.area(ax=ax)
-    df_resam[feedin_heat].plot.area(ax=ax, color=colors)
-    # df_resam[storage_discharge_heat].plot(ax=ax, color='r', linewidth=3)
+    def stacked_bar_plot(ax, data, color=None):
+        data_cum_sum = data.cumsum(axis=1)
+        ax.fill_between(data_cum_sum.index, 0, data_cum_sum[data.columns[0]], step='mid', label=data.columns[0])
+        for i in range(1, len(data.columns)):
+            first = data.columns[i - 1]
+            next = data.columns[i]
+            if color!=None:
+                color_i = color[i]
+            else:
+                color_i = None
+            ax.fill_between(data_cum_sum.index, data_cum_sum[first], data_cum_sum[next],
+                        step='mid', label=next)#, color=color_i)
 
+    fig, ax = plt.subplots(figsize=(12, 6))
+    stacked_bar_plot(ax, df_resam[storage_heat_charge])
+    stacked_bar_plot(ax, df_resam[feedin_heat], color=colors)
     ax.set_ylim(-50, 200)
     ax.grid(axis='y')
 
@@ -206,7 +220,6 @@ def plot_storage_level(timeseries, color_dict, filename):
 
     # resample
     df_resam = timeseries.copy()
-    # df_resam = df_resam.loc['2019-01-01 00:00:00':'2019-03-01 00:00:00']
 
     # invert heat to storage
     df_resam[storage_heat_charge] *= -1
@@ -220,24 +233,23 @@ def plot_storage_level(timeseries, color_dict, filename):
     colors_level = [color_dict[label] for label in labels]
 
     # plot
-    fig, ax = plt.subplots(figsize=(12, 6))
-    df_resam[storage_heat_charge].plot.area(ax=ax, color=colors_charge)
-    df_resam[storage_heat_discharge].plot.area(ax=ax, color=colors_discharge)
-    ax2 = ax.twinx()
-    df_resam[storage_heat_level].plot.area(ax=ax2, color=colors_level, alpha=0.3)
+    fig, ax = plt.subplots(2, 1, figsize=(12, 6))
+    df_resam[storage_heat_charge].plot.area(ax=ax[0], color=colors_charge)
+    df_resam[storage_heat_discharge].plot.area(ax=ax[0], color=colors_discharge)
+    df_resam[storage_heat_level].plot.area(ax=ax[1], color=colors_level, alpha=0.3)
 
-    ax.set_ylim(-50, 50)
-    ax.grid(axis='y', color='b')
-    ax2.set_ylim(-500, 500)
-    ax2.grid(axis='y', color='k')
+    ax[0].set_ylim(-50, 50)
+    ax[0].grid(axis='y', color='b')
+    ax[1].set_ylim(0, 500)
+    ax[1].grid(axis='y', color='k')
 
     # set title, labels and legend
-    ax.set_ylabel('Power in MW')
-    ax2.set_ylabel('Storage level in MWh')
-    ax.set_xlabel('Time')
-    ax.set_title('Heat demand and generation')
-    ax.legend(loc='upper left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
-    ax2.legend(loc='lower left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
+    ax[0].set_ylabel('Power in MW')
+    ax[1].set_ylabel('Storage level in MWh')
+    ax[1].set_xlabel('Time')
+    ax[0].set_title('Heat demand and generation')
+    ax[0].legend(loc='upper left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
+    ax[1].legend(loc='lower left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
 
     fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
     return None
