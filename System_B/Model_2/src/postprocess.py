@@ -244,21 +244,22 @@ def get_derived_results_scalar(param_scalar,
     # Emissions
     emissions_sum = derived_results_timeseries_emissions.sum()
 
-    get_derived_results_scalar = pd.concat([energy_thermal_produced_sum,
-                                            power_thermal_max,
-                                            power_thermal_min,
-                                            power_thermal_during_operation_mean,
-                                            hours_operating_sum,
-                                            number_starts,
-                                            hours_full_load,
-                                            energy_consumed_gas_sum,
-                                            energy_consumed_electricity_sum,
-                                            cost_variable_sum,
-                                            energy_heat_storage_discharge_sum,
-                                            energy_losses_heat_dhn_sum,
-                                            cost_total_system,
-                                            emissions_sum])
-    return get_derived_results_scalar
+    derived_results_scalar = pd.concat([energy_thermal_produced_sum,
+                                        power_thermal_max,
+                                        power_thermal_min,
+                                        power_thermal_during_operation_mean,
+                                        hours_operating_sum,
+                                        number_starts,
+                                        hours_full_load,
+                                        energy_consumed_gas_sum,
+                                        energy_consumed_electricity_sum,
+                                        cost_variable_sum,
+                                        energy_heat_storage_discharge_sum,
+                                        energy_losses_heat_dhn_sum,
+                                        cost_total_system,
+                                        emissions_sum])
+    derived_results_scalar.name = 'var_value'
+    return derived_results_scalar
 
 
 def postprocess(config_path, results_dir):
