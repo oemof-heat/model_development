@@ -146,9 +146,9 @@ def get_derived_results_scalar(param_scalar,
     """
     # Production
     producers_heat = [component for component in results_timeseries_flows.columns
-                      if component[1] in ['heat_1', 'heat_2']
+                      if bool(re.search('bus_th', component[1]))
                       and not bool(re.search('storage', component[0]))
-                      and not bool(re.search('dhn', component[0]))]
+                      and not bool(re.search('pipe', component[0]))]
 
     energy_thermal_produced_sum = results_timeseries_flows[producers_heat].sum()
     energy_thermal_produced_sum.index = energy_thermal_produced_sum.index.\
@@ -244,21 +244,22 @@ def get_derived_results_scalar(param_scalar,
     # Emissions
     emissions_sum = derived_results_timeseries_emissions.sum()
 
-    get_derived_results_scalar = pd.concat([energy_thermal_produced_sum,
-                                            power_thermal_max,
-                                            power_thermal_min,
-                                            power_thermal_during_operation_mean,
-                                            hours_operating_sum,
-                                            number_starts,
-                                            hours_full_load,
-                                            energy_consumed_gas_sum,
-                                            energy_consumed_electricity_sum,
-                                            cost_variable_sum,
-                                            energy_heat_storage_discharge_sum,
-                                            energy_losses_heat_dhn_sum,
-                                            cost_total_system,
-                                            emissions_sum])
-    return get_derived_results_scalar
+    derived_results_scalar = pd.concat([energy_thermal_produced_sum,
+                                        power_thermal_max,
+                                        power_thermal_min,
+                                        power_thermal_during_operation_mean,
+                                        hours_operating_sum,
+                                        number_starts,
+                                        hours_full_load,
+                                        energy_consumed_gas_sum,
+                                        energy_consumed_electricity_sum,
+                                        cost_variable_sum,
+                                        energy_heat_storage_discharge_sum,
+                                        energy_losses_heat_dhn_sum,
+                                        cost_total_system,
+                                        emissions_sum])
+    derived_results_scalar.name = 'var_value'
+    return derived_results_scalar
 
 
 def postprocess(config_path, results_dir):

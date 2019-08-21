@@ -1,5 +1,5 @@
 id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
-14;scenario_basic;reference;chp;efficiency_el;0.34;;DanishEnergyAgency2018; Gas turbine, simple cycle (small and medium), back pressure
+14;scenario_basic;reference;chp;efficiency_el;0.34;;DanishEnergyAgency2018; Gas turbine,  simple cycle (small and medium),  back pressure
 15;scenario_basic;reference;chp;efficiency_th;0.479;;DanishEnergyAgency2018;
 17;scenario_basic;reference;chp;lifetime;25;a;DanishEnergyAgency2018;
 43;scenario_basic;reference;chp;overnight_cost;750000;Eur/MW_el;DanishEnergyAgency2018;
@@ -21,9 +21,9 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 52;scenario_basic;reference;gas_boiler_central;tax_nc_levys;7.4;Eur/MWh;E.DISAG2016a;without price of natural gas
 24;scenario_basic;reference;gas_boiler_decentral;efficiency;1.03;;DanishEnergyAgency2018;
 26;scenario_basic;reference;gas_boiler_decentral;lifetime;25;a;DanishEnergyAgency2018;
-87;scenario_basic;reference;pth_central;capacity_installed;;;;
-88;scenario_basic;reference;pth_central;efficiency_thermal;;;;
-36;scenario_basic;reference;pth_heat_pump_decentral;efficiency;3.5;;DanishEnergyAgency2018; Electrical compression heat pumps - ambient heat source,  no dev. in supply temp. (4 MW)
+87;scenario_basic;reference;pth_central;capacity_installed;10;MW;own assumption;Dummy
+88;scenario_basic;reference;pth_central;efficiency;0.98;;own assumption;Dummy
+36;scenario_basic;reference;pth_heat_pump_decentral;efficiency;3.5;;DanishEnergyAgency2018; Electrical compression heat pumps - ambient heat source, no dev. in supply temp. (4 MW)
 38;scenario_basic;reference;pth_heat_pump_decentral;lifetime;25;a;Brown2018;
 60;scenario_basic;reference;pth_heat_pump_decentral;overnight_cost;700000;Eur/MW_th;DanishEnergyAgency2018;
 61;scenario_basic;reference;pth_heat_pump_decentral;fom;0.286;%of overnight cost/a;DanishEnergyAgency2018;
@@ -48,23 +48,23 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 0;scenario_basic;reference;subnet-1_demand_th;efh;{'annual_heat_demand': 100000, 'building_class': 4, 'wind_class': 1};MWh;own assumption;
 1;scenario_basic;reference;subnet-1_demand_th;mfh;{'annual_heat_demand': 100000, 'building_class': 4, 'wind_class': 1};MWh;own assumption;
 2;scenario_basic;reference;subnet-1_demand_th;ghd;{'annual_heat_demand': 50000, 'wind_class': 1};MWh;own assumption;
-73;scenario_basic;reference;subnet-1_hp;efficiency_thermal;;;;
+73;scenario_basic;reference;subnet-1_hp;efficiency_thermal;1;;;Dummy
 65;scenario_basic;reference;subnet-1_pipe;efficiency;1;;;Dummy
-66;scenario_basic;reference;subnet-1_pth;capacity_installed;2;;;Dummy
-67;scenario_basic;reference;subnet-1_pth;efficiency_thermal;;;;
-68;scenario_basic;reference;subnet-1_tes;capacity_installed;10;;;Dummy
+66;scenario_basic;reference;subnet-1_pth;capacity_installed;2;MW;;Dummy
+67;scenario_basic;reference;subnet-1_pth;efficiency_thermal;0.98;;;Dummy
+68;scenario_basic;reference;subnet-1_tes;capacity_installed;500;MWh;;Dummy
 69;scenario_basic;reference;subnet-1_tes;storage_level_initial;0.5;;;Dummy
 70;scenario_basic;reference;subnet-1_tes;rate_loss;0.001;;;Dummy
 71;scenario_basic;reference;subnet-1_tes;efficiency_charging;1;;;Dummy
 72;scenario_basic;reference;subnet-1_tes;efficiency_discharging;1;;;
-3;scenario_basic;reference;subnet-2_demand_th;efh;{'annual_heat_demand': 100000, 'building_class': 4, 'wind_class': 1};MWh;own assumption;
-4;scenario_basic;reference;subnet-2_demand_th;mfh;{'annual_heat_demand': 100000, 'building_class': 4, 'wind_class': 1};MWh;own assumption;
-5;scenario_basic;reference;subnet-2_demand_th;ghd;{'annual_heat_demand': 50000, 'wind_class': 1};MWh;own assumption;
-82;scenario_basic;reference;subnet-2_hp;efficiency_thermal;;;;
+3;scenario_basic;reference;subnet-2_demand_th;efh;{'annual_heat_demand': 100000,  'building_class': 4,  'wind_class': 1};MWh;;own assumption
+4;scenario_basic;reference;subnet-2_demand_th;mfh;{'annual_heat_demand': 100000,  'building_class': 4,  'wind_class': 1};MWh;;own assumption
+5;scenario_basic;reference;subnet-2_demand_th;ghd;{'annual_heat_demand': 50000,  'wind_class': 1} ;;;own assumption
+82;scenario_basic;reference;subnet-2_hp;efficiency;;;;
 74;scenario_basic;reference;subnet-2_pipe;efficiency;1;;;Dummy
-75;scenario_basic;reference;subnet-2_pth;capacity_installed;2;;;Dummy
-76;scenario_basic;reference;subnet-2_pth;efficiency_thermal;;;;
-77;scenario_basic;reference;subnet-2_tes;capacity_installed;10;;;Dummy
+75;scenario_basic;reference;subnet-2_pth;capacity_installed;2;MW;;Dummy
+76;scenario_basic;reference;subnet-2_pth;efficiency;0.98;;;Dummy
+77;scenario_basic;reference;subnet-2_tes;capacity_installed;500;MWh;;Dummy
 78;scenario_basic;reference;subnet-2_tes;storage_level_initial;0.5;;;Dummy
 79;scenario_basic;reference;subnet-2_tes;rate_loss;0.001;;;Dummy
 80;scenario_basic;reference;subnet-2_tes;efficiency_charging;1;;;Dummy
