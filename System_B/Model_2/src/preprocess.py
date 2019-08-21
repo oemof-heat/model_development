@@ -93,7 +93,7 @@ def preprocess(config_path, results_dir):
 
     # Load bdew parameters
     filename_input_data = os.path.join(abs_path, config['data_raw']['scalars']['parameters'])
-    input_parameter = pd.read_csv(filename_input_data)
+    input_parameter = pd.read_csv(filename_input_data, delimiter=';')
     parameter_bdew = {}
     for label, group in input_parameter.groupby('component'):
         if bool(re.search("demand", label)):
