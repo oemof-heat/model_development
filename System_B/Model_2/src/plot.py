@@ -18,6 +18,7 @@ from pandas.plotting import register_matplotlib_converters
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib import rcParams as rcParams
+from matplotlib import gridspec
 import oemof.solph as solph
 import helpers
 
@@ -255,6 +256,50 @@ def plot_storage_level(timeseries, color_dict, filename):
     return None
 
 
+def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color_dict, filename):
+    grouped = results_scalar_derived.groupby('variable_name')
+    fig = plt.figure(figsize=(20, 10))
+    gs = gridspec.GridSpec(3, 6)
+
+    def stacked_single_bar(group, ax):
+        data = grouped.get_group(group)['var_value']
+        ax.bar(0, data[0])
+        for i in range(1, len(data)):
+            ax.bar(0, data[i], bottom=data[i-1])
+        ax.set_title(group)
+
+    def horizontal_bar(group, ax):
+        data = grouped.get_group(group)['var_value']
+        data.index = data.index.droplevel([1, 2])
+        data.plot(ax=ax, kind='bar')
+        ax.set_title(group)
+
+    ax = fig.add_subplot(gs[:,0])
+    stacked_single_bar('cost_total_system', ax)
+
+    ax = fig.add_subplot(gs[:,1])
+    stacked_single_bar('energy_thermal_produced_sum', ax)
+
+    ax = fig.add_subplot(gs[:,2])
+    stacked_single_bar('energy_consumed_sum', ax)
+
+    ax = fig.add_subplot(gs[:,3])
+    stacked_single_bar('energy_consumed_sum', ax)
+
+    ax = fig.add_subplot(gs[0,5])
+    stacked_single_bar('hours_full_load', ax)
+
+    ax = fig.add_subplot(gs[1,5])
+    horizontal_bar('hours_operating_sum', ax)
+
+    ax = fig.add_subplot(gs[2,5])
+    horizontal_bar('number_starts', ax)
+
+
+    plt.tight_layout()
+    plt.savefig(filename)
+
+
 def create_plots(config_path, results_dir):
     r"""
     Runs the plot production pipeline.
@@ -287,9 +332,22 @@ def create_plots(config_path, results_dir):
                                                        cfg['data_postprocessed']['timeseries']['timeseries'])),
                              header=[0,1,2], index_col=0, parse_dates=True)
 
-    plot_dispatch(timeseries, color_dict, filename=results_dir + '/plots/' + 'dispatch_stack_plot.pdf')
-    plot_storage_level(timeseries, color_dict, filename=results_dir + '/plots/' + 'storage_level.pdf')
+    results_scalar_derived = pd.read_csv(os.path.join(results_dir,
+                                          os.path.join(dir_postproc,
+                                                       cfg['data_postprocessed']['scalars']['derived'])),
+                             header=0, index_col=[0,1,2], parse_dates=True)
 
+    parameters_scalar = pd.read_csv(os.path.join(results_dir,
+                                          os.path.join(dir_postproc,
+                                                       cfg['data_postprocessed']['scalars']['parameters'])),
+                             header=0, index_col=[0,1,2], parse_dates=True)
+
+    # plot_dispatch(timeseries, color_dict, os.path.join(results_dir,'plots','dispatch_stack_plot.pdf'))
+    # plot_storage_level(timeseries, color_dict, os.path.join(results_dir,'plots','storage_level.pdf'))
+    plot_results_scalar_derived(results_scalar_derived,
+                                parameters_scalar,
+                                color_dict,
+                                os.path.join(results_dir,'plots','results_scalar_derived.pdf'))
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
