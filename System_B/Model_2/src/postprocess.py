@@ -47,6 +47,8 @@ def get_param_scalar(energysystem):
                 var_name.append(name)
                 var_value.append(value)
     param_scalars = pd.DataFrame({'component': component, 'var_name': var_name, 'var_value': var_value})
+    param_scalars.set_index(pd.MultiIndex.from_tuples(param_scalars['component']), inplace=True)
+    param_scalars = param_scalars.drop(columns='component')
     return param_scalars
 
 
@@ -78,12 +80,11 @@ def get_results_flows(energysystem):
 def get_derived_results_timeseries_emissions(energysystem):
     param_scalar = get_param_scalar(energysystem)
     flows = get_results_flows(energysystem)
-
     emission_specific = param_scalar.loc[param_scalar['var_name']=='emission_specific']
-    flows_with_emission_specific = flows[[(*component, 'flow') for component in emission_specific['component']]]
+    flows_with_emission_specific = flows[[(*ll, 'flow') for ll in emission_specific.index]]
     flows_with_emission_specific.columns = flows_with_emission_specific.columns.remove_unused_levels()
     def func(x):
-        factor = emission_specific.loc[emission_specific['component']==x.name[:2]]['var_value'].squeeze()
+        factor = emission_specific.loc[x.name[:2]]['var_value']
         return x*factor
     timeseries_emission = flows_with_emission_specific.apply(func, axis=0)
     timeseries_emission.columns = timeseries_emission.columns.set_levels(['emission'], level=2)
@@ -95,10 +96,10 @@ def get_derived_results_timeseries_costs_variable(energysystem):
     flows = get_results_flows(energysystem)
 
     cost_variable = param_scalar.loc[param_scalar['var_name']=='variable_costs']
-    flows_with_cost_variable = flows[[(*component, 'flow') for component in cost_variable['component']]]
+    flows_with_cost_variable = flows[[(*ll, 'flow') for ll in cost_variable.index]]
     flows_with_cost_variable.columns = flows_with_cost_variable.columns.remove_unused_levels()
     def func(x):
-        factor = cost_variable.loc[cost_variable['component']==x.name[:2]]['var_value'].squeeze()
+        factor = cost_variable.loc[x.name[:2]]['var_value']
         return x*factor
     timeseries_cost_variable = flows_with_cost_variable.apply(func, axis=0)
     timeseries_cost_variable.columns = timeseries_cost_variable.columns.set_levels(['cost_variable'], level=2)
@@ -184,9 +185,7 @@ def get_derived_results_scalar(param_scalar,
     number_starts.index = number_starts.index.\
         remove_unused_levels().\
         set_levels(['number_starts'], level=2)
-
     installed_production_capacity = param_scalar.loc[param_scalar['var_name']=='nominal_value']
-    installed_production_capacity.index = pd.MultiIndex.from_tuples(installed_production_capacity['component'])
     installed_production_capacity = installed_production_capacity['var_value']
     hours_full_load = energy_thermal_produced_sum.reset_index(level=2, drop=True) * 1/installed_production_capacity
     hours_full_load = pd.DataFrame(hours_full_load)
@@ -221,12 +220,13 @@ def get_derived_results_scalar(param_scalar,
     energy_consumed_gas_sum = results_timeseries_flows.loc[:, ('gas', slice(None), slice(None))].sum()
     energy_consumed_gas_sum.index = energy_consumed_gas_sum.index.\
         remove_unused_levels().\
-        set_levels(['energy_consumed_gas_sum'], level=2)
+        set_levels(['energy_consumed_sum'], level=2)
 
-    energy_consumed_electricity_sum = results_timeseries_flows.loc[:, ('bus_el', slice(None), slice(None))].sum()
+    # TODO: Correct
+    energy_consumed_electricity_sum = results_timeseries_flows.loc[:, ('bus_el_import', slice(None), slice(None))].sum()
     energy_consumed_electricity_sum.index = energy_consumed_electricity_sum.index.\
         remove_unused_levels().\
-        set_levels(['energy_consumed_electricity_sum'], level=2)
+        set_levels(['energy_consumed_sum'], level=2)
 
     # TODO: fraction_renewable_energy_thermal = 0 # renewable energy / total energy consumed
 
@@ -278,9 +278,9 @@ def postprocess(config_path, results_dir):
 
     # Collect primary results
     param_scalar = get_param_scalar(energysystem)
-    param_scalar.to_csv(os.path.join(dir_postproc, 'parameters_scalar.csv'))
+    param_scalar.to_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['scalars']['parameters']))
     results_scalar = get_results_scalar(energysystem)
-    results_scalar.to_csv(os.path.join(dir_postproc, 'results_scalar.csv'))
+    results_scalar.to_csv(os.path.join(dir_postproc,  cfg['data_postprocessed']['scalars']['results']))
     results_timeseries_flows = get_results_flows(energysystem)
     results_timeseries_flows.to_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['timeseries']['timeseries']))
 
@@ -297,7 +297,7 @@ def postprocess(config_path, results_dir):
                                                         derived_results_timeseries_costs_variable,
                                                         derived_results_timeseries_emissions)
     derived_results_scalar.to_csv(os.path.join(dir_postproc,
-                                               cfg['data_postprocessed']['scalars']), header=True)
+                                               cfg['data_postprocessed']['scalars']['derived']), header=True)
 
 
 if __name__ == '__main__':
