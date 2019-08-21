@@ -57,7 +57,8 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
 
     source_el = Source(label='source_electricity',
                        outputs={b_el_import: Flow(variable_costs=np.nan_to_num(price_electricity))})
-    source_gas = Source(label='source_gas', outputs={b_gas: Flow(variable_costs=20)})
+    source_gas = Source(label='source_gas', outputs={b_gas: Flow(variable_costs=20,
+                                                                 emission_specific=1)})
 
     sold_el = Sink(label='sold_el', inputs={b_el_export: Flow(variable_costs=-1*np.nan_to_num(price_electricity))})
 
@@ -71,14 +72,16 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     # heat_shortage = Source(outputs={b_th_central: Flow(variable_costs=10000)})
     # heat_excess = Sink(inputs={b_th_central: Flow(variable_costs=10000)})
 
+    nominal_value_gas = input_parameter['chp', 'capacity_installed'] * 1/input_parameter['chp', 'efficiency_th']
     chp = ExtractionTurbineCHP(label='chp',
-                               inputs={b_gas: Flow(nominal_value=input_parameter['chp',
-                                                                                 'capacity_installed'])},
-                               outputs={b_th_central: Flow(), b_el_export: Flow()},
+                               inputs={b_gas: Flow(nominal_value=nominal_value_gas)},
+                               outputs={b_th_central: Flow(nominal_value=input_parameter['chp',
+                                                                                         'capacity_installed']),
+                                        b_el_export: Flow()},
                                conversion_factors={b_th_central: input_parameter['chp', 'efficiency_th'],
                                                    b_el_export: input_parameter['chp', 'efficiency_el']},
                                conversion_factor_full_condensation={
-                                   b_el_export: input_parameter['chp','efficiency_el_full_cond']})
+                                   b_el_export: input_parameter['chp', 'efficiency_el_full_cond']})
 
     # chp = ExtractionTurbineCHP(label='chp',
     #                            inputs={b_gas: Flow(nominal_value=300)},
