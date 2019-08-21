@@ -46,7 +46,7 @@
 45;scenario_basic;reference;pth_resistive_decentral;vom;0.8;Eur/MWh;DanishEnergyAgency2018;4 - 5 MW_th
 46;scenario_basic;reference;pth_resistive_decentral;tax_nc_levys;134.64;Eur/MWh;E.DISAG2016;only taxes, network charges, levys, without price of the energy carrier
 47;scenario_basic;reference;pth_resistive_decentral;capacity_installed;;MW_th;;
-48;scenario_basic;reference;source_gas;emission_specific;0.20437;tCO2e/MWh;eia2019;https://www.eia.gov/electricity/annual/html/epa_a_03.html
+48;scenario_basic;reference;source_gas;emission_specific;0.202;tCO2/MWh;BundesamtfurWirtschaftundAusfuhrkontrolle2019;
 49;scenario_basic;reference;source_gas;carrier_price;30.2;Eur/MWh;Duic2017;S. 8
 50;scenario_basic;reference;subnet-1_demand_th;efh;{'annual_heat_demand': 100000, 'building_class': 4, 'wind_class': 1};MWh;own assumption;
 51;scenario_basic;reference;subnet-1_demand_th;mfh;{'annual_heat_demand': 100000, 'building_class': 4, 'wind_class': 1};MWh;own assumption;
