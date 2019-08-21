@@ -299,7 +299,7 @@ def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color
 
     ax = fig.add_subplot(gs[:, 3])
     stacked_single_bar('energy_consumed_sum', ax)
-
+    print(grouped.get_group('emission'))
     ax = fig.add_subplot(gs[:, 4])
     stacked_single_bar('emission', ax)
 

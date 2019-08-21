@@ -185,9 +185,14 @@ def get_derived_results_scalar(param_scalar,
     number_starts.index = number_starts.index.\
         remove_unused_levels().\
         set_levels(['number_starts'], level=2)
-    installed_production_capacity = param_scalar.loc[param_scalar['var_name']=='nominal_value']
+    installed_production_capacity = param_scalar.loc[[key[:2] for key in producers_heat]]
+    installed_production_capacity = installed_production_capacity.loc[installed_production_capacity['var_name']=='nominal_value']
+
+    installed_production_capacity = pd.DataFrame(installed_production_capacity)
+    installed_production_capacity['variable_name'] = 'installed_production_capacity'
+    installed_production_capacity.set_index('variable_name', append=True, inplace=True)
     installed_production_capacity = installed_production_capacity['var_value']
-    hours_full_load = energy_thermal_produced_sum.reset_index(level=2, drop=True) * 1/installed_production_capacity
+    hours_full_load = energy_thermal_produced_sum * 1/installed_production_capacity
     hours_full_load = pd.DataFrame(hours_full_load)
     hours_full_load['variable_name'] = 'hours_full_load'
     hours_full_load.set_index('variable_name', append=True, inplace=True)
@@ -250,6 +255,7 @@ def get_derived_results_scalar(param_scalar,
                                         power_thermal_during_operation_mean,
                                         hours_operating_sum,
                                         number_starts,
+                                        installed_production_capacity,
                                         hours_full_load,
                                         energy_consumed_gas_sum,
                                         energy_consumed_electricity_sum,
