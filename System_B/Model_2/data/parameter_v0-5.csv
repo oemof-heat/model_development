@@ -1,85 +1,85 @@
-id,scenario,uncertainty,component,var_name,var_value,var_unit,source,comment,,,
-14,scenario_basic,reference,chp,efficiency_el,0.34,,DanishEnergyAgency2018, Gas turbine, simple cycle (small and medium), back pressure,
-15,scenario_basic,reference,chp,efficiency_th,0.479,,DanishEnergyAgency2018,,,,
-17,scenario_basic,reference,chp,lifetime,25,a,DanishEnergyAgency2018,,,,
-43,scenario_basic,reference,chp,overnight_cost,750000,Eur/MW_el,DanishEnergyAgency2018,,,,
-44,scenario_basic,reference,chp,lifetime,25,a,DanishEnergyAgency2018,,,,
-45,scenario_basic,reference,chp,fom,2.67,%of overnight cost/a,DanishEnergyAgency2018,,,,
-46,scenario_basic,reference,chp,vom,5.5,Eur/MWh_el,DanishEnergyAgency2018,,,,
-47,scenario_basic,reference,chp,tax_nc_levys,1.9,Eur/MWh,E.DIS AG 2015,without price of natural gas,,,
-84,scenario_basic,reference,chp,capacity_installed,400,,,Dummy,,,
-106,scenario_basic,reference,chp,efficiency_el_full_cond,0.34,,,Dummy,,,
-40,scenario_basic,reference,district_heating_network,costs_heat_distribution_var,23,Eur/MWh,BLESL 2002,,,,
-41,scenario_basic,reference,district_heating_network,fom,18,Eur/m,Totschnig2017a  ,S. 103,,,
-42,scenario_basic,reference,district_heating_network,costs_heat_distribution_cap,,,,,,,
-20,scenario_basic,reference,gas_boiler_central,efficiency,0.98,,Henning2014a,,,,
-22,scenario_basic,reference,gas_boiler_central,lifetime,25,a,DanishEnergyAgency2018,,,,
-48,scenario_basic,reference,gas_boiler_central,overnight_cost,60000,Eur/MW_th,DanishEnergyAgency2018,capacities: 0.5 - 10 MW_th,,,
-49,scenario_basic,reference,gas_boiler_central,lifetime,25,a,DanishEnergyAgency2018,capacities: 0.5 - 10 MW_th,,,
-50,scenario_basic,reference,gas_boiler_central,fom,3.33,%of overnight cost/a,DanishEnergyAgency2018,capacities: 0.5 - 10 MW_th,,,
-51,scenario_basic,reference,gas_boiler_central,vom,1.1,Eur/MWh,DanishEnergyAgency2018,capacities: 0.5 - 10 MW_th,,,
-52,scenario_basic,reference,gas_boiler_central,carrier_price,7.4,Eur/MWh,E.DIS AG 2015,without price of natural gas,,,
-24,scenario_basic,reference,gas_boiler_decentral,efficiency,1.03,,DanishEnergyAgency2018,,,,
-26,scenario_basic,reference,gas_boiler_decentral,lifetime,25,a,DanishEnergyAgency2018,,,,
-87,scenario_basic,reference,pth_central,capacity_installed,,,,,,,
-88,scenario_basic,reference,pth_central,efficiency,,,,,,,
-36,scenario_basic,reference,pth_heat_pump_decentral,efficiency,3.5,,DanishEnergyAgency2018, Electrical compression heat pumps - ambient heat source,  no dev. in supply temp. (4 MW),,
-38,scenario_basic,reference,pth_heat_pump_decentral,lifetime,25,a,Brown2018,,,,
-60,scenario_basic,reference,pth_heat_pump_decentral,overnight_cost,700000,Eur/MW_th,DanishEnergyAgency2018,,,,
-61,scenario_basic,reference,pth_heat_pump_decentral,fom,0.286,%of overnight cost/a,DanishEnergyAgency2018,,,,
-62,scenario_basic,reference,pth_heat_pump_decentral,vom,2,Eur/MWh,DanishEnergyAgency2018,,,,
-63,scenario_basic,reference,pth_heat_pump_decentral,tax_nc_levys,134.64,Eur/MWh,E.DIS AG 2016,only taxes, network charges, levys, without price of the energy carrier
-28,scenario_basic,reference,pth_resistive_central,efficiency,0.98,,DanishEnergyAgency2018,,,,
-30,scenario_basic,reference,pth_resistive_central,lifetime,20,a,DanishEnergyAgency2018,,,,
-58,scenario_basic,reference,pth_resistive_central,overnight_cost,70000,Eur/MW_th,DanishEnergyAgency2018,> 10 MW_th,,,
-59,scenario_basic,reference,pth_resistive_central,lifetime,20,a,DanishEnergyAgency2018,> 10 MW_th,,,
-60,scenario_basic,reference,pth_resistive_central,fom,1.57,%of overnight cost/a,DanishEnergyAgency2018,> 10 MW_th,,,
-61,scenario_basic,reference,pth_resistive_central,vom,0.8,Eur/MWh,DanishEnergyAgency2018,> 10 MW_th,,,
-62,scenario_basic,reference,pth_resistive_central,tax_nc_levys,134.64,Eur/MWh,E.DIS AG 2016,only taxes, network charges, levys, without price of the energy carrier
-32,scenario_basic,reference,pth_resistive_decentral,efficiency,0.98,,DanishEnergyAgency2018,,,,
-34,scenario_basic,reference,pth_resistive_decentral,lifetime,20,a,DanishEnergyAgency2018,,,,
-55,scenario_basic,reference,pth_resistive_decentral,overnight_cost,150000,Eur/MW_th,DanishEnergyAgency2018,1 - 5 MW_th,,,
-56,scenario_basic,reference,pth_resistive_decentral,lifetime,20,a,DanishEnergyAgency2018,1 - 5 MW_th,,,
-57,scenario_basic,reference,pth_resistive_decentral,fom,0.73,%of overnight cost/a,DanishEnergyAgency2018,1 - 5 MW_th,,,
-58,scenario_basic,reference,pth_resistive_decentral,vom,0.8,Eur/MWh,DanishEnergyAgency2018,4 - 5 MW_th,,,
-59,scenario_basic,reference,pth_resistive_decentral,tax_nc_levys,134.64,Eur/MWh,E.DIS AG 2016,only taxes, network charges, levys, without price of the energy carrier
-83,scenario_basic,reference,source_gas,emission_specific_gas,,,,,,,
-6,scenario_basic,reference,source_gas,carrier_price,30.2,Eur/MWh,Duic2017,S. 8,,,
-0,scenario_basic,reference,subnet-1_demand_th,efh,{'annual_heat_demand': 100000, 'building_class': 4, 'wind_class': 1},MWh,own assumption,,
-1,scenario_basic,reference,subnet-1_demand_th,mfh,{'annual_heat_demand': 100000, 'building_class': 4, 'wind_class': 1},MWh,own assumption,,
-2,scenario_basic,reference,subnet-1_demand_th,ghd,{'annual_heat_demand': 50000, 'wind_class': 1},MWh,own assumption,,,
-73,scenario_basic,reference,subnet-1_hp,efficiency_hp,,,,,,,
-65,scenario_basic,reference,subnet-1_pipe,efficiency,1,,,Dummy,,,
-66,scenario_basic,reference,subnet-1_pth,capacity_installed,2,,,Dummy,,,
-67,scenario_basic,reference,subnet-1_pth,efficiency,,,,,,,
-68,scenario_basic,reference,subnet-1_tes,capacity_installed,10,,,Dummy,,,
-69,scenario_basic,reference,subnet-1_tes,storage_level_initial,0.5,,,Dummy,,,
-70,scenario_basic,reference,subnet-1_tes,rate_loss,0.001,,,Dummy,,,
-71,scenario_basic,reference,subnet-1_tes,efficiency_charging,1,,,Dummy,,,
-72,scenario_basic,reference,subnet-1_tes,efficiency_discharging,1,,,,,,
-3,scenario_basic,reference,subnet-2_demand_th,efh,{'annual_heat_demand': 100000, 'building_class': 4, 'wind_class': 1},MWh,own assumption,,
-4,scenario_basic,reference,subnet-2_demand_th,mfh,{'annual_heat_demand': 100000, 'building_class': 4, 'wind_class': 1},MWh,own assumption,,
-5,scenario_basic,reference,subnet-2_demand_th,ghd,{'annual_heat_demand': 50000, 'wind_class': 1},MWh,own assumption,,,
-82,scenario_basic,reference,subnet-2_hp,efficiency,,,,,,,
-74,scenario_basic,reference,subnet-2_pipe,efficiency,1,,,Dummy,,,
-75,scenario_basic,reference,subnet-2_pth,capacity_installed,2,,,Dummy,,,
-76,scenario_basic,reference,subnet-2_pth,efficiency,,,,,,,
-77,scenario_basic,reference,subnet-2_tes,capacity_installed,10,,,Dummy,,,
-78,scenario_basic,reference,subnet-2_tes,storage_level_initial,0.5,,,Dummy,,,
-79,scenario_basic,reference,subnet-2_tes,rate_loss,0.001,,,Dummy,,,
-80,scenario_basic,reference,subnet-2_tes,efficiency_charging,1,,,Dummy,,,
-81,scenario_basic,reference,subnet-2_tes,efficiency_discharging,1,,,Dummy,,,
-89,scenario_basic,reference,tes_central,capacity_installed,500,,,Dummy,,,
-90,scenario_basic,reference,tes_central,storage_level_initial,0.5,,,Dummy,,,
-91,scenario_basic,reference,tes_central,rate_loss,0.001,,,Dummy,,,
-92,scenario_basic,reference,tes_central,efficiency_charging,1,,,Dummy,,,
-93,scenario_basic,reference,tes_central,efficiency_discharging,1,,,Dummy,,,
-92,scenario_basic,reference,tes_central,power_charging,5,,,Dummy,,,
-93,scenario_basic,reference,tes_central,power_discharging,5,,,Dummy,,,
-105,scenario_basic,high,pth_heat_pump_decentral,fom,1,%of overnight cost/a,Gerhardt2015a,S. 195 Luft/Wasser,,,
-103,scenario_2050,reference,pth_heat_pump_decentral,overnight_cost,462000,Eur/MW_th,Totschnig2017a,S. 158 Ohne Wärmequelle,,,
-8,scenario_2050,reference,source_gas,carrier_price,46,Eur/MWh,Pfluger2017a,S. 23,,,
-104,scenario_2050,high,pth_heat_pump_noDH,overnight_cost,2100000,Eur/MW_th,Gerhardt2015a,S. 43 Luft/Wasser >25 kW,,,
-10,scenario_2050,high,source_gas,carrier_price,53.39,Eur/MWh,Duic2017,S. 8,,,
-7,scenario_2030,reference,source_gas,carrier_price,43.3,Eur/MWh,Duic2017,S. 8,,,
-9,scenario_2030,high,source_gas,carrier_price,46,Eur/MWh,Pfluger2017a,S. 23,,,
+id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment;;;
+14;scenario_basic;reference;chp;efficiency_el;0.34;;DanishEnergyAgency2018; Gas turbine; simple cycle (small and medium); back pressure;
+15;scenario_basic;reference;chp;efficiency_th;0.479;;DanishEnergyAgency2018;;;;
+17;scenario_basic;reference;chp;lifetime;25;a;DanishEnergyAgency2018;;;;
+43;scenario_basic;reference;chp;overnight_cost;750000;Eur/MW_el;DanishEnergyAgency2018;;;;
+44;scenario_basic;reference;chp;lifetime;25;a;DanishEnergyAgency2018;;;;
+45;scenario_basic;reference;chp;fom;2.67;%of overnight cost/a;DanishEnergyAgency2018;;;;
+46;scenario_basic;reference;chp;vom;5.5;Eur/MWh_el;DanishEnergyAgency2018;;;;
+47;scenario_basic;reference;chp;tax_nc_levys;1.9;Eur/MWh;E.DIS AG 2015;without price of natural gas;;;
+84;scenario_basic;reference;chp;capacity_installed;400;;;Dummy;;;
+106;scenario_basic;reference;chp;efficiency_el_full_cond;0.34;;;Dummy;;;
+40;scenario_basic;reference;district_heating_network;costs_heat_distribution_var;23;Eur/MWh;BLESL 2002;;;;
+41;scenario_basic;reference;district_heating_network;fom;18;Eur/m;Totschnig2017a  ;S. 103;;;
+42;scenario_basic;reference;district_heating_network;costs_heat_distribution_cap;;;;;;;
+20;scenario_basic;reference;gas_boiler_central;efficiency;0.98;;Henning2014a;;;;
+22;scenario_basic;reference;gas_boiler_central;lifetime;25;a;DanishEnergyAgency2018;;;;
+48;scenario_basic;reference;gas_boiler_central;overnight_cost;60000;Eur/MW_th;DanishEnergyAgency2018;capacities: 0.5 - 10 MW_th;;;
+49;scenario_basic;reference;gas_boiler_central;lifetime;25;a;DanishEnergyAgency2018;capacities: 0.5 - 10 MW_th;;;
+50;scenario_basic;reference;gas_boiler_central;fom;3.33;%of overnight cost/a;DanishEnergyAgency2018;capacities: 0.5 - 10 MW_th;;;
+51;scenario_basic;reference;gas_boiler_central;vom;1.1;Eur/MWh;DanishEnergyAgency2018;capacities: 0.5 - 10 MW_th;;;
+52;scenario_basic;reference;gas_boiler_central;carrier_price;7.4;Eur/MWh;E.DIS AG 2015;without price of natural gas;;;
+24;scenario_basic;reference;gas_boiler_decentral;efficiency;1.03;;DanishEnergyAgency2018;;;;
+26;scenario_basic;reference;gas_boiler_decentral;lifetime;25;a;DanishEnergyAgency2018;;;;
+87;scenario_basic;reference;pth_central;capacity_installed;10;MW;own assumption;Dummy;;;
+88;scenario_basic;reference;pth_central;efficiency;0.98;;own assumption;Dummy;;;
+36;scenario_basic;reference;pth_heat_pump_decentral;efficiency;3.5;;DanishEnergyAgency2018; Electrical compression heat pumps - ambient heat source;  no dev. in supply temp. (4 MW);;
+38;scenario_basic;reference;pth_heat_pump_decentral;lifetime;25;a;Brown2018;;;;
+60;scenario_basic;reference;pth_heat_pump_decentral;overnight_cost;700000;Eur/MW_th;DanishEnergyAgency2018;;;;
+61;scenario_basic;reference;pth_heat_pump_decentral;fom;0.286;%of overnight cost/a;DanishEnergyAgency2018;;;;
+62;scenario_basic;reference;pth_heat_pump_decentral;vom;2;Eur/MWh;DanishEnergyAgency2018;;;;
+63;scenario_basic;reference;pth_heat_pump_decentral;tax_nc_levys;134.64;Eur/MWh;E.DIS AG 2016;only taxes; network charges; levys; without price of the energy carrier
+28;scenario_basic;reference;pth_resistive_central;efficiency;0.98;;DanishEnergyAgency2018;;;;
+30;scenario_basic;reference;pth_resistive_central;lifetime;20;a;DanishEnergyAgency2018;;;;
+58;scenario_basic;reference;pth_resistive_central;overnight_cost;70000;Eur/MW_th;DanishEnergyAgency2018;> 10 MW_th;;;
+59;scenario_basic;reference;pth_resistive_central;lifetime;20;a;DanishEnergyAgency2018;> 10 MW_th;;;
+60;scenario_basic;reference;pth_resistive_central;fom;1.57;%of overnight cost/a;DanishEnergyAgency2018;> 10 MW_th;;;
+61;scenario_basic;reference;pth_resistive_central;vom;0.8;Eur/MWh;DanishEnergyAgency2018;> 10 MW_th;;;
+62;scenario_basic;reference;pth_resistive_central;tax_nc_levys;134.64;Eur/MWh;E.DIS AG 2016;only taxes; network charges; levys; without price of the energy carrier
+32;scenario_basic;reference;pth_resistive_decentral;efficiency;0.98;;DanishEnergyAgency2018;;;;
+34;scenario_basic;reference;pth_resistive_decentral;lifetime;20;a;DanishEnergyAgency2018;;;;
+55;scenario_basic;reference;pth_resistive_decentral;overnight_cost;150000;Eur/MW_th;DanishEnergyAgency2018;1 - 5 MW_th;;;
+56;scenario_basic;reference;pth_resistive_decentral;lifetime;20;a;DanishEnergyAgency2018;1 - 5 MW_th;;;
+57;scenario_basic;reference;pth_resistive_decentral;fom;0.73;%of overnight cost/a;DanishEnergyAgency2018;1 - 5 MW_th;;;
+58;scenario_basic;reference;pth_resistive_decentral;vom;0.8;Eur/MWh;DanishEnergyAgency2018;4 - 5 MW_th;;;
+59;scenario_basic;reference;pth_resistive_decentral;tax_nc_levys;134.64;Eur/MWh;E.DIS AG 2016;only taxes; network charges; levys; without price of the energy carrier
+83;scenario_basic;reference;source_gas;emission_specific_gas;;;;;;;
+6;scenario_basic;reference;source_gas;carrier_price;30.2;Eur/MWh;Duic2017;S. 8;;;
+0;scenario_basic;reference;subnet-1_demand_th;efh;{'annual_heat_demand': 100000,  'building_class': 4,  'wind_class': 1};;;MWh;own assumption;;
+1;scenario_basic;reference;subnet-1_demand_th;mfh;{'annual_heat_demand': 100000,  'building_class': 4,  'wind_class': 1};;;MWh;own assumption;;
+2;scenario_basic;reference;subnet-1_demand_th;ghd;{'annual_heat_demand': 50000,  'wind_class': 1} ;;MWh;own assumption;;;
+73;scenario_basic;reference;subnet-1_hp;efficiency_hp;;;;;;;
+65;scenario_basic;reference;subnet-1_pipe;efficiency;1;;;Dummy;;;
+66;scenario_basic;reference;subnet-1_pth;capacity_installed;2;MW;;Dummy;;;
+67;scenario_basic;reference;subnet-1_pth;efficiency;0.98;;;Dummy;;;
+68;scenario_basic;reference;subnet-1_tes;capacity_installed;500;MWh;;Dummy;;;
+69;scenario_basic;reference;subnet-1_tes;storage_level_initial;0.5;;;Dummy;;;
+70;scenario_basic;reference;subnet-1_tes;rate_loss;0.001;;;Dummy;;;
+71;scenario_basic;reference;subnet-1_tes;efficiency_charging;1;;;Dummy;;;
+72;scenario_basic;reference;subnet-1_tes;efficiency_discharging;1;;;;;;
+3;scenario_basic;reference;subnet-2_demand_th;efh;{'annual_heat_demand': 100000; 'building_class': 4; 'wind_class': 1};MWh;own assumption;;
+4;scenario_basic;reference;subnet-2_demand_th;mfh;{'annual_heat_demand': 100000; 'building_class': 4; 'wind_class': 1};MWh;own assumption;;
+5;scenario_basic;reference;subnet-2_demand_th;ghd;{'annual_heat_demand': 50000; 'wind_class': 1};MWh;own assumption;;;
+82;scenario_basic;reference;subnet-2_hp;efficiency;;;;;;;
+74;scenario_basic;reference;subnet-2_pipe;efficiency;1;;;Dummy;;;
+75;scenario_basic;reference;subnet-2_pth;capacity_installed;2;MW;;Dummy;;;
+76;scenario_basic;reference;subnet-2_pth;efficiency;0.98;;;Dummy;;;
+77;scenario_basic;reference;subnet-2_tes;capacity_installed;500;MWh;;Dummy;;;
+78;scenario_basic;reference;subnet-2_tes;storage_level_initial;0.5;;;Dummy;;;
+79;scenario_basic;reference;subnet-2_tes;rate_loss;0.001;;;Dummy;;;
+80;scenario_basic;reference;subnet-2_tes;efficiency_charging;1;;;Dummy;;;
+81;scenario_basic;reference;subnet-2_tes;efficiency_discharging;1;;;Dummy;;;
+89;scenario_basic;reference;tes_central;capacity_installed;500;;;Dummy;;;
+90;scenario_basic;reference;tes_central;storage_level_initial;0.5;;;Dummy;;;
+91;scenario_basic;reference;tes_central;rate_loss;0.001;;;Dummy;;;
+92;scenario_basic;reference;tes_central;efficiency_charging;1;;;Dummy;;;
+93;scenario_basic;reference;tes_central;efficiency_discharging;1;;;Dummy;;;
+92;scenario_basic;reference;tes_central;power_charging;5;;;Dummy;;;
+93;scenario_basic;reference;tes_central;power_discharging;5;;;Dummy;;;
+105;scenario_basic;high;pth_heat_pump_decentral;fom;1;%of overnight cost/a;Gerhardt2015a;S. 195 Luft/Wasser;;;
+103;scenario_2050;reference;pth_heat_pump_decentral;overnight_cost;462000;Eur/MW_th;Totschnig2017a;S. 158 Ohne Wärmequelle;;;
+8;scenario_2050;reference;source_gas;carrier_price;46;Eur/MWh;Pfluger2017a;S. 23;;;
+104;scenario_2050;high;pth_heat_pump_noDH;overnight_cost;2100000;Eur/MW_th;Gerhardt2015a;S. 43 Luft/Wasser >25 kW;;;
+10;scenario_2050;high;source_gas;carrier_price;53.39;Eur/MWh;Duic2017;S. 8;;;
+7;scenario_2030;reference;source_gas;carrier_price;43.3;Eur/MWh;Duic2017;S. 8;;;
+9;scenario_2030;high;source_gas;carrier_price;46;Eur/MWh;Pfluger2017a;S. 23;;;
