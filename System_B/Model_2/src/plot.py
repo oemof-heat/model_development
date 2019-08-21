@@ -261,17 +261,20 @@ def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color
     fig = plt.figure(figsize=(15, 10))
     gs = gridspec.GridSpec(3, 7)
 
-
-
     def stacked_single_bar(group, ax):
         data = grouped.get_group(group)['var_value']
         bottom = 0
-        for i in range(1, len(data)):
+        for i in range(len(data)):
+            label = data.index[i][0]
+            color = color_dict[re.sub('subnet-._', '', label)]
             ax.bar(0, data.iloc[i],
+                   color=color,
+                   label=label,
                    bottom=bottom)
             bottom += data.iloc[i].copy()
         ax.set_xticklabels([])
-        ax.set_title(group)
+        ax.set_title(group.replace('_','\n'))
+        ax.legend()
 
     def horizontal_bar(group, ax):
         data = grouped.get_group(group)['var_value']
@@ -283,23 +286,14 @@ def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color
     stacked_single_bar('cost_total_system', ax)
 
     ax = fig.add_subplot(gs[:, 1])
-    installed_production_capacity = parameters_scalar.loc[parameters_scalar['var_name']=='nominal_value']
-    installed_production_capacity = installed_production_capacity['var_value'].astype(float)
-    installed_production_capacity = installed_production_capacity.sort_values(ascending=True)
-    bottom = 0
-    for i in range(len(installed_production_capacity)):
-        ax.bar(0, installed_production_capacity.iloc[i],
-               bottom=bottom)
-        bottom += installed_production_capacity.iloc[i].copy()
-    ax.set_xticklabels([])
-    ax.set_title('installed_capacity')
+    stacked_single_bar('installed_production_capacity', ax)
 
     ax = fig.add_subplot(gs[:, 2])
     stacked_single_bar('energy_thermal_produced_sum', ax)
 
     ax = fig.add_subplot(gs[:, 3])
     stacked_single_bar('energy_consumed_sum', ax)
-    print(grouped.get_group('emission'))
+
     ax = fig.add_subplot(gs[:, 4])
     stacked_single_bar('emission', ax)
 
