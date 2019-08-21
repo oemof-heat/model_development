@@ -258,14 +258,19 @@ def plot_storage_level(timeseries, color_dict, filename):
 
 def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color_dict, filename):
     grouped = results_scalar_derived.groupby('variable_name')
-    fig = plt.figure(figsize=(20, 10))
-    gs = gridspec.GridSpec(3, 6)
+    fig = plt.figure(figsize=(15, 10))
+    gs = gridspec.GridSpec(3, 7)
+
+
 
     def stacked_single_bar(group, ax):
         data = grouped.get_group(group)['var_value']
-        ax.bar(0, data[0])
+        bottom = 0
         for i in range(1, len(data)):
-            ax.bar(0, data[i], bottom=data[i-1])
+            ax.bar(0, data.iloc[i],
+                   bottom=bottom)
+            bottom += data.iloc[i].copy()
+        ax.set_xticklabels([])
         ax.set_title(group)
 
     def horizontal_bar(group, ax):
@@ -274,27 +279,38 @@ def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color
         data.plot(ax=ax, kind='bar')
         ax.set_title(group)
 
-    ax = fig.add_subplot(gs[:,0])
+    ax = fig.add_subplot(gs[:, 0])
     stacked_single_bar('cost_total_system', ax)
 
-    ax = fig.add_subplot(gs[:,1])
+    ax = fig.add_subplot(gs[:, 1])
+    installed_production_capacity = parameters_scalar.loc[parameters_scalar['var_name']=='nominal_value']
+    installed_production_capacity = installed_production_capacity['var_value'].astype(float)
+    installed_production_capacity = installed_production_capacity.sort_values(ascending=True)
+    bottom = 0
+    for i in range(len(installed_production_capacity)):
+        ax.bar(0, installed_production_capacity.iloc[i],
+               bottom=bottom)
+        bottom += installed_production_capacity.iloc[i].copy()
+    ax.set_xticklabels([])
+    ax.set_title('installed_capacity')
+
+    ax = fig.add_subplot(gs[:, 2])
     stacked_single_bar('energy_thermal_produced_sum', ax)
 
-    ax = fig.add_subplot(gs[:,2])
+    ax = fig.add_subplot(gs[:, 3])
     stacked_single_bar('energy_consumed_sum', ax)
 
-    ax = fig.add_subplot(gs[:,3])
-    stacked_single_bar('energy_consumed_sum', ax)
+    ax = fig.add_subplot(gs[:, 4])
+    stacked_single_bar('emission', ax)
 
-    ax = fig.add_subplot(gs[0,5])
-    stacked_single_bar('hours_full_load', ax)
+    ax = fig.add_subplot(gs[0, 5:])
+    horizontal_bar('hours_full_load', ax)
 
-    ax = fig.add_subplot(gs[1,5])
+    ax = fig.add_subplot(gs[1, 5:])
     horizontal_bar('hours_operating_sum', ax)
 
-    ax = fig.add_subplot(gs[2,5])
+    ax = fig.add_subplot(gs[2, 5:])
     horizontal_bar('number_starts', ax)
-
 
     plt.tight_layout()
     plt.savefig(filename)
@@ -337,10 +353,8 @@ def create_plots(config_path, results_dir):
                                                        cfg['data_postprocessed']['scalars']['derived'])),
                              header=0, index_col=[0,1,2], parse_dates=True)
 
-    parameters_scalar = pd.read_csv(os.path.join(results_dir,
-                                          os.path.join(dir_postproc,
-                                                       cfg['data_postprocessed']['scalars']['parameters'])),
-                             header=0, index_col=[0,1,2], parse_dates=True)
+    parameters_scalar = pd.read_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['scalars']['parameters']),
+                                    header=0, index_col=[0,1])
 
     # plot_dispatch(timeseries, color_dict, os.path.join(results_dir,'plots','dispatch_stack_plot.pdf'))
     # plot_storage_level(timeseries, color_dict, os.path.join(results_dir,'plots','storage_level.pdf'))
