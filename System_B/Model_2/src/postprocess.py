@@ -151,7 +151,6 @@ def get_derived_results_scalar(param_scalar,
             set_levels([var_name], level=2)
         data = pd.DataFrame(data, columns=['var_value'])
         data['var_unit'] = var_unit
-        #print(data)
         return data
 
     # Production
@@ -238,14 +237,14 @@ def get_derived_results_scalar(param_scalar,
     # Whole system energy
     energy_consumed_gas_sum = results_timeseries_flows.loc[:, ('gas', slice(None), slice(None))].sum()
     energy_consumed_gas_sum = format_results(energy_consumed_gas_sum,
-                                             'energy_consumed_gas_sum',
-                                             'MW')
+                                             'energy_consumed_sum',
+                                             'MWh')
 
     # TODO: Correct
     energy_consumed_electricity_sum = results_timeseries_flows.loc[:, ('bus_el_import', slice(None), slice(None))].sum()
     energy_consumed_electricity_sum = format_results(energy_consumed_electricity_sum,
-                                                     'energy_consumed_electricity_sum',
-                                                     'MW')
+                                                     'energy_consumed_sum',
+                                                     'MWh')
 
     # TODO: fraction_renewable_energy_thermal = 0 # renewable energy / total energy consumed
 
@@ -253,7 +252,7 @@ def get_derived_results_scalar(param_scalar,
     cost_variable_sum = derived_results_timeseries_costs_variable.sum()
     cost_variable_sum = format_results(cost_variable_sum,
                                        'cost_variable_sum',
-                                       'EUR')
+                                       'Eur')
     cost_vom_sum = 0
     cost_fom = 0
     cost_capital = 0

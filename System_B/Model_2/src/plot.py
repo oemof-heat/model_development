@@ -169,7 +169,74 @@ def plot_dispatch(timeseries, color_dict, filename):
     # set title, labels and legend
     ax.set_ylabel('Power in MW')
     ax.set_xlabel('Time')
-    ax.set_title('Heat demand and generation')
+    ax.set_title('Heat generation dispatch')
+    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
+
+    # save figure
+    fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
+    return None
+
+
+def plot_load_duration_curves(timeseries, color_dict, filename):
+    r"""
+    Creates and saves a plot of the heat dispatch.
+
+    Parameters
+    ----------
+    df: DataFrame
+        Containing flows from and to
+        heat bus.
+
+    filename: path
+        Path to store plot.
+
+    Returns
+    -------
+    None
+    """
+    storage_heat_charge_central = [component for component in timeseries.columns
+                                   if bool(re.search('bus_th_central', component[0]))
+                                   and bool(re.search('storage', component[1]))]
+    feedin_heat_central = [component for component in timeseries.columns
+                           if bool(re.search('bus_th_central', component[1]))]
+    storage_heat_charge_decentral = [component for component in timeseries.columns
+                                     if bool(re.search('bus_th', component[0]))
+                                     and bool(re.search('storage_decentral', component[1]))]
+    feedin_heat_decentral = [component for component in timeseries.columns
+                             if bool(re.search('bus_th_decentral', component[1]))
+                             and not bool(re.search('pipe', component[0]))]
+    feedin_heat_decentral = sorted(feedin_heat_decentral, key=lambda x: re.sub('subnet-._', '', x[0]))
+    storage_heat_charge = [*storage_heat_charge_central, *storage_heat_charge_decentral]
+    feedin_heat = [*feedin_heat_central, *feedin_heat_decentral]
+
+    # resample
+    df_resam = timeseries.copy()
+    df_resam = df_resam.resample('24H').mean()
+
+    # Sort timeseries
+    sorted_df = pd.DataFrame()
+    for column in df_resam.columns:
+        sorted_df[column] = sorted(df_resam[column], reverse=True)
+
+    # invert heat to storage
+    sorted_df[storage_heat_charge] *= -1
+
+    # prepare colors
+    labels = [re.sub('subnet-._', '', i[0]) for i in feedin_heat]
+    colors_heat_feedin = [color_dict[label] for label in labels]
+    colors = colors_heat_feedin + ['k']
+
+    # plot
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sorted_df[storage_heat_charge].plot(ax=ax)
+    sorted_df[feedin_heat].plot(ax=ax, color=colors)
+    ax.set_ylim(-50, 200)
+    ax.grid(axis='y')
+
+    # set title, labels and legend
+    ax.set_ylabel('Power in MW')
+    ax.set_xlabel('Time (days)')
+    ax.set_title('Heat generation load duration curves')
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
 
     # save figure
@@ -248,7 +315,7 @@ def plot_storage_level(timeseries, color_dict, filename):
     ax[0].set_ylabel('Power in MW')
     ax[1].set_ylabel('Storage level in MWh')
     ax[1].set_xlabel('Time')
-    ax[0].set_title('Heat demand and generation')
+    ax[0].set_title('Storage level, charge and discharge')
     ax[0].legend(loc='upper left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
     ax[1].legend(loc='lower left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
 
@@ -256,13 +323,32 @@ def plot_storage_level(timeseries, color_dict, filename):
     return None
 
 
-def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color_dict, filename):
+def plot_results_scalar_derived(results_scalar_derived, color_dict, filename):
+    r"""
+    Creates and saves an overview plot of derived results.
+
+    Parameters
+    ----------
+    results_scalar_derived : DataFrame
+        Containing derived results
+
+    color_dict : dict
+        Defining colors for the plot
+
+    filename : path
+        Path to store plot.
+
+    Returns
+    -------
+    None
+    """
     grouped = results_scalar_derived.groupby('var_name')
     fig = plt.figure(figsize=(15, 10))
     gs = gridspec.GridSpec(3, 7)
 
     def stacked_single_bar(group, ax):
         data = grouped.get_group(group)['var_value']
+        unit = grouped.get_group(group)['var_unit'][0]
         bottom = 0
         for i in range(len(data)):
             label = data.index[i][0]
@@ -273,18 +359,19 @@ def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color
                    bottom=bottom)
             bottom += data.iloc[i].copy()
         ax.set_xticklabels([])
-        ax.set_title(group.replace('_','\n'))
+        ax.set_title(group.replace('_','\n')+f' [{unit}]')
         ax.legend(loc='lower center', bbox_to_anchor=(0, -0.2))
 
     def horizontal_bar(group, ax):
         data = grouped.get_group(group)['var_value']
         data.index = data.index.droplevel([1, 2])
+        unit = grouped.get_group(group)['var_unit'][0]
         keys = [re.sub('subnet-._', '', key) for key in data.index]
         colors = [color_dict[key] for key in keys]
         data.plot(ax=ax,
                   kind='bar',
                   color=colors)
-        ax.set_title(group)
+        ax.set_title(group+f' [{unit}]')
 
     ax = fig.add_subplot(gs[:, 0])
     stacked_single_bar('cost_total_system', ax)
@@ -296,7 +383,7 @@ def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color
     stacked_single_bar('energy_thermal_produced_sum', ax)
 
     ax = fig.add_subplot(gs[:, 3])
-    stacked_single_bar('energy_consumed_gas_sum', ax)
+    stacked_single_bar('energy_consumed_sum', ax)
 
     ax = fig.add_subplot(gs[:, 4])
     stacked_single_bar('emissions_sum', ax)
@@ -351,15 +438,13 @@ def create_plots(config_path, results_dir):
                                                        cfg['data_postprocessed']['scalars']['derived'])),
                              header=0, index_col=[0,1,2], parse_dates=True)
 
-    parameters_scalar = pd.read_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['scalars']['parameters']),
-                                    header=0, index_col=[0,1])
-
-    # plot_dispatch(timeseries, color_dict, os.path.join(results_dir,'plots','dispatch_stack_plot.pdf'))
-    # plot_storage_level(timeseries, color_dict, os.path.join(results_dir,'plots','storage_level.pdf'))
+    plot_dispatch(timeseries, color_dict, os.path.join(results_dir,'plots','dispatch_stack_plot.pdf'))
+    plot_load_duration_curves(timeseries, color_dict, os.path.join(results_dir,'plots','load_duration_curves.pdf'))
+    plot_storage_level(timeseries, color_dict, os.path.join(results_dir,'plots','storage_level.pdf'))
     plot_results_scalar_derived(results_scalar_derived,
-                                parameters_scalar,
                                 color_dict,
                                 os.path.join(results_dir,'plots','results_scalar_derived.pdf'))
+
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
