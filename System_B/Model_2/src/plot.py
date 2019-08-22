@@ -257,7 +257,7 @@ def plot_storage_level(timeseries, color_dict, filename):
 
 
 def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color_dict, filename):
-    grouped = results_scalar_derived.groupby('variable_name')
+    grouped = results_scalar_derived.groupby('var_name')
     fig = plt.figure(figsize=(15, 10))
     gs = gridspec.GridSpec(3, 7)
 
@@ -296,10 +296,10 @@ def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color
     stacked_single_bar('energy_thermal_produced_sum', ax)
 
     ax = fig.add_subplot(gs[:, 3])
-    stacked_single_bar('energy_consumed_sum', ax)
+    stacked_single_bar('energy_consumed_gas_sum', ax)
 
     ax = fig.add_subplot(gs[:, 4])
-    stacked_single_bar('emission', ax)
+    stacked_single_bar('emissions_sum', ax)
 
     ax = fig.add_subplot(gs[0, 5:])
     horizontal_bar('hours_full_load', ax)
