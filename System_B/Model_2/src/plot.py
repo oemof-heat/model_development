@@ -274,12 +274,16 @@ def plot_results_scalar_derived(results_scalar_derived, parameters_scalar, color
             bottom += data.iloc[i].copy()
         ax.set_xticklabels([])
         ax.set_title(group.replace('_','\n'))
-        ax.legend()
+        ax.legend(loc='lower center', bbox_to_anchor=(0, -0.2))
 
     def horizontal_bar(group, ax):
         data = grouped.get_group(group)['var_value']
         data.index = data.index.droplevel([1, 2])
-        data.plot(ax=ax, kind='bar')
+        keys = [re.sub('subnet-._', '', key) for key in data.index]
+        colors = [color_dict[key] for key in keys]
+        data.plot(ax=ax,
+                  kind='bar',
+                  color=colors)
         ax.set_title(group)
 
     ax = fig.add_subplot(gs[:, 0])
