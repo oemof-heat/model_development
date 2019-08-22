@@ -56,9 +56,14 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     b_gas = Bus(label='gas')
 
     source_el = Source(label='source_electricity',
-                       outputs={b_el_import: Flow(variable_costs=np.nan_to_num(price_electricity))})
-    source_gas = Source(label='source_gas', outputs={b_gas: Flow(variable_costs=20,
-                                                                 emission_specific=1)})
+                       outputs={b_el_import: Flow(variable_costs=np.nan_to_num(price_electricity),
+                                                  emission_specific=input_parameter['source_el']
+                                                  ['emission_specific'])})
+
+    source_gas = Source(label='source_gas',
+                        outputs={b_gas: Flow(variable_costs=20,
+                                             emission_specific=input_parameter['source_gas']
+                                             ['emission_specific'])})
 
     sold_el = Sink(label='sold_el', inputs={b_el_export: Flow(variable_costs=-1*np.nan_to_num(price_electricity))})
 
@@ -112,19 +117,19 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
                                                                                ['efficiency']})
 
     tes_central = GenericStorage(label='storage_central',
-                          inputs={b_th_central: Flow(nominal_value=input_parameter['tes_central',
-                                                                                   'power_charging'],
-                                                     variable_costs=0.0001)},
-                          outputs={b_th_central: Flow(nominal_value=input_parameter['tes_central',
-                                                                                    'power_discharging'])},
-                          nominal_storage_capacity=input_parameter['tes_central', 'capacity_installed'],
-                          initial_storage_level=input_parameter['tes_central', 'storage_level_initial'],
-                          #min_storage_level=0.4,
-                          #max_storage_level=0.9,
-                          loss_rate=input_parameter['tes_central', 'rate_loss'],
-                          # loss_constant=0.,
-                          inflow_conversion_factor=input_parameter['tes_central', 'efficiency_charging'],
-                          outflow_conversion_factor=input_parameter['tes_central', 'efficiency_discharging'])
+                                 inputs={b_th_central: Flow(nominal_value=input_parameter['tes_central',
+                                                                                          'power_charging'],
+                                                            variable_costs=0.0001)},
+                                 outputs={b_th_central: Flow(nominal_value=input_parameter['tes_central',
+                                                                                           'power_discharging'])},
+                                 nominal_storage_capacity=input_parameter['tes_central', 'capacity_installed'],
+                                 initial_storage_level=input_parameter['tes_central', 'storage_level_initial'],
+                                 # min_storage_level=0.4,
+                                 # max_storage_level=0.9,
+                                 loss_rate=input_parameter['tes_central', 'rate_loss'],
+                                 # loss_constant=0.,
+                                 inflow_conversion_factor=input_parameter['tes_central', 'efficiency_charging'],
+                                 outflow_conversion_factor=input_parameter['tes_central', 'efficiency_discharging'])
 
     list_bus_th_decentral = []
     list_pipes = []
@@ -151,18 +156,18 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
                                        inputs={bus_th: Flow(variable_costs=0.0001)},
                                        outputs={bus_th: Flow()},
                                        nominal_storage_capacity=input_parameter[name_subnet+'_tes']
-                                                                                ['capacity_installed'],
+                                                                               ['capacity_installed'],
                                        initial_storage_level=input_parameter[name_subnet+'_tes']
-                                                                                ['storage_level_initial'],
+                                                                            ['storage_level_initial'],
                                        # min_storage_level=0.4,
                                        # max_storage_level=0.9,
                                        loss_rate=input_parameter[name_subnet+'_tes']
-                                                                                ['rate_loss'],
+                                                                ['rate_loss'],
                                        loss_constant=0.,
                                        inflow_conversion_factor=input_parameter[name_subnet+'_tes']
-                                                                                ['efficiency_charging'],
+                                                                               ['efficiency_charging'],
                                        outflow_conversion_factor=input_parameter[name_subnet+'_tes']
-                                                                            ['efficiency_discharging'],)
+                                                                                ['efficiency_discharging'])
         demand_th = Sink(label=name_subnet+'_demand_th',
                          inputs={bus_th: Flow(nominal_value=1,
                                               actual_value=demand_heat[column],
@@ -249,7 +254,7 @@ def run_model(config_path, results_dir):
     results = model(input_parameter, demand_heat, price_electricity, results_dir, solver, debug)
     return results
 
+
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
     run_model(config_path, results_dir)
-
