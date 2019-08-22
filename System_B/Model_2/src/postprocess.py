@@ -258,9 +258,9 @@ def get_derived_results_scalar(param_scalar,
     cost_fom = 0
     cost_capital = 0
     cost_total_system = cost_variable_sum #  + cost_vom_sum + cost_fom + cost_capital
-    energy_consumed_electricity_sum = format_results(energy_consumed_electricity_sum,
-                                                     'energy_consumed_electricity_sum',
-                                                     'MW')
+    cost_total_system = format_results(cost_total_system,
+                                       'cost_total_system',
+                                       'Eur')
     cost_specific_heat_mean = 0  # Durchschnittliche Waermegestehungskosten
 
     # Emissions
