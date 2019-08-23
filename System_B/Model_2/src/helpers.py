@@ -2,6 +2,7 @@ import sys
 import os
 import yaml
 import pandas as pd
+import re
 
 __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
@@ -49,6 +50,19 @@ def setup_experiment():
 
 
     return config_path, results_dir
+
+
+def load_input_parameter(filename):
+    parameters = pd.read_csv(filename,
+                            index_col=[0, 1, 2, 3],
+                            usecols=[1, 2, 3, 4, 5, 6],
+                            delimiter=';')
+
+    filter_numeric = [key for key in parameters.index
+                      if not bool(re.search(r'subnet-._demand_th', key[2]))]
+    input_parameter = parameters.loc[filter_numeric, :]
+    input_parameter.loc[:, 'var_value'] = input_parameter.loc[:, 'var_value'].astype('float')
+    return input_parameter
 
 
 def run_scenarios(run_model, config_path, results_dir):
