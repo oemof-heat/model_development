@@ -106,14 +106,13 @@ def preprocess(config_path, results_dir):
         input_filename = os.path.join(abs_path, 'data', file['path'])
         output_filename = os.path.join(results_dir,
                                        'data_preprocessed',
-                                       *file[['scenario', 'parameter_name']].values,
+                                       *file[['parameter_name']].values,
                                        f'{"_".join(map(str, file[["parameter_name", "year"]].values))}.csv')
         temperature = prepare_timeseries_temperature(input_filename, output_filename)
 
         # heat demand profiles for each temperature profile
         output_filename = os.path.join(results_dir,
                                        'data_preprocessed',
-                                       file['scenario'],
                                        'demand_heat',
                                        f'{"_".join(["demand_heat", str(file["year"])])}.csv')
         prepare_timeseries_demand_heat(file['year'], parameter_bdew, temperature, output_filename)
@@ -123,7 +122,7 @@ def preprocess(config_path, results_dir):
         input_filename = os.path.join(abs_path, 'data', file['path'])
         output_filename = os.path.join(results_dir,
                                        'data_preprocessed',
-                                       *file[['scenario', 'parameter_name']].values,
+                                       *file[['parameter_name']].values,
                                        f'{"_".join(map(str, file[["parameter_name", "year"]].values))}.csv')
         prepare_timeseries_price_electricity(input_filename, output_filename)
     return None

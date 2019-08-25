@@ -43,7 +43,6 @@ def create_list_model_runs(config_path, results_dir):
 
     file_timeseries_price_electricity = os.path.join(results_dir,
                                                      'data_preprocessed',
-                                                     'scenario_basic',  # TODO: variable instead of fixed
                                                      cfg['data_preprocessed']['timeseries']['price_electricity_spot'])
     price_electricity = pd.read_csv(file_timeseries_price_electricity, index_col=0)['price_electricity_spot'].values
 
@@ -65,9 +64,12 @@ def create_list_model_runs(config_path, results_dir):
         droplevel([0, 1]).\
         unique().\
         set_names([None, None])
-    model_runs.to_csv(os.path.join(abs_path, cfg['data_preprocessed']
-                                                ['scalars']
-                                                ['model_runs']))
+    model_runs.to_csv(os.path.join(results_dir,
+                                   'data_preprocessed',
+                                   cfg['data_preprocessed']
+                                      ['scalars']
+                                      ['model_runs']))
+
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
