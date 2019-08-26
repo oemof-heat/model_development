@@ -13,8 +13,9 @@ import warnings
 import subprocess
 
 from oemof.tools import logger
-from helpers import setup_experiment, run_scenarios
+from helpers import setup_experiment
 from preprocess import preprocess
+from scenario import create_list_model_runs
 from model import run_model
 from postprocess import postprocess
 from plot import create_plots
@@ -35,10 +36,7 @@ def main(config_path, results_dir):
     # Preprocess
     logging.info('Preprocess data')
     preprocess(config_path, results_dir)
-
-    # Run scenarios
-    logging.info('Create scenarios')
-    run_scenarios(run_model, config_path, results_dir)
+    create_list_model_runs(config_path, results_dir)
 
     # Run the optimisation model
     logging.info('Run optimisation model')
