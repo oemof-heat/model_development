@@ -147,12 +147,29 @@ def get_derived_results_scalar(input_parameter,
     * cost_investment_sum
     * cost_specific_heat_mean
     """
+    def map_keys(df):
+        data = df.copy()
+        keys = [key for key in param_scalar.index.unique()]
+        key_mapping = {}
+        for key in keys:
+            if bool(re.search('bus', key[0])):
+                if key[1]=='None':
+                    key_mapping[key] = key[0]
+                else:
+                    key_mapping[key] = key[1]
+            else:
+                key_mapping[key] = key[0]
+        data = data.rename(index=key_mapping, level=0)
+        data.index = data.index.droplevel(1)
+        return data
+
     def format_results(data, var_name, var_unit):
         data.index = data.index.\
             remove_unused_levels().\
             set_levels([var_name], level=2)
         data = pd.DataFrame(data, columns=['var_value'])
         data['var_unit'] = var_unit
+        data = map_keys(data)
         return data
 
     # Production
@@ -202,11 +219,11 @@ def get_derived_results_scalar(input_parameter,
     installed_production_capacity = pd.DataFrame(installed_production_capacity).drop(columns=['var_name'])
     installed_production_capacity['variable_name'] = 'installed_production_capacity'
     installed_production_capacity.set_index('variable_name', append=True, inplace=True)
+    installed_production_capacity.index = installed_production_capacity.index.droplevel(1)
     installed_production_capacity['var_unit'] = 'MW'
 
-
-    hours_full_load = energy_thermal_produced_sum['var_value'].reset_index(level=2, drop=True)\
-        * 1/installed_production_capacity['var_value'].reset_index(level=2, drop=True)
+    hours_full_load = energy_thermal_produced_sum['var_value'].reset_index(level=1, drop=True)\
+        * 1/installed_production_capacity['var_value'].reset_index(level=[1], drop=True)
     hours_full_load = pd.DataFrame(hours_full_load, columns=['var_value'])
     hours_full_load['variable_name'] = 'hours_full_load'
     hours_full_load['var_unit'] = 'h'
@@ -258,23 +275,25 @@ def get_derived_results_scalar(input_parameter,
     # installed_capacity = installed_capacity.\
     #     loc[installed_capacity['var_name'].isin(['nominal_value', 'nominal_storage_capacity'])]
 
-    cost_data = input_parameter.loc[slice(None), ['capacity_installed', 'overnight_cost', 'lifetime', 'fom'], :]
-    cost_data.loc['pth_heat_pump_decentral', 'capacity_installed'] = cost_data.filter(regex='subnet-._heat_pump').sum()
-    cost_data.loc['pth_resistive_decentral', 'capacity_installed'] = cost_data.filter(regex='subnet-._pth').sum()
-    cost_data.loc['tes_decentral', 'capacity_installed'] = cost_data.filter(regex='subnet-._tes').sum()
-    drop_rows = [key for key in cost_data.index if bool(re.search('subnet-.', key[0]))]
-    cost_data = cost_data.drop(drop_rows)
-    cost_data = cost_data.unstack(1)
-
+    cost_fix = input_parameter.loc[slice(None), ['capacity_installed', 'overnight_cost', 'lifetime', 'fom'], :]
+    cost_fix.loc['pth_heat_pump_decentral', 'capacity_installed'] = cost_fix.filter(regex='subnet-._heat_pump').sum()
+    cost_fix.loc['pth_resistive_decentral', 'capacity_installed'] = cost_fix.filter(regex='subnet-._pth').sum()
+    cost_fix.loc['tes_decentral', 'capacity_installed'] = cost_fix.filter(regex='subnet-._tes').sum()
+    drop_rows = [key for key in cost_fix.index if bool(re.search('subnet-.', key[0]))]
+    cost_fix = cost_fix.drop(drop_rows)
+    cost_fix = cost_fix.unstack(1)
     wacc = 0.03  # TODO
-    cost_data['annuity'] = cost_data.apply(lambda x: economics.annuity(x['overnight_cost'], x['lifetime'], wacc), axis=1)
-    cost_data['capex'] = cost_data.apply(lambda x: x['capacity_installed'] * x['annuity'],axis=1)
-    cost_data['fom_abs'] = cost_data.apply(lambda x: x['capacity_installed'] * x['fom'],axis=1)
-    cost_data = cost_data.loc[:, ['capex','fom_abs'] ].stack()
-    cost_total_system = cost_variable_sum.copy() #  + cost_vom_sum + cost_fom + cost_capital
-    cost_total_system = format_results(cost_total_system,
-                                       'cost_total_system',
-                                       'Eur')
+    cost_fix['annuity'] = cost_fix.apply(lambda x: economics.annuity(x['overnight_cost'], x['lifetime'], wacc), axis=1)
+    cost_fix['capex'] = cost_fix.apply(lambda x: x['capacity_installed'] * x['annuity'],axis=1)
+    cost_fix['fom_abs'] = cost_fix.apply(lambda x: x['capacity_installed'] * x['fom'],axis=1)
+    cost_fix = cost_fix.loc[:, ['capex','fom_abs'] ].stack()
+    cost_fix = pd.DataFrame(cost_fix, columns=['var_value'])
+    cost_fix.index.name = ['component', 'var_name']
+    cost_fix['var_unit'] = 'Eur'
+
+    cost_total_system = cost_variable_sum.copy() #cost_data
+    cost_total_system.index = cost_total_system.index.set_levels(['cost_total_system'], level=1)
+
     cost_specific_heat_mean = 0  # TODO: Durchschnittliche Waermegestehungskosten
 
     # Emissions
@@ -294,6 +313,7 @@ def get_derived_results_scalar(input_parameter,
                                         energy_consumed_gas_sum,
                                         energy_consumed_electricity_sum,
                                         cost_variable_sum,
+                                        cost_fix,
                                         energy_heat_storage_discharge_sum,
                                         energy_losses_heat_dhn_sum,
                                         cost_total_system,
