@@ -106,7 +106,8 @@ def get_derived_results_timeseries_costs_variable(energysystem):
     return timeseries_cost_variable
 
 
-def get_derived_results_scalar(param_scalar,
+def get_derived_results_scalar(input_parameter,
+                               param_scalar,
                                results_scalar,
                                results_timeseries_flows,
                                derived_results_timeseries_costs_variable,
@@ -240,7 +241,6 @@ def get_derived_results_scalar(param_scalar,
                                              'energy_consumed_sum',
                                              'MWh')
 
-    # TODO: Correct
     energy_consumed_electricity_sum = results_timeseries_flows.loc[:, ('bus_el_import', slice(None), slice(None))].sum()
     energy_consumed_electricity_sum = format_results(energy_consumed_electricity_sum,
                                                      'energy_consumed_sum',
@@ -248,19 +248,24 @@ def get_derived_results_scalar(param_scalar,
 
     # TODO: fraction_renewable_energy_thermal = 0 # renewable energy / total energy consumed
 
-    # Whole system cost
+    # Costs
     cost_variable_sum = derived_results_timeseries_costs_variable.sum()
     cost_variable_sum = format_results(cost_variable_sum,
                                        'cost_variable_sum',
                                        'Eur')
-    cost_vom_sum = 0
-    cost_fom = 0
-    cost_capital = 0
+
+    installed_capacity = param_scalar.loc[[key[:2] for key in results_timeseries_flows.columns]]
+    installed_capacity = installed_capacity.\
+        loc[installed_capacity['var_name'].isin(['nominal_value', 'nominal_storage_capacity'])]
+
+    cost_vom_sum = 0  # installed capacity * fom
+    cost_fom = 0  # installed capacity * fom
+    cost_capital = 0  # installed capacity * annuity(overnight_cost, lifetime, wacc)
     cost_total_system = cost_variable_sum #  + cost_vom_sum + cost_fom + cost_capital
     cost_total_system = format_results(cost_total_system,
                                        'cost_total_system',
                                        'Eur')
-    cost_specific_heat_mean = 0  # Durchschnittliche Waermegestehungskosten
+    cost_specific_heat_mean = 0  # TODO: Durchschnittliche Waermegestehungskosten
 
     # Emissions
     emissions_sum = derived_results_timeseries_emissions.sum()
@@ -299,33 +304,41 @@ def postprocess(config_path, results_dir):
     with open(config_path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
-    # restore energysystem
-    energysystem = solph.EnergySystem()
-    energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
-    dir_postproc = os.path.join(results_dir, 'data_postprocessed')
+    # load model_runs
+    model_runs = helpers.load_model_runs(results_dir, cfg)
+    for index, input_parameter in model_runs.iterrows():
+        label = "_".join(map(str, index))
 
-    # Collect primary results
-    param_scalar = get_param_scalar(energysystem)
-    param_scalar.to_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['scalars']['parameters']))
-    results_scalar = get_results_scalar(energysystem)
-    results_scalar.to_csv(os.path.join(dir_postproc,  cfg['data_postprocessed']['scalars']['results']))
-    results_timeseries_flows = get_results_flows(energysystem)
-    results_timeseries_flows.to_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['timeseries']['timeseries']))
+        # restore energysystem
+        energysystem = solph.EnergySystem()
+        energysystem.restore(dpath=results_dir + '/optimisation_results', filename=f'{label}_es.dump')
+        dir_postproc = os.path.join(results_dir, 'data_postprocessed', label)
+        if not os.path.exists(dir_postproc):
+            os.makedirs(os.path.join(dir_postproc, 'timeseries'))
 
-    # Calculate derived results
-    derived_results_timeseries_emissions = get_derived_results_timeseries_emissions(energysystem)
-    derived_results_timeseries_emissions.to_csv(os.path.join(dir_postproc,
-                                                             cfg['data_postprocessed']['timeseries']['emissions']))
-    derived_results_timeseries_costs_variable = get_derived_results_timeseries_costs_variable(energysystem)
-    derived_results_timeseries_costs_variable.to_csv(os.path.join(dir_postproc,
-                                                                  cfg['data_postprocessed']['timeseries']['cost_variable']))
-    derived_results_scalar = get_derived_results_scalar(param_scalar,
-                                                        results_scalar,
-                                                        results_timeseries_flows,
-                                                        derived_results_timeseries_costs_variable,
-                                                        derived_results_timeseries_emissions)
-    derived_results_scalar.to_csv(os.path.join(dir_postproc,
-                                               cfg['data_postprocessed']['scalars']['derived']), header=True)
+        # Collect primary results
+        param_scalar = get_param_scalar(energysystem)
+        param_scalar.to_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['scalars']['parameters']))
+        results_scalar = get_results_scalar(energysystem)
+        results_scalar.to_csv(os.path.join(dir_postproc,  cfg['data_postprocessed']['scalars']['results']))
+        results_timeseries_flows = get_results_flows(energysystem)
+        results_timeseries_flows.to_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['timeseries']['timeseries']))
+
+        # Calculate derived results
+        derived_results_timeseries_emissions = get_derived_results_timeseries_emissions(energysystem)
+        derived_results_timeseries_emissions.to_csv(os.path.join(dir_postproc,
+                                                                 cfg['data_postprocessed']['timeseries']['emissions']))
+        derived_results_timeseries_costs_variable = get_derived_results_timeseries_costs_variable(energysystem)
+        derived_results_timeseries_costs_variable.to_csv(os.path.join(dir_postproc,
+                                                                      cfg['data_postprocessed']['timeseries']['cost_variable']))
+        derived_results_scalar = get_derived_results_scalar(input_parameter,
+                                                            param_scalar,
+                                                            results_scalar,
+                                                            results_timeseries_flows,
+                                                            derived_results_timeseries_costs_variable,
+                                                            derived_results_timeseries_emissions)
+        derived_results_scalar.to_csv(os.path.join(dir_postproc,
+                                                   cfg['data_postprocessed']['scalars']['derived']), header=True)
 
 
 if __name__ == '__main__':

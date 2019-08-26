@@ -20,7 +20,7 @@ import oemof.graph as graph
 import helpers
 
 
-def model(input_parameter, demand_heat, price_electricity, results_dir, solver='cbc', debug=True):
+def model(index, input_parameter, demand_heat, price_electricity, results_dir, solver='cbc', debug=True):
     r"""
     Create the energy system and run the optimisation model.
 
@@ -204,7 +204,7 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
             abs_path,
             results_dir,
             'optimisation_results',
-            'model.lp')
+            f'{"_".join(map(str, index))}_model.lp')
         logging.info('Store lp-file in {0}.'.format(filename))
         om.write(filename, io_options={'symbolic_solver_labels': True})
 
@@ -216,14 +216,14 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     energysystem.results['main'] = outputlib.processing.results(om)
     energysystem.results['meta'] = outputlib.processing.meta_results(om)
     energysystem.results['param'] = outputlib.processing.parameter_as_dict(om)
-    energysystem.dump(dpath=results_dir + '/optimisation_results', filename='es.dump')
+    energysystem.dump(dpath=results_dir + '/optimisation_results', filename=f'{"_".join(map(str, index))}_es.dump')
 
     def save_es_graph(energysystem, results_dir):
         energysystem_graph = graph.create_nx_graph(energysystem)
         graph_file_name = os.path.join(results_dir, 'data_plots/energysystem_graph.pkl')
         nx.readwrite.write_gpickle(G=energysystem_graph, path=graph_file_name)
-    
-    
+
+
     save_es_graph(energysystem, results_dir)
 
     return energysystem.results
@@ -234,12 +234,7 @@ def run_model(config_path, results_dir):
     with open(config_path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
-    input_parameter = pd.read_csv(os.path.join(results_dir,
-                                  'data_preprocessed',
-                                  cfg['data_preprocessed']['scalars']['model_runs']),
-                     index_col=[0, 1, 2], header=[0, 1])
-    i = 0
-    input_parameter = input_parameter.iloc[i]
+    model_runs = helpers.load_model_runs(results_dir, cfg)
 
     # load timeseries
     file_timeseries_demand_heat = os.path.join(results_dir,
@@ -253,7 +248,9 @@ def run_model(config_path, results_dir):
     price_electricity = pd.read_csv(file_timeseries_price_electricity, index_col=0)['price_electricity_spot'].values
     solver = cfg['solver']
     debug = cfg['debug']
-    results = model(input_parameter, demand_heat, price_electricity, results_dir, solver, debug)
+
+    for index, input_parameter in model_runs.iterrows():
+        results = model(index, input_parameter, demand_heat, price_electricity, results_dir, solver, debug)
     return results
 
 
