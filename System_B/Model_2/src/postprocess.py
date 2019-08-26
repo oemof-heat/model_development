@@ -95,8 +95,10 @@ def get_derived_results_timeseries_emissions(energysystem):
 def get_derived_results_timeseries_costs_variable(energysystem):
     param_scalar = get_param_scalar(energysystem)
     flows = get_results_flows(energysystem)
-
-    cost_variable = param_scalar.loc[param_scalar['var_name']=='variable_costs']
+    cost_variable = param_scalar.loc[(param_scalar['var_name']=='variable_costs')]
+    cost_variable.loc[:, 'var_value'] = pd.to_numeric(cost_variable.loc[:, 'var_value'])
+    cost_variable = cost_variable.loc[cost_variable['var_value']>0]
+    cost_variable.index = cost_variable.index.remove_unused_levels()
     flows_with_cost_variable = flows[[(*ll, 'flow') for ll in cost_variable.index]]
     flows_with_cost_variable.columns = flows_with_cost_variable.columns.remove_unused_levels()
     def func(x):
@@ -159,8 +161,10 @@ def get_derived_results_scalar(input_parameter,
                     key_mapping[key] = key[1]
             else:
                 key_mapping[key] = key[0]
-        data = data.rename(index=key_mapping, level=0)
-        data.index = data.index.droplevel(1)
+        data = data.reset_index(level=[0, 1, 2])
+        data['component'] = data.apply(lambda x: key_mapping[(x['level_0'], x['level_1'])], axis=1)
+        data = data.set_index(['component', 'variable_name'])
+        data = data.drop(columns=['level_0', 'level_1'])
         return data
 
     def format_results(data, var_name, var_unit):
@@ -254,7 +258,7 @@ def get_derived_results_scalar(input_parameter,
     # TODO: energy_consumed_pump_sum = 0
 
     # Whole system energy
-    energy_consumed_gas_sum = results_timeseries_flows.loc[:, ('gas', slice(None), slice(None))].sum()
+    energy_consumed_gas_sum = results_timeseries_flows.loc[:, ('bus_gas', slice(None), slice(None))].sum()
     energy_consumed_gas_sum = format_results(energy_consumed_gas_sum,
                                              'energy_consumed_sum',
                                              'MWh')
@@ -271,9 +275,6 @@ def get_derived_results_scalar(input_parameter,
     cost_variable_sum = format_results(cost_variable_sum,
                                        'cost_variable_sum',
                                        'Eur')
-    # installed_capacity = param_scalar.loc[[key[:2] for key in results_timeseries_flows.columns]]
-    # installed_capacity = installed_capacity.\
-    #     loc[installed_capacity['var_name'].isin(['nominal_value', 'nominal_storage_capacity'])]
 
     cost_fix = input_parameter.loc[slice(None), ['capacity_installed', 'overnight_cost', 'lifetime', 'fom'], :]
     cost_fix.loc['pth_heat_pump_decentral', 'capacity_installed'] = cost_fix.filter(regex='subnet-._heat_pump').sum()
@@ -288,11 +289,13 @@ def get_derived_results_scalar(input_parameter,
     cost_fix['fom_abs'] = cost_fix.apply(lambda x: x['capacity_installed'] * x['fom'],axis=1)
     cost_fix = cost_fix.loc[:, ['capex','fom_abs'] ].stack()
     cost_fix = pd.DataFrame(cost_fix, columns=['var_value'])
-    cost_fix.index.name = ['component', 'var_name']
+    cost_fix.index.names = ['component', 'variable_name']
     cost_fix['var_unit'] = 'Eur'
 
-    cost_total_system = cost_variable_sum.copy() #cost_data
-    cost_total_system.index = cost_total_system.index.set_levels(['cost_total_system'], level=1)
+    cost_total_system = pd.concat([cost_variable_sum, cost_fix], axis=0).groupby('component').agg(sum)
+    cost_total_system = cost_total_system.reset_index()
+    cost_total_system['var_name'] = 'cost_total_system'
+    cost_total_system = cost_total_system.set_index(['component', 'var_name'])
 
     cost_specific_heat_mean = 0  # TODO: Durchschnittliche Waermegestehungskosten
 
@@ -317,12 +320,27 @@ def get_derived_results_scalar(input_parameter,
                                         energy_heat_storage_discharge_sum,
                                         energy_losses_heat_dhn_sum,
                                         cost_total_system,
-                                        emissions_sum])
+                                        emissions_sum], sort=True)
 
     derived_results_scalar.index.rename('var_name',
                                         'variable_name',
                                         inplace=True)
-    return derived_results_scalar
+
+    def aggregate_decentral(derived_results_scalar):
+        keys_decentral = [key[0] for key in derived_results_scalar.index
+                          if bool(re.search('subnet-.', key[0]))]
+        results_decentral = derived_results_scalar.loc[(keys_decentral, slice(None)), :]
+        regex = re.compile(r"subnet-._")
+        remove_subnet = lambda str: re.sub(regex, '', str)
+        results_decentral = results_decentral.rename(index={key: remove_subnet(key) for key in keys_decentral})
+        aggregated = results_decentral.groupby(['component', 'var_name']).agg({'var_value': sum})
+        aggregated_results = pd.concat([aggregated,
+                                        derived_results_scalar.drop(keys_decentral, level=0)],
+                                       axis=0, sort=True).sort_index()
+        return aggregated_results
+
+    aggregated_results = aggregate_decentral(derived_results_scalar)
+    return aggregated_results
 
 
 def postprocess(config_path, results_dir):
