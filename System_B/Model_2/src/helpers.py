@@ -64,9 +64,3 @@ def load_input_parameter(filename):
     input_parameter.loc[:, 'var_value'] = input_parameter.loc[:, 'var_value'].astype('float')
     return input_parameter
 
-
-def run_scenarios(run_model, config_path, results_dir):
-    with open(config_path, 'r') as ymlfile:
-        config = yaml.load(ymlfile)
-    scenarios = pd.read_csv(config['data_raw']['scenarios'])
-    print(scenarios)
