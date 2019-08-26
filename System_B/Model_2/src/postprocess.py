@@ -30,6 +30,7 @@ import yaml
 
 import oemof.solph as solph
 import oemof.outputlib as outputlib
+from oemof.tools import economics
 import helpers
 
 
@@ -253,15 +254,24 @@ def get_derived_results_scalar(input_parameter,
     cost_variable_sum = format_results(cost_variable_sum,
                                        'cost_variable_sum',
                                        'Eur')
+    # installed_capacity = param_scalar.loc[[key[:2] for key in results_timeseries_flows.columns]]
+    # installed_capacity = installed_capacity.\
+    #     loc[installed_capacity['var_name'].isin(['nominal_value', 'nominal_storage_capacity'])]
 
-    installed_capacity = param_scalar.loc[[key[:2] for key in results_timeseries_flows.columns]]
-    installed_capacity = installed_capacity.\
-        loc[installed_capacity['var_name'].isin(['nominal_value', 'nominal_storage_capacity'])]
+    cost_data = input_parameter.loc[slice(None), ['capacity_installed', 'overnight_cost', 'lifetime', 'fom'], :]
+    cost_data.loc['pth_heat_pump_decentral', 'capacity_installed'] = cost_data.filter(regex='subnet-._heat_pump').sum()
+    cost_data.loc['pth_resistive_decentral', 'capacity_installed'] = cost_data.filter(regex='subnet-._pth').sum()
+    cost_data.loc['tes_decentral', 'capacity_installed'] = cost_data.filter(regex='subnet-._tes').sum()
+    drop_rows = [key for key in cost_data.index if bool(re.search('subnet-.', key[0]))]
+    cost_data = cost_data.drop(drop_rows)
+    cost_data = cost_data.unstack(1)
 
-    cost_vom_sum = 0  # installed capacity * fom
-    cost_fom = 0  # installed capacity * fom
-    cost_capital = 0  # installed capacity * annuity(overnight_cost, lifetime, wacc)
-    cost_total_system = cost_variable_sum #  + cost_vom_sum + cost_fom + cost_capital
+    wacc = 0.03  # TODO
+    cost_data['annuity'] = cost_data.apply(lambda x: economics.annuity(x['overnight_cost'], x['lifetime'], wacc), axis=1)
+    cost_data['capex'] = cost_data.apply(lambda x: x['capacity_installed'] * x['annuity'],axis=1)
+    cost_data['fom_abs'] = cost_data.apply(lambda x: x['capacity_installed'] * x['fom'],axis=1)
+    cost_data = cost_data.loc[:, ['capex','fom_abs'] ].stack()
+    cost_total_system = cost_variable_sum.copy() #  + cost_vom_sum + cost_fom + cost_capital
     cost_total_system = format_results(cost_total_system,
                                        'cost_total_system',
                                        'Eur')
