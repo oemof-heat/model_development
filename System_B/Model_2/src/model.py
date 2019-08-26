@@ -81,7 +81,9 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     chp = ExtractionTurbineCHP(label='chp',
                                inputs={b_gas: Flow(nominal_value=nominal_value_gas)},
                                outputs={b_th_central: Flow(nominal_value=input_parameter['chp',
-                                                                                         'capacity_installed']),
+                                                                                         'capacity_installed'],
+                                                           annuity_specific=1,
+                                                           fom_specific=1),
                                         b_el_export: Flow()},
                                conversion_factors={b_th_central: input_parameter['chp', 'efficiency_th'],
                                                    b_el_export: input_parameter['chp', 'efficiency_el']},
@@ -112,6 +114,8 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
     pth_central = Transformer(label='pth_central',
                               inputs={b_el_import: Flow()},
                               outputs={b_th_central: Flow(nominal_value=2,
+                                                          annuity_specific=1,
+                                                          fom_specific=1,
                                                           variable_costs=1e6)},
                               conversion_factors={b_th_central: input_parameter['pth_resistive_central']
                                                                                ['efficiency']})
@@ -149,7 +153,9 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
                                     inputs={b_el_import: Flow()},
                                     outputs={bus_th: Flow(
                                         nominal_value=input_parameter[name_subnet+'_pth']
-                                                                     ['capacity_installed'])},
+                                                                     ['capacity_installed'],
+                                        annuity_specific=1,
+                                        fom_specific=1)},
                                     conversion_factors={bus_th: input_parameter[name_subnet+'_pth']
                                                                                ['efficiency']})
         tes_decentral = GenericStorage(label=name_subnet+'_storage_decentral',
@@ -157,6 +163,8 @@ def model(input_parameter, demand_heat, price_electricity, results_dir, solver='
                                        outputs={bus_th: Flow()},
                                        nominal_storage_capacity=input_parameter[name_subnet+'_tes']
                                                                                ['capacity_installed'],
+                                       annuity_specific=1,
+                                       fom_specific=0,
                                        initial_storage_level=input_parameter[name_subnet+'_tes']
                                                                             ['storage_level_initial'],
                                        # min_storage_level=0.4,
@@ -226,27 +234,21 @@ def run_model(config_path, results_dir):
     with open(config_path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
-    # Load data
-    # load input parameter
-    file_input_parameter = os.path.join(abs_path, cfg['data_raw']['scalars']['parameters'])
-    input_parameter = pd.read_csv(file_input_parameter, index_col=[1, 2], delimiter=';')
-
-    input_parameter = input_parameter[['component', 'var_name', 'var_value']]\
-        .set_index(['component', 'var_name'])['var_value']
-    keys_numeric = [key for key in input_parameter.keys()
-                    if not bool(re.search(r'subnet-._demand_th', key[0]))]
-    input_parameter = input_parameter[keys_numeric].astype('float')
+    input_parameter = pd.read_csv(os.path.join(results_dir,
+                                  'data_preprocessed',
+                                  cfg['data_preprocessed']['scalars']['model_runs']),
+                     index_col=[0, 1, 2], header=[0, 1])
+    i = 0
+    input_parameter = input_parameter.iloc[i]
 
     # load timeseries
     file_timeseries_demand_heat = os.path.join(results_dir,
                                                'data_preprocessed',
-                                               'scenario_basic',  # TODO: variable instead of fixed
                                                cfg['data_preprocessed']['timeseries']['demand_heat'])
     demand_heat = pd.read_csv(file_timeseries_demand_heat, index_col=0, sep=',')
 
     file_timeseries_price_electricity = os.path.join(results_dir,
                                                      'data_preprocessed',
-                                                     'scenario_basic', # TODO: variable instead of fixed
                                                      cfg['data_preprocessed']['timeseries']['price_electricity_spot'])
     price_electricity = pd.read_csv(file_timeseries_price_electricity, index_col=0)['price_electricity_spot'].values
     solver = cfg['solver']
