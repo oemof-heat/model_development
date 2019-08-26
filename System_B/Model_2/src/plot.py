@@ -288,6 +288,7 @@ def plot_storage_level(timeseries, color_dict, filename):
 
     # resample
     df_resam = timeseries.copy()
+    df_resam = df_resam.round(5)
 
     # invert heat to storage
     df_resam[storage_heat_charge] *= -1
@@ -364,7 +365,7 @@ def plot_results_scalar_derived(results_scalar_derived, color_dict, filename):
 
     def horizontal_bar(group, ax):
         data = grouped.get_group(group)['var_value']
-        data.index = data.index.droplevel([1, 2])
+        data.index = data.index.droplevel([1])
         unit = grouped.get_group(group)['var_unit'][0]
         keys = [re.sub('subnet-._', '', key) for key in data.index]
         colors = [color_dict[key] for key in keys]
@@ -442,7 +443,7 @@ def create_plots(config_path, results_dir):
 
         results_scalar_derived = pd.read_csv(os.path.join(dir_postproc,
                                                           cfg['data_postprocessed']['scalars']['derived']),
-                                             header=0, index_col=[0,1,2], parse_dates=True)
+                                             header=0, index_col=[0,1], parse_dates=True)
 
         dir_plot = os.path.join(results_dir, 'plots', label)
         if not os.path.exists(dir_plot):
