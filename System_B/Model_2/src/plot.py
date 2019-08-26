@@ -407,7 +407,6 @@ def create_plots(config_path, results_dir):
     """
     # open config
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
-    dir_postproc = os.path.join(results_dir, 'data_postprocessed')
 
     with open(config_path, 'r') as config_file:
         cfg = yaml.load(config_file)
@@ -415,35 +414,45 @@ def create_plots(config_path, results_dir):
     with open(os.path.join(abs_path, 'experiment_configs/color_dict.yml'), 'r') as color_file:
         color_dict = yaml.load(color_file)
 
-    energysystem = solph.EnergySystem()
-    energysystem.restore(dpath=results_dir + '/optimisation_results', filename='es.dump')
-    energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'data_plots/energysystem_graph.pkl'))
+    # load model_runs
+    model_runs = helpers.load_model_runs(results_dir, cfg)
+    for index, input_parameter in model_runs.iterrows():
+        label = "_".join(map(str, index))
+        dir_postproc = os.path.join(results_dir, 'data_postprocessed', label)
 
-    draw_graph(energysystem_graph, plot=False, store=True, filename=results_dir + '/plots/' + 'es_graph.pdf',
-               node_size=5000, edge_color='k',
-               node_color=color_dict)
+        energysystem = solph.EnergySystem()
+        energysystem.restore(dpath=results_dir + '/optimisation_results', filename=f'{label}_es.dump')
+        energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'data_plots/energysystem_graph.pkl'))
 
-    rcParams['figure.figsize'] = [10.0, 10.0]
+        draw_graph(energysystem_graph, plot=False, store=True, filename=results_dir + '/plots/' + 'es_graph.pdf',
+                   node_size=5000, edge_color='k',
+                   node_color=color_dict)
 
-    # demand = pd.read_csv(os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
-    # plot_heat_demand(demand, filename=results_dir + '/plots/heat_demand.pdf')
+        rcParams['figure.figsize'] = [10.0, 10.0]
 
-    timeseries = pd.read_csv(os.path.join(results_dir,
-                                          os.path.join(dir_postproc,
-                                                       cfg['data_postprocessed']['timeseries']['timeseries'])),
-                             header=[0,1,2], index_col=0, parse_dates=True)
+        # demand = pd.read_csv(os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
+        # plot_heat_demand(demand, filename=results_dir + '/plots/heat_demand.pdf')
 
-    results_scalar_derived = pd.read_csv(os.path.join(results_dir,
-                                          os.path.join(dir_postproc,
-                                                       cfg['data_postprocessed']['scalars']['derived'])),
-                             header=0, index_col=[0,1,2], parse_dates=True)
+        timeseries = pd.read_csv(os.path.join(results_dir,
+                                              os.path.join(dir_postproc,
+                                                           cfg['data_postprocessed']['timeseries']['timeseries'])),
+                                 header=[0,1,2], index_col=0, parse_dates=True)
 
-    plot_dispatch(timeseries, color_dict, os.path.join(results_dir,'plots','dispatch_stack_plot.pdf'))
-    plot_load_duration_curves(timeseries, color_dict, os.path.join(results_dir,'plots','load_duration_curves.pdf'))
-    plot_storage_level(timeseries, color_dict, os.path.join(results_dir,'plots','storage_level.pdf'))
-    plot_results_scalar_derived(results_scalar_derived,
-                                color_dict,
-                                os.path.join(results_dir,'plots','results_scalar_derived.pdf'))
+        results_scalar_derived = pd.read_csv(os.path.join(results_dir,
+                                              os.path.join(dir_postproc,
+                                                           cfg['data_postprocessed']['scalars']['derived'])),
+                                 header=0, index_col=[0,1,2], parse_dates=True)
+
+        dir_plot = os.path.join(results_dir, 'plots', label)
+        if not os.path.exists(dir_plot):
+            os.makedirs(os.path.join(dir_plot))
+
+        plot_dispatch(timeseries, color_dict, os.path.join(dir_plot, 'dispatch_stack_plot.pdf'))
+        plot_load_duration_curves(timeseries, color_dict, os.path.join(dir_plot, 'load_duration_curves.pdf'))
+        plot_storage_level(timeseries, color_dict, os.path.join(dir_plot, 'storage_level.pdf'))
+        plot_results_scalar_derived(results_scalar_derived,
+                                    color_dict,
+                                    os.path.join(dir_plot, 'results_scalar_derived.pdf'))
 
 
 if __name__ == '__main__':
