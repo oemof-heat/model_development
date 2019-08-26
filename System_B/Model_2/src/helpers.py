@@ -40,7 +40,7 @@ def setup_experiment():
     # create results directory if it does not exist
     list_dir = ['data_preprocessed',
                 'optimisation_results',
-                'data_postprocessed/timeseries',
+                'data_postprocessed',
                 'data_plots',
                 'plots',
                 'presentation']
@@ -64,3 +64,10 @@ def load_input_parameter(filename):
     input_parameter.loc[:, 'var_value'] = input_parameter.loc[:, 'var_value'].astype('float')
     return input_parameter
 
+
+def load_model_runs(results_dir, cfg):
+    model_runs = pd.read_csv(os.path.join(results_dir,
+                             'data_preprocessed',
+                             cfg['data_preprocessed']['scalars']['model_runs']),
+                             index_col=[0, 1, 2], header=[0, 1])
+    return model_runs
