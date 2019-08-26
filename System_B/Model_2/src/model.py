@@ -137,6 +137,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     list_bus_th_decentral = []
     list_pipes = []
     list_pth_decentral = []
+    list_heat_pump_decentral = []
     list_tes_decentral = []
     list_demand_th = []
     regex = re.compile(r"^[^_]*")
@@ -152,11 +153,15 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                     inputs={b_el_import: Flow()},
                                     outputs={bus_th: Flow(
                                         nominal_value=input_parameter[name_subnet+'_pth']
-                                                                     ['capacity_installed'],
-                                        annuity_specific=1,
-                                        fom_specific=1)},
+                                                                     ['capacity_installed'])},
                                     conversion_factors={bus_th: input_parameter['pth_resistive_decentral']
                                                                                ['efficiency']})
+        heat_pump_decentral = Transformer(label=name_subnet+'_heat_pump_decentral',
+                                          inputs={b_el_import: Flow()},
+                                          outputs={bus_th: Flow(nominal_value=input_parameter[name_subnet+'_heat_pump']
+                                                                                             ['capacity_installed'])},
+                                          conversion_factors={bus_th: input_parameter['pth_heat_pump_decentral']
+                                                                                     ['efficiency']})
         tes_decentral = GenericStorage(label=name_subnet+'_storage_decentral',
                                        inputs={bus_th: Flow(variable_costs=0.0001)},
                                        outputs={bus_th: Flow()},
@@ -180,13 +185,14 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
         list_bus_th_decentral.append(bus_th)
         list_pipes.append(pipe)
         list_pth_decentral.append(pth_decentral)
+        list_heat_pump_decentral.append(heat_pump_decentral)
         list_tes_decentral.append(tes_decentral)
         list_demand_th.append(demand_th)
 
     energysystem.add(b_el_export, b_el_import, b_th_central, b_gas,
                      chp, sold_el, source_gas, source_el, pth_central, tes_central,
                      *list_pipes, *list_bus_th_decentral, *list_pth_decentral,
-                     *list_tes_decentral, *list_demand_th)
+                     *list_heat_pump_decentral, *list_tes_decentral, *list_demand_th)
 
     #####################################################################
     logging.info('Solve the optimization problem')
