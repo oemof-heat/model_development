@@ -53,7 +53,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     b_el_export = Bus(label='bus_el_export')
     b_el_import = Bus(label='bus_el_import')
     b_th_central = Bus(label='bus_th_central')
-    b_gas = Bus(label='gas')
+    b_gas = Bus(label='bus_gas')
 
     source_el = Source(label='source_electricity',
                        outputs={b_el_import: Flow(variable_costs=np.nan_to_num(price_electricity),
@@ -61,9 +61,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                                   ['emission_specific'])})
 
     source_gas = Source(label='source_gas',
-                        outputs={b_gas: Flow(variable_costs=20,
-                                             emission_specific=input_parameter['source_gas']
-                                             ['emission_specific'])})
+                        outputs={b_gas: Flow()})
 
     sold_el = Sink(label='sold_el', inputs={b_el_export: Flow(variable_costs=-1*np.nan_to_num(price_electricity))})
 
@@ -79,7 +77,10 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
 
     nominal_value_gas = input_parameter['chp', 'capacity_installed'] * 1/input_parameter['chp', 'efficiency_th']
     chp = ExtractionTurbineCHP(label='chp',
-                               inputs={b_gas: Flow(nominal_value=nominal_value_gas)},
+                               inputs={b_gas: Flow(nominal_value=nominal_value_gas,
+                                                   variable_costs=20,
+                                                   emission_specific=input_parameter['source_gas']
+                                                                                    ['emission_specific'])},
                                outputs={b_th_central: Flow(nominal_value=input_parameter['chp',
                                                                                          'capacity_installed'],
                                                            annuity_specific=1,
@@ -111,7 +112,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     #         Beta=[0]*periods,
     #         back_pressure=True)
 
-    pth_central = Transformer(label='pth_central',
+    pth_central = Transformer(label='pth_resistive_central',
                               inputs={b_el_import: Flow()},
                               outputs={b_th_central: Flow(nominal_value=2,
                                                           annuity_specific=1,
@@ -149,14 +150,14 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                            inputs={b_th_central: Flow()},
                            outputs={bus_th: Flow()},
                            conversion_factors={bus_th: input_parameter[name_subnet+'_pipe']['efficiency']})
-        pth_decentral = Transformer(label=name_subnet+'_pth_decentral',
+        pth_decentral = Transformer(label=name_subnet+'_pth_resistive_decentral',
                                     inputs={b_el_import: Flow()},
                                     outputs={bus_th: Flow(
                                         nominal_value=input_parameter[name_subnet+'_pth']
                                                                      ['capacity_installed'])},
                                     conversion_factors={bus_th: input_parameter['pth_resistive_decentral']
                                                                                ['efficiency']})
-        heat_pump_decentral = Transformer(label=name_subnet+'_heat_pump_decentral',
+        heat_pump_decentral = Transformer(label=name_subnet+'_pth_heat_pump_decentral',
                                           inputs={b_el_import: Flow()},
                                           outputs={bus_th: Flow(nominal_value=input_parameter[name_subnet+'_heat_pump']
                                                                                              ['capacity_installed'])},
