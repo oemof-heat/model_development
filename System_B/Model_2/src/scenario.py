@@ -49,14 +49,17 @@ def get_samples(scenario, certain_parameters, uncertain_parameters, n_samples):
 
 
 def get_deterministic_run(scenario, input_parameters):
-    df = input_parameters.loc[(scenario,
+    df = input_parameters.loc[([scenario, '1_basic'],
                                ['reference', 'deterministic'],
                                slice(None),
                                slice(None))]
-    df.index = df.index.droplevel(1)
+    df.index = df.index.droplevel(0)
+    if df.index.duplicated().any():
+        raise ValueError(f'Duplicated entries in {scenario} and 1_basic')
+
     df = df['var_value'].unstack(level=[1, 2])
-    df.columns.names = ([None, None])
     df = df.reset_index(drop=True)
+    df.columns.names = ([None, None])
     df.index = pd.MultiIndex.from_tuples([(0, scenario, 0)],
                                          names=['run_id', 'scenario', 'uncert_sample_id'])
     return df
@@ -76,10 +79,10 @@ def create_list_model_runs(config_path, results_dir):
     price_electricity = pd.read_csv(file_timeseries_price_electricity, index_col=0)['price_electricity_spot'].values
 
     # scenarios = input_parameter.index.get_level_values('scenario').unique()
-    # filename_scenarios = os.path.join(abs_path, cfg['data_raw']['scenarios'])
-    # scenarios = pd.read_csv(filename_scenarios)['name']
-    scenarios = ['scenario_basic']
+    filename_scenarios = os.path.join(abs_path, cfg['data_raw']['scenarios'])
+    scenarios = pd.read_csv(filename_scenarios)['name']
     model_runs = pd.DataFrame()
+    scenarios = ['2018_ff']
     for scenario in scenarios:
         if cfg['uncertainty_sampling']:
             uncertain_parameters = get_uncertain_parameters(scenario, input_parameter)
