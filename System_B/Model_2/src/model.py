@@ -57,7 +57,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
 
     source_el = Source(label='source_electricity',
                        outputs={b_el_import: Flow(variable_costs=np.nan_to_num(price_electricity),
-                                                  emission_specific=input_parameter['source_el']
+                                                  emission_specific=input_parameter['source_electricity']
                                                   ['emission_specific'])})
 
     source_gas = Source(label='source_gas',
@@ -127,7 +127,6 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                  outputs={b_th_central: Flow(nominal_value=input_parameter['tes_central',
                                                                                            'power_discharging'])},
                                  nominal_storage_capacity=input_parameter['tes_central', 'capacity_installed'],
-                                 initial_storage_level=input_parameter['tes_central', 'storage_level_initial'],
                                  # min_storage_level=0.4,
                                  # max_storage_level=0.9,
                                  loss_rate=input_parameter['tes_central', 'rate_loss'],
@@ -156,7 +155,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                                                      ['capacity_installed'],
                                         annuity_specific=1,
                                         fom_specific=1)},
-                                    conversion_factors={bus_th: input_parameter[name_subnet+'_pth']
+                                    conversion_factors={bus_th: input_parameter['pth_resistive_decentral']
                                                                                ['efficiency']})
         tes_decentral = GenericStorage(label=name_subnet+'_storage_decentral',
                                        inputs={bus_th: Flow(variable_costs=0.0001)},
@@ -165,16 +164,14 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                                                                ['capacity_installed'],
                                        annuity_specific=1,
                                        fom_specific=0,
-                                       initial_storage_level=input_parameter[name_subnet+'_tes']
-                                                                            ['storage_level_initial'],
                                        # min_storage_level=0.4,
                                        # max_storage_level=0.9,
-                                       loss_rate=input_parameter[name_subnet+'_tes']
+                                       loss_rate=input_parameter['tes_decentral']
                                                                 ['rate_loss'],
                                        loss_constant=0.,
-                                       inflow_conversion_factor=input_parameter[name_subnet+'_tes']
+                                       inflow_conversion_factor=input_parameter['tes_decentral']
                                                                                ['efficiency_charging'],
-                                       outflow_conversion_factor=input_parameter[name_subnet+'_tes']
+                                       outflow_conversion_factor=input_parameter['tes_decentral']
                                                                                 ['efficiency_discharging'])
         demand_th = Sink(label=name_subnet+'_demand_th',
                          inputs={bus_th: Flow(nominal_value=1,
