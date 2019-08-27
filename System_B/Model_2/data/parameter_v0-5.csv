@@ -3,55 +3,49 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;1_basic;reference;chp;efficiency_el;0.34;;DanishEnergyAgency2018; Gas turbine
 ;1_basic;reference;chp;efficiency_el_full_cond;0.34;;;Dummy
 ;1_basic;reference;chp;efficiency_th;0.479;;DanishEnergyAgency2018;
-;2018_sq;reference;chp;fom;2.67;%of overnight cost/a;DanishEnergyAgency2018;
+;1_basic;reference;chp;fom;2.67;%of overnight cost/a;DanishEnergyAgency2018;
 ;1_basic;reference;chp;lifetime;25;a;DanishEnergyAgency2018;
+;1_basic;reference;chp;chp_surcharges;31;Eur/MW_el;§ 7 KWKG;for the power share > 2MW_el
 ;2018_sq;reference;chp;overnight_cost;750000;Eur/MW_el;DanishEnergyAgency2018;
-;2018_sq;reference;chp;tax_nc_levys;1.9;Eur/MWh;E.DISAG2016a;without price of natural gas
+;1_basic;reference;chp;network_charges_WP;1.9;Eur/MWh;E.DISAG2016a;
 ;2018_sq;reference;chp;vom;5.5;Eur/MWh_el;DanishEnergyAgency2018;
 ;1_basic;reference;district_heating_network;costs_heat_distribution_cap;;;;
 ;1_basic;reference;district_heating_network;costs_heat_distribution_var;23;Eur/MWh;Blesl2002;
 ;1_basic;reference;district_heating_network;fom;18;Eur/m;Totschnig2017a  ;S. 103
 ;1_basic;reference;gas_boiler_central;capacity_installed;;MW_th;;
 ;1_basic;reference;gas_boiler_central;efficiency;0.98;;Henning2014a;
-;2018_sq;reference;gas_boiler_central;fom;3.33;%of overnight cost/a;DanishEnergyAgency2018;capacities: 0.5 - 10 MW_th
+;1_basic;reference;gas_boiler_central;fom;3.33;%of overnight cost/a;DanishEnergyAgency2018;capacities: 0.5 - 10 MW_th
 ;1_basic;reference;gas_boiler_central;lifetime;25;a;DanishEnergyAgency2018;
 ;2018_sq;reference;gas_boiler_central;overnight_cost;60000;Eur/MW_th;DanishEnergyAgency2018;capacities: 0.5 - 10 MW_th
-;2018_sq;reference;gas_boiler_central;tax_nc_levys;7.4;Eur/MWh;E.DISAG2016a;without price of natural gas
+;1_basic;reference;gas_boiler_central;network_charges_WP;1.9;Eur/MWh;E.DISAG2016a;
+;2018_sq;reference;gas_boiler_central;energy_tax;5.5;Eur/MWh;§ 2 EnergieStG;
+;2030_sq;reference;gas_boiler_central;energy_tax;5.5;Eur/MWh;§ 2 EnergieStG;
+;2050_sq;reference;gas_boiler_central;energy_tax;5.5;Eur/MWh;§ 2 EnergieStG;
 ;2018_sq;reference;gas_boiler_central;vom;1.1;Eur/MWh;DanishEnergyAgency2018;capacities: 0.5 - 10 MW_th
 ;1_basic;reference;pth_heat_pump_decentral;capacity_installed;;;;
 ;1_basic;reference;pth_heat_pump_decentral;efficiency;3.5;;DanishEnergyAgency2018; Electrical compression heat pumps - ambient heat source
 ;1_basic;reference;pth_heat_pump_decentral;efficiency_thermal;1;;;Dummy
-;2018_sq;high;pth_heat_pump_decentral;fom;1;%of overnight cost/a;Gerhardt2015a;S. 195 Luft/Wasser
-;2018_sq;reference;pth_heat_pump_decentral;fom;0.286;%of overnight cost/a;DanishEnergyAgency2018;
+;1_basic;reference;pth_heat_pump_decentral;fom;1;%of overnight cost/a;Gerhardt2015a;S. 195 Luft/Wasser
 ;1_basic;reference;pth_heat_pump_decentral;lifetime;25;a;Brown2018;
-;2018_sq;reference;pth_heat_pump_decentral;overnight_cost;700000;Eur/MW_th;DanishEnergyAgency2018;
-;2050_sq;reference;pth_heat_pump_decentral;overnight_cost;462000;Eur/MW_th;Totschnig2017a;S. 158 Ohne Wärmequelle
-;2018_sq;reference;pth_heat_pump_decentral;overnight_cost;700000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
-;2030_sq;reference;pth_heat_pump_decentral;overnight_cost;590000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
-;2030_sq;high;pth_heat_pump_decentral;overnight_cost;500000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
-;2030_sq;low;pth_heat_pump_decentral;overnight_cost;1000000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
-;2050_sq;reference;pth_heat_pump_decentral;overnight_cost;530000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
-;2050_sq;high;pth_heat_pump_decentral;overnight_cost;500000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
-;2050_sq;low;pth_heat_pump_decentral;overnight_cost;1000000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
-;2018_sq;reference;pth_heat_pump_decentral;vom;2;Eur/MWh;DanishEnergyAgency2018;
-;2018_sq;reference;pth_heat_pump_decentral;network_charges_WP;56.00;Eur/MWh;E.DISAG2016;
+;2018_sq;reference;pth_heat_pump_decentral;network_charges_WP;56;Eur/MWh;E.DISAG2016;
 ;2030_sq;high;pth_heat_pump_decentral;network_charges_WP;;Eur/MWh;;
 ;2030_sq;low;pth_heat_pump_decentral;network_charges_WP;;Eur/MWh;;
 ;2030_sq;reference;pth_heat_pump_decentral;network_charges_WP;61.79;Eur/MWh;Pfluger2017a;
 ;2050_sq;high;pth_heat_pump_decentral;network_charges_WP;;Eur/MWh;;
 ;2050_sq;low;pth_heat_pump_decentral;network_charges_WP;;Eur/MWh;;
 ;2050_sq;reference;pth_heat_pump_decentral;network_charges_WP;71.09;Eur/MWh;Pfluger2017a;
+;2018_sq;reference;pth_heat_pump_decentral;overnight_cost;700000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
+;2030_sq;reference;pth_heat_pump_decentral;overnight_cost;590000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
+;2030_sq;low;pth_heat_pump_decentral;overnight_cost;500000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
+;2030_sq;high;pth_heat_pump_decentral;overnight_cost;1000000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
+;2050_sq;low;pth_heat_pump_decentral;overnight_cost;462000;Eur/MW_th;Totschnig2017a;S. 158 Ohne Wärmequelle
+;2050_sq;reference;pth_heat_pump_decentral;overnight_cost;530000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
+;2050_sq;high;pth_heat_pump_decentral;overnight_cost;1000000;Eur/MW_th;DanishEnergyAgency2018;around 4 MW_th
+;2018_sq;reference;pth_heat_pump_decentral;vom;2;Eur/MWh;DanishEnergyAgency2018;
 ;2050_sq;high;pth_heat_pump_noDH;overnight_cost;2100000;Eur/MW_th;Gerhardt2015a;S. 43 Luft/Wasser >25 kW
 ;1_basic;reference;pth_resistive_central;capacity_installed;10;MW;own assumption;Dummy
 ;1_basic;reference;pth_resistive_central;efficiency;0.98;;DanishEnergyAgency2018;
-;2018_sq;reference;pth_resistive_central;fom;1.57;%of overnight cost/a;DanishEnergyAgency2018;> 10 MW_th
-;2018_sq;low;pth_resistive_central;fom;1;%of overnight cost/a;Bucken2017;S. 106
-;2030_sq;high;pth_resistive_central;fom;;%of overnight cost/a;;
-;2030_sq;low;pth_resistive_central;fom;;%of overnight cost/a;;
-;2030_sq;reference;pth_resistive_central;fom;;%of overnight cost/a;;
-;2050_sq;high;pth_resistive_central;fom;;%of overnight cost/a;;
-;2050_sq;low;pth_resistive_central;fom;;%of overnight cost/a;;
-;2050_sq;reference;pth_resistive_central;fom;;%of overnight cost/a;;
+;1_basic;reference;pth_resistive_central;fom;1.57;%of overnight cost/a;DanishEnergyAgency2018;> 10 MW_th
 ;1_basic;reference;pth_resistive_central;lifetime;20;a;DanishEnergyAgency2018;> 10 MW_th
 ;2018_sq;reference;pth_resistive_central;network_charges_WP;30.6;Eur/MWh;E.DISAG2016;
 ;2030_sq;high;pth_resistive_central;network_charges_WP;;Eur/MWh;;
@@ -62,12 +56,12 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2050_sq;reference;pth_resistive_central;network_charges_WP;38.85;Eur/MWh;Pfluger2017a;
 ;2018_sq;reference;pth_resistive_central;overnight_cost;70000;Eur/MW_th;DanishEnergyAgency2018;> 10 MW_th, incl. Equiptment and installation
 ;2018_sq;high;pth_resistive_central;overnight_cost;100000;Eur/MW_th;Bucken2017;S. 105
-;2030_sq;high;pth_resistive_central;overnight_cost;;Eur/MW_th;;
-;2030_sq;low;pth_resistive_central;overnight_cost;;Eur/MW_th;;
-;2030_sq;reference;pth_resistive_central;overnight_cost;;Eur/MW_th;;
-;2050_sq;high;pth_resistive_central;overnight_cost;;Eur/MW_th;;
-;2050_sq;low;pth_resistive_central;overnight_cost;;Eur/MW_th;;
-;2050_sq;reference;pth_resistive_central;overnight_cost;;Eur/MW_th;;
+;2030_sq;high;pth_resistive_central;overnight_cost;170000;Eur/MW_th;;
+;2030_sq;low;pth_resistive_central;overnight_cost;20000;Eur/MW_th;;
+;2030_sq;reference;pth_resistive_central;overnight_cost;60000;Eur/MW_th;;
+;2050_sq;high;pth_resistive_central;overnight_cost;170000;Eur/MW_th;;
+;2050_sq;low;pth_resistive_central;overnight_cost;20000;Eur/MW_th;;
+;2050_sq;reference;pth_resistive_central;overnight_cost;60000;Eur/MW_th;;
 ;2018_sq;reference;pth_resistive_central;vom;0.5;Eur/MWh;DanishEnergyAgency2018;
 ;2030_sq;high;pth_resistive_central;vom;0.5;Eur/MWh;DanishEnergyAgency2018;
 ;2030_sq;low;pth_resistive_central;vom;0.4;Eur/MWh;DanishEnergyAgency2018;
@@ -76,9 +70,9 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2050_sq;low;pth_resistive_central;vom;0.3;Eur/MWh;DanishEnergyAgency2018;
 ;2050_sq;reference;pth_resistive_central;vom;0.4;Eur/MWh;DanishEnergyAgency2018;
 ;1_basic;reference;pth_resistive_decentral;efficiency;0.98;;DanishEnergyAgency2018;
-;2018_sq;reference;pth_resistive_decentral;fom;0.73;%of overnight cost/a;DanishEnergyAgency2018;
+;1_basic;reference;pth_resistive_decentral;fom;0.73;%of overnight cost/a;DanishEnergyAgency2018;
 ;1_basic;reference;pth_resistive_decentral;lifetime;20;a;DanishEnergyAgency2018;
-;2018_sq;reference;pth_resistive_decentral;network_charges_WP;56.00;Eur/MWh;E.DISAG2016;
+;2018_sq;reference;pth_resistive_decentral;network_charges_WP;56;Eur/MWh;E.DISAG2016;
 ;2030_sq;high;pth_resistive_decentral;network_charges_WP;;Eur/MWh;;
 ;2030_sq;low;pth_resistive_decentral;network_charges_WP;;Eur/MWh;;
 ;2030_sq;reference;pth_resistive_decentral;network_charges_WP;61.79;Eur/MWh;Pfluger2017a;
@@ -114,26 +108,43 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2050_sq;high;source_electricity;spot_price;94.33;Eur/MWh;extrapolation of 2018 to 2030 ;extrapolation of 2018 to 2030
 ;2050_sq;low;source_electricity;spot_price;73;Eur/MWh;extrapolation of 2018 to 2030 ;extrapolation of 2018 to 2030
 ;2050_sq;reference;source_electricity;spot_price;83.67;Eur/MWh;extrapolation of 2018 to 2030 ;average Day-Ahead Spot price
-;2018_ff;reference;source_electricity;tax_levys;76.08;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2018_sq;reference;source_electricity;tax_levys;109.12;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2030_ff;high;source_electricity;tax_levys;73.83;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2030_ff;low;source_electricity;tax_levys;38.2;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2030_ff;reference;source_electricity;tax_levys;56.7;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2030_sq;high;source_electricity;tax_levys;100.22;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2030_sq;low;source_electricity;tax_levys;102.09;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2030_sq;reference;source_electricity;tax_levys;101.22;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2050_ff;high;source_electricity;tax_levys;57.83;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2050_ff;low;source_electricity;tax_levys;14.45;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2050_ff;reference;source_electricity;tax_levys;21.58;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2050_sq;high;source_electricity;tax_levys;56.85;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2050_sq;low;source_electricity;tax_levys;81.22;Eur/MWh;s. Doku;connectet to uncertainty of spot price
-;2050_sq;reference;source_electricity;tax_levys;63.22;Eur/MWh;s. Doku;connectet to uncertainty of spot price
+;2018_ff;reference;source_electricity;tax_levys;76.08;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2018_sq;reference;source_electricity;tax_levys;109.12;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2030_ff;high;source_electricity;tax_levys;73.83;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2030_ff;low;source_electricity;tax_levys;38.2;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2030_ff;reference;source_electricity;tax_levys;56.7;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2030_sq;high;source_electricity;tax_levys;100.22;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2030_sq;low;source_electricity;tax_levys;102.09;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2030_sq;reference;source_electricity;tax_levys;101.22;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2050_ff;high;source_electricity;tax_levys;57.83;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2050_ff;low;source_electricity;tax_levys;14.45;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2050_ff;reference;source_electricity;tax_levys;21.58;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2050_sq;high;source_electricity;tax_levys;56.85;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2050_sq;low;source_electricity;tax_levys;81.22;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2050_sq;reference;source_electricity;tax_levys;63.22;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2018_ff;reference;source_electricity_flex;tax_levys;13.2;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2030_ff;high;source_electricity_flex;tax_levys;13.2;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2030_ff;low;source_electricity_flex;tax_levys;13.2;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2030_ff;reference;source_electricity_flex;tax_levys;13.2;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2050_ff;high;source_electricity_flex;tax_levys;13.2;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2050_ff;low;source_electricity_flex;tax_levys;13.2;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
+;2050_ff;reference;source_electricity_flex;tax_levys;13.2;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
 ;2018_sq;reference;source_gas;carrier_price;30.2;Eur/MWh;Duic2017;S. 8
 ;2030_sq;high;source_gas;carrier_price;46;Eur/MWh;Pfluger2017a;S. 23
 ;2030_sq;reference;source_gas;carrier_price;43.3;Eur/MWh;Duic2017;S. 8
 ;2050_sq;high;source_gas;carrier_price;53.39;Eur/MWh;Duic2017;S. 8
 ;2050_sq;reference;source_gas;carrier_price;46;Eur/MWh;Pfluger2017a;S. 23
 ;1_basic;reference;source_gas;emission_specific;0.202;tCO2/MWh;BundesamtfurWirtschaftundAusfuhrkontrolle2019;
+;1_basic;reference;source_gas;concession_fees;0.04;Eur/MWh;;Concession fees (0.04), CO2 trading (1.01)
+;2018_sq;reference;source_gas;co2_ets;5.05;Eur/MWh;Pfluger2017a;25 €/tCO2 (own assumtion based on Ref- and Basis-Scenario of the source)
+;2030_sq;reference;source_gas;co2_ets;7.07;Eur/MWh;Pfluger2017a;35 €/tCO2 (own assumtion based on Ref- and Basis-Scenario of the source)
+;2050_sq;reference;source_gas;co2_ets;10.1;Eur/MWh;Pfluger2017a;50 €/tCO2 (own assumtion based on Ref- and Basis-Scenario of the source)
+;2018_ff;reference;source_gas;co2_ets;5.05;Eur/MWh;Pfluger2017a;same as sq
+;2030_ff;reference;source_gas;co2_ets;7.07;Eur/MWh;Pfluger2017a;same as sq
+;2050_ff;reference;source_gas;co2_ets;10.1;Eur/MWh;Pfluger2017a;same as sq
+;2018_ff;reference;source_gas;co2_fee;25.25;Eur/MWh;Graichen2018;125 €/tCO2
+;2030_ff;reference;source_gas;co2_fee;25.25;Eur/MWh;Graichen2019;125 €/tCO2
+;2050_ff;reference;source_gas;co2_fee;25.25;Eur/MWh;Graichen2020;125 €/tCO2
 ;2018_sq;reference;subnet-1_demand_th;efh;{'annual_heat_demand': 100000;;;
 ;2018_sq;reference;subnet-1_demand_th;ghd;{'annual_heat_demand': 50000;;;
 ;2018_sq;reference;subnet-1_demand_th;mfh;{'annual_heat_demand': 100000;;;
