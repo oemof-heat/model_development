@@ -164,8 +164,11 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                           conversion_factors={bus_th: input_parameter['pth_heat_pump_decentral']
                                                                                      ['efficiency']})
         tes_decentral = GenericStorage(label=name_subnet+'_storage_decentral',
-                                       inputs={bus_th: Flow(variable_costs=0.0001)},
-                                       outputs={bus_th: Flow()},
+                                       inputs={bus_th: Flow(nominal_value=input_parameter['tes_decentral',
+                                                                                          'power_charging'],
+                                                            variable_costs=0.0001)},
+                                       outputs={bus_th: Flow(nominal_value=input_parameter['tes_decentral',
+                                                                                           'power_discharging'])},
                                        nominal_storage_capacity=input_parameter[name_subnet+'_tes']
                                                                                ['capacity_installed'],
                                        annuity_specific=1,
