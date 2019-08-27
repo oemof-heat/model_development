@@ -27,6 +27,7 @@ import os
 import re
 import pandas as pd
 import yaml
+import numpy as np
 
 import oemof.solph as solph
 import oemof.outputlib as outputlib
@@ -333,10 +334,22 @@ def get_derived_results_scalar(input_parameter,
         regex = re.compile(r"subnet-._")
         remove_subnet = lambda str: re.sub(regex, '', str)
         results_decentral = results_decentral.rename(index={key: remove_subnet(key) for key in keys_decentral})
-        aggregated = results_decentral.groupby(['component', 'var_name']).agg({'var_value': sum})
+        def func(x):
+            to_sum = ['energy_heat_storage_discharge_sum',
+                      'energy_consumed_sum',
+                      'energy_thermal_produced_sum',
+                      'energy_thermal_produced_sum',
+                      'installed_production_capacity',
+                      'cost_total_system',
+                      'cost_variable_sum']
+            if x.index[0][1] in to_sum:
+                return sum(x)
+            else:
+                return np.mean(x)
+        aggregated = results_decentral.groupby(['component', 'var_name']).agg(func)  # TODO Aggregation depending on var_name
         aggregated_results = pd.concat([aggregated,
                                         derived_results_scalar.drop(keys_decentral, level=0)],
-                                       axis=0, sort=True).sort_index()
+                                        axis=0, sort=True).sort_index()
         return aggregated_results
 
     aggregated_results = aggregate_decentral(derived_results_scalar)
