@@ -1,7 +1,7 @@
 id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
-;1_basic;reference;chp;capacity_installed;400;MW_th;;Dummy
+;1_basic;reference;chp;capacity_installed;200;MW_th;;Dummy
 ;1_basic;reference;chp;efficiency_el;0.34;;DanishEnergyAgency2018; Gas turbine,  simple cycle (small and medium),  back pressure
-;1_basic;reference;chp;efficiency_el_full_cond;0.34;;;Dummy
+;1_basic;reference;chp;efficiency_el_full_cond;0.4;;;Dummy
 ;1_basic;reference;chp;efficiency_th;0.479;;DanishEnergyAgency2018;
 ;1_basic;reference;chp;lifetime;25;a;DanishEnergyAgency2018;
 ;1_basic;reference;district_heating_network;costs_heat_distribution_cap;;;;
@@ -11,7 +11,6 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;1_basic;reference;gas_boiler_central;efficiency;0.98;;Henning2014a;
 ;1_basic;reference;gas_boiler_central;lifetime;25;a;DanishEnergyAgency2018;
 ;1_basic;reference;pth_heat_pump_decentral;efficiency;3.5;;DanishEnergyAgency2018; Electrical compression heat pumps - ambient heat source, no dev. in supply temp. (4 MW)
-;1_basic;reference;pth_heat_pump_decentral;efficiency_thermal;1;;;Dummy
 ;1_basic;reference;pth_heat_pump_decentral;lifetime;25;a;Brown2018;
 ;1_basic;reference;pth_resistive_central;capacity_installed;10;MW;own assumption;Dummy
 ;1_basic;reference;pth_resistive_central;efficiency;0.98;;DanishEnergyAgency2018;
@@ -19,23 +18,25 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;1_basic;reference;pth_resistive_decentral;efficiency;0.98;;DanishEnergyAgency2018;
 ;1_basic;reference;pth_resistive_decentral;lifetime;20;a;DanishEnergyAgency2018;
 ;1_basic;reference;source_gas;emission_specific;0.202;tCO2/MWh;BundesamtfurWirtschaftundAusfuhrkontrolle2019;
-;1_basic;reference;subnet-1_heat_pump;capacity_installed;1;;;Dummy
+;1_basic;reference;subnet-1_heat_pump;capacity_installed;10;MW;;Dummy
 ;1_basic;reference;subnet-1_pipe;efficiency;1;;;Dummy
 ;1_basic;reference;subnet-1_pth;capacity_installed;2;MW;;Dummy
-;1_basic;reference;subnet-1_tes;capacity_installed;500;MWh;;Dummy
-;1_basic;reference;subnet-2_heat_pump;capacity_installed;1;;;Dummy
+;1_basic;reference;subnet-1_tes;capacity_installed;250;MWh;;Dummy
+;1_basic;reference;subnet-2_heat_pump;capacity_installed;10;MW;;Dummy
 ;1_basic;reference;subnet-2_pipe;efficiency;1;;;Dummy
 ;1_basic;reference;subnet-2_pth;capacity_installed;2;MW;;Dummy
-;1_basic;reference;subnet-2_tes;capacity_installed;500;MWh;;Dummy
+;1_basic;reference;subnet-2_tes;capacity_installed;250;MWh;;Dummy
 ;1_basic;reference;tes_central;capacity_installed;500;;;Dummy
 ;1_basic;reference;tes_central;efficiency_charging;1;;;Dummy
 ;1_basic;reference;tes_central;efficiency_discharging;1;;;Dummy
 ;1_basic;reference;tes_central;power_charging;5;;;Dummy
 ;1_basic;reference;tes_central;power_discharging;5;;;Dummy
 ;1_basic;reference;tes_central;rate_loss;0.001;;;Dummy
-;1_basic;reference;tes_decentral;efficiency_charging;1;;;Dummy
-;1_basic;reference;tes_decentral;efficiency_discharging;1;;;
+;1_basic;reference;tes_decentral;efficiency_charging;0.95;;;Dummy
+;1_basic;reference;tes_decentral;efficiency_discharging;0.95;;;
 ;1_basic;reference;tes_decentral;rate_loss;0.001;;;Dummy
+;1_basic;reference;tes_decentral;power_charging;2;;;Dummy
+;1_basic;reference;tes_decentral;power_discharging;2;;;Dummy
 ;2018_ff;reference;source_electricity;spot_price;41;Eur/MWh;AgoraEnergiewende2018;average Day-Ahead Spot price
 ;2018_ff;reference;source_electricity;tax_levys;76.08;Eur/MWh;s. Doku;connectet to uncertainty of spot price
 ;2018_sq;high;pth_heat_pump_decentral;fom;1;%of overnight cost/a;Gerhardt2015a;S. 195 Luft/Wasser
@@ -134,4 +135,4 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2050_sq;reference;source_electricity;spot_price;83.67;Eur/MWh;extrapolation of 2018 to 2030 ;average Day-Ahead Spot price
 ;2050_sq;reference;source_electricity;tax_levys;63.22;Eur/MWh;s. Doku;connectet to uncertainty of spot price
 ;2050_sq;reference;source_gas;carrier_price;46;Eur/MWh;Pfluger2017a;S. 23
-;2018_ff;reference;source_electricity;emission_specific;0.5;tCO2/MWh;;Dummy
+;2018_sq;reference;source_electricity;emission_specific;0.5;tCO2/MWh;;Dummy
