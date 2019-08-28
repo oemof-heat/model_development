@@ -27,10 +27,12 @@ import helpers
 register_matplotlib_converters()
 
 
-def plot_heat_demand(df, filename):
+def plot_heat_demand(demand_heat, filename):
     # Plot demand of building
     fig, ax = plt.subplots(figsize=(12, 6))
-    df.plot(ax=ax, linewidth=1)
+    demand_heat.sum(axis=1).plot(ax=ax,
+                                 linewidth=1,
+                                 c='r')
     ax.set_xlabel("Date")
     ax.set_ylabel("Heat demand in MW")
     plt.savefig(filename, figsize=(12, 6), bbox_inches='tight')
@@ -170,7 +172,7 @@ def plot_dispatch(timeseries, color_dict, filename):
     fig, ax = plt.subplots(figsize=(12, 6))
     stacked_bar_plot(ax, charge_aggregated)
     stacked_bar_plot(ax, feedin_aggregated, color=colors)
-    ax.set_ylim(-20, 110)
+    ax.set_ylim(-50, 150)
     ax.grid(axis='y')
 
     # set title, labels and legend
@@ -364,7 +366,7 @@ def plot_price_el(price_el, filename):
     return None
 
 
-def plot_p_q_diagram(timeseries, color_dict, filename):
+def plot_p_q_diagram(timeseries, param_chp, capacity_installed_chp, color_dict, filename):
     supply_electricity = timeseries.loc[:, [key for key in timeseries.columns if key[1]=='sold_el']]
 
     supply_heat = timeseries.loc[:, [key for key in timeseries.columns if bool(re.search('_demand', key[1]))]]\
@@ -392,7 +394,6 @@ def plot_p_q_diagram(timeseries, color_dict, filename):
                           charging_storage,
                           discharging_storage], axis=1)
     def func(row):
-        integer = int(''.join(str(int(x)) for x in row.values), 2)
         sel = tuple(i for (i, v) in zip(['heat_pump', 'resistive', 'charging', 'discharging'], row.values) if v)
         col =  {('heat_pump', 'resistive', 'charging', 'discharging'): 'b',
                 ('resistive', 'charging', 'discharging'): 'b',
@@ -415,13 +416,22 @@ def plot_p_q_diagram(timeseries, color_dict, filename):
                color=color,
                s=50,
                alpha=0.1)
-    x = np.arange(0, 210, 10)
-    y = x*0.34/0.479
-    ax.plot(x, y, c='k', alpha=0.1)
-    y = 0.4/0.479*200 - x*(0.4-0.34)/0.479
-    ax.plot(x, y, c='k', alpha=0.1)
-    ax.grid('x',
-            alpha=0.3)
+
+    def plot_operation_range_chp():
+        x = np.array([0, capacity_installed_chp])
+        backpressure_line = x * param_chp['conversion_factors_bus_el_export'] \
+                            / param_chp['conversion_factors_bus_th_central']
+        ax.plot(x, backpressure_line, c='k', alpha=0.1)
+        extraction_line = capacity_installed_chp * param_chp['conversion_factor_full_condensation_bus_el_export'] \
+        / param_chp['conversion_factors_bus_th_central'] \
+        - x * (param_chp['conversion_factor_full_condensation_bus_el_export']
+        - param_chp['conversion_factors_bus_el_export']) \
+        / param_chp['conversion_factors_bus_th_central']
+        ax.plot(x, extraction_line, c='k', alpha=0.1)
+
+    plot_operation_range_chp()
+
+    ax.grid('x', alpha=0.3)
     ax.set_xlim(0, 250)
     ax.set_ylim(0, 200)
     ax.set_ylabel('Power in MW')
@@ -468,24 +478,22 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
     axs2 = [ax1.twinx() for ax1 in axs]
     axs[0].scatter(price_el,
                    produced_chp,
-                   color='k',
+                   color='r',
                    alpha=0.01,
                    zorder=-1)
     axs[1].scatter(price_el,
                    produced_pth,
-                   color='k',
+                   color='r',
                    alpha=0.01,
                    zorder=-1)
     axs[2].scatter(price_el,
                    storage_charge_discharge,
-                   color='k',
+                   color='r',
                    alpha=0.01,
                    zorder=-1)
     def center_spines(axis):  # TODO: Is this necessary?
         axis.spines['left'].set_position('zero')
-        axis.spines['right'].set_color('none')
         axis.spines['bottom'].set_position('zero')
-        axis.spines['top'].set_color('none')
 
     plot_hist(price_el,
               produced_chp,
@@ -512,7 +520,7 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
 
     for ax in axs2:
         center_spines(ax)
-        ax.set_xlim(-90, 200)
+        ax.set_xlim(-90, 250)
         ax.set_ylabel('Heat [MWh_th]')
         ax.set_xlabel('Electricity spot price [Eur]')
     fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
@@ -631,9 +639,13 @@ def create_plots(config_path, results_dir):
 
         param = outputlib.processing.convert_keys_to_strings(energysystem.results['Param'])
         price_el = param['source_electricity', 'bus_el_import']['sequences']
+        param_chp = param['chp', 'None']['scalars']
+        capacity_installed_chp = param['chp', 'bus_th_central']['scalars']['nominal_value']
 
-        # demand = pd.read_csv(os.path.join(results_dir, cfg['timeseries']['timeseries_demand_heat']))
-        # plot_heat_demand(demand, filename=results_dir + '/plots/heat_demand.pdf')
+        demand_heat = pd.read_csv(os.path.join(results_dir,
+                                               'data_preprocessed',
+                                               cfg['data_preprocessed']['timeseries']['demand_heat']),
+                                  header=0, index_col=0, parse_dates=True)
 
         timeseries = pd.read_csv(os.path.join(dir_postproc,
                                               cfg['data_postprocessed']['timeseries']['timeseries']),
@@ -647,6 +659,8 @@ def create_plots(config_path, results_dir):
         if not os.path.exists(dir_plot):
             os.makedirs(os.path.join(dir_plot))
 
+        plot_heat_demand(demand_heat,
+                         os.path.join(dir_plot, 'demand_heat.pdf'))
         plot_dispatch(timeseries,
                       color_dict,
                       os.path.join(dir_plot, 'dispatch_stack_plot.pdf'))
@@ -659,6 +673,8 @@ def create_plots(config_path, results_dir):
         plot_price_el(price_el,
                       os.path.join(dir_plot, 'timeseries_price_el.pdf'))
         plot_p_q_diagram(timeseries,
+                         param_chp,
+                         capacity_installed_chp,
                          color_dict,
                          os.path.join(dir_plot, 'pq_diagram.pdf'))
         plot_heat_feedin_price_el(timeseries,
