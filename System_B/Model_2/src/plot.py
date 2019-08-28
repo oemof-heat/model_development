@@ -391,7 +391,8 @@ def plot_p_q_diagram(timeseries, color_dict, filename):
                 ('resistive', 'discharging'): 'y',
                 ('charging',): 'b',
                 ('discharging',): 'y',
-                ('resistive',): 'g'}
+                ('resistive',): 'g',
+                (): 'k'}
         return col[sel]
     color = coloring.apply(func, axis=1)
     fig, ax = plt.subplots(figsize=(6, 6))
@@ -632,16 +633,16 @@ def create_plots(config_path, results_dir):
         dir_plot = os.path.join(results_dir, 'plots', label)
         if not os.path.exists(dir_plot):
             os.makedirs(os.path.join(dir_plot))
-        #
-        # plot_dispatch(timeseries,
-        #               color_dict,
-        #               os.path.join(dir_plot, 'dispatch_stack_plot.pdf'))
-        # plot_load_duration_curves(timeseries,
-        #                           color_dict,
-        #                           os.path.join(dir_plot, 'load_duration_curves.pdf'))
-        # plot_storage_level(timeseries,
-        #                    color_dict,
-        #                    os.path.join(dir_plot, 'storage_level.pdf'))
+
+        plot_dispatch(timeseries,
+                      color_dict,
+                      os.path.join(dir_plot, 'dispatch_stack_plot.pdf'))
+        plot_load_duration_curves(timeseries,
+                                  color_dict,
+                                  os.path.join(dir_plot, 'load_duration_curves.pdf'))
+        plot_storage_level(timeseries,
+                           color_dict,
+                           os.path.join(dir_plot, 'storage_level.pdf'))
         plot_price_el(price_el,
                       os.path.join(dir_plot, 'timeseries_price_el.pdf'))
         plot_p_q_diagram(timeseries,
@@ -651,9 +652,10 @@ def create_plots(config_path, results_dir):
                                   price_el,
                                   color_dict,
                                   os.path.join(dir_plot, 'heat_feedin_vs_price_el.pdf'))
-        # plot_results_scalar_derived(results_scalar_derived,
-        #                             color_dict,
-        #                             os.path.join(dir_plot,'results_scalar_derived.pdf'))
+        plot_results_scalar_derived(results_scalar_derived,
+                                    color_dict,
+                                    os.path.join(dir_plot,'results_scalar_derived.pdf'))
+        plt.close('all')
 
 
 if __name__ == '__main__':
