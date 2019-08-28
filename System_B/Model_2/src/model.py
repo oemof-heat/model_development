@@ -10,12 +10,11 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 
-import oemof
 import oemof.outputlib as outputlib
 from oemof.tools import logger
 from oemof.solph import (Source, Sink, Transformer, Bus, Flow,
                          Model, EnergySystem)
-from oemof.solph.components import GenericStorage, ExtractionTurbineCHP, GenericCHP
+from oemof.solph.components import GenericStorage, ExtractionTurbineCHP
 import oemof.graph as graph
 import helpers
 
@@ -65,16 +64,6 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
 
     sold_el = Sink(label='sold_el', inputs={b_el_export: Flow(variable_costs=-1*np.nan_to_num(price_electricity))})
 
-    # chp = Transformer(label='chp',
-    #                   inputs={b_gas: Flow()},
-    #                   outputs={b_th_central: Flow(nominal_value=input_parameter['chp', 'capacity_installed_chp']),
-    #                            b_el: Flow()},
-    #                   conversion_factors={b_th_central: input_parameter['chp', 'efficiency_th'],
-    #                                       b_el: input_parameter['chp', 'efficiency_el']})
-
-    # heat_shortage = Source(outputs={b_th_central: Flow(variable_costs=10000)})
-    # heat_excess = Sink(inputs={b_th_central: Flow(variable_costs=10000)})
-
     nominal_value_gas = input_parameter['chp', 'capacity_installed'] * 1/input_parameter['chp', 'efficiency_th']
     chp = ExtractionTurbineCHP(label='chp',
                                inputs={b_gas: Flow(nominal_value=nominal_value_gas,
@@ -90,27 +79,6 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                                    b_el_export: input_parameter['chp', 'efficiency_el']},
                                conversion_factor_full_condensation={
                                    b_el_export: input_parameter['chp', 'efficiency_el_full_cond']})
-
-    # chp = ExtractionTurbineCHP(label='chp',
-    #                            inputs={b_gas: Flow(nominal_value=300)},
-    #                            outputs={b_th_central: Flow(), b_el: Flow()},
-    #                            conversion_factors={b_th_central: 0.5, b_el: 0.3},
-    #                            conversion_factor_full_condensation={b_el: 0.5})
-
-    # chp = GenericCHP(
-    #         label='chp',
-    #         fuel_input={b_gas: Flow(
-    #             H_L_FG_share_max=[0.19]*periods,
-    #             variable_costs=[0.2]*periods)},
-    #         electrical_output={b_el: Flow(
-    #             P_max_woDH=[25]*periods,
-    #             P_min_woDH=[12.5]*periods,
-    #             Eta_el_max_woDH=[0.53]*periods,
-    #             Eta_el_min_woDH=[0.43]*periods)},
-    #         heat_output={b_heat_1: Flow(
-    #             Q_CW_min=[0]*periods)},
-    #         Beta=[0]*periods,
-    #         back_pressure=True)
 
     pth_central = Transformer(label='pth_resistive_central',
                               inputs={b_el_import: Flow()},
@@ -128,10 +96,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                  outputs={b_th_central: Flow(nominal_value=input_parameter['tes_central',
                                                                                            'power_discharging'])},
                                  nominal_storage_capacity=input_parameter['tes_central', 'capacity_installed'],
-                                 # min_storage_level=0.4,
-                                 # max_storage_level=0.9,
                                  loss_rate=input_parameter['tes_central', 'rate_loss'],
-                                 # loss_constant=0.,
                                  inflow_conversion_factor=input_parameter['tes_central', 'efficiency_charging'],
                                  outflow_conversion_factor=input_parameter['tes_central', 'efficiency_discharging'])
 
@@ -173,11 +138,8 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                                                                ['capacity_installed'],
                                        annuity_specific=1,
                                        fom_specific=0,
-                                       # min_storage_level=0.4,
-                                       # max_storage_level=0.9,
                                        loss_rate=input_parameter['tes_decentral']
                                                                 ['rate_loss'],
-                                       loss_constant=0.,
                                        inflow_conversion_factor=input_parameter['tes_decentral']
                                                                                ['efficiency_charging'],
                                        outflow_conversion_factor=input_parameter['tes_decentral']
