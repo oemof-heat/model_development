@@ -54,26 +54,42 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     b_th_central = Bus(label='bus_th_central')
     b_gas = Bus(label='bus_gas')
 
+    variable_costs_el = np.nan_to_num(price_electricity) + input_parameter['source_electricity']['tax_levys']
     source_el = Source(label='source_electricity',
-                       outputs={b_el_import: Flow(variable_costs=np.nan_to_num(price_electricity),
+                       outputs={b_el_import: Flow(variable_costs=variable_costs_el,
                                                   emission_specific=input_parameter['source_electricity']
-                                                  ['emission_specific'])})
+                                                                                   ['emission_specific'])})
 
+    variable_costs_el_flex = np.nan_to_num(price_electricity)
+    flex_friendly = bool(re.search('ff', index[1]))
+    if flex_friendly:
+        variable_costs_el_flex += input_parameter['source_electricity_flex']['tax_levys']  # TODO: Check
+    source_el_flex = Source(label='source_electricity_flex',
+                            outputs={b_el_import: Flow(variable_costs=variable_costs_el_flex,
+                                                       emission_specific=input_parameter['source_electricity']
+                                                                                        ['emission_specific'])})
+
+    variable_costs_gas = input_parameter['source_gas']['carrier_price'] \
+                       + input_parameter['source_gas']['co2_ets']
+    if flex_friendly:
+        variable_costs_gas += input_parameter['source_gas']['co2_fee']  # TODO: Check
+    # TODO network charges. for boiler: energy tax
     source_gas = Source(label='source_gas',
-                        outputs={b_gas: Flow()})
+                        outputs={b_gas: Flow(variable_costs=variable_costs_gas)})
 
-    sold_el = Sink(label='sold_el', inputs={b_el_export: Flow(variable_costs=-1*np.nan_to_num(price_electricity))})
+    revenue_sold_el = -1 * np.nan_to_num(price_electricity)
+    revenue_sold_el -= input_parameter['chp', 'chp_surcharges']  # TODO: Check
+    sold_el = Sink(label='sold_el', inputs={b_el_export: Flow(variable_costs=revenue_sold_el)})
+
 
     nominal_value_gas = input_parameter['chp', 'capacity_installed'] * 1/input_parameter['chp', 'efficiency_th']
     chp = ExtractionTurbineCHP(label='chp',
                                inputs={b_gas: Flow(nominal_value=nominal_value_gas,
-                                                   variable_costs=20,
                                                    emission_specific=input_parameter['source_gas']
                                                                                     ['emission_specific'])},
                                outputs={b_th_central: Flow(nominal_value=input_parameter['chp',
                                                                                          'capacity_installed'],
-                                                           annuity_specific=1,
-                                                           fom_specific=1),
+                                                           variable_costs=input_parameter['chp']['vom']),
                                         b_el_export: Flow()},
                                conversion_factors={b_th_central: input_parameter['chp', 'efficiency_th'],
                                                    b_el_export: input_parameter['chp', 'efficiency_el']},
@@ -81,11 +97,12 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                    b_el_export: input_parameter['chp', 'efficiency_el_full_cond']})
 
     pth_central = Transformer(label='pth_resistive_central',
-                              inputs={b_el_import: Flow()},
-                              outputs={b_th_central: Flow(nominal_value=2,
-                                                          annuity_specific=1,
-                                                          fom_specific=1,
-                                                          variable_costs=1e6)},
+                              inputs={b_el_import: Flow(variable_costs= input_parameter['pth_resistive_central']
+                                                                                       ['network_charges_WP'])},
+                              outputs={b_th_central: Flow(nominal_value=input_parameter['pth_resistive_central']
+                                                                                       ['capacity_installed'],
+                                                          variable_costs=input_parameter['pth_resistive_central']
+                                                                                        ['vom'],)},
                               conversion_factors={b_th_central: input_parameter['pth_resistive_central']
                                                                                ['efficiency']})
 
@@ -116,16 +133,22 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                            outputs={bus_th: Flow()},
                            conversion_factors={bus_th: input_parameter[name_subnet+'_pipe']['efficiency']})
         pth_decentral = Transformer(label=name_subnet+'_pth_resistive_decentral',
-                                    inputs={b_el_import: Flow()},
+                                    inputs={b_el_import: Flow(variable_costs=input_parameter['pth_resistive_decentral']
+                                                                                            ['network_charges_WP'])},
                                     outputs={bus_th: Flow(
                                         nominal_value=input_parameter[name_subnet+'_pth']
-                                                                     ['capacity_installed'])},
+                                                                     ['capacity_installed'],
+                                        variable_costs=input_parameter['pth_resistive_decentral']
+                                                                      ['vom'])},
                                     conversion_factors={bus_th: input_parameter['pth_resistive_decentral']
                                                                                ['efficiency']})
         heat_pump_decentral = Transformer(label=name_subnet+'_pth_heat_pump_decentral',
                                           inputs={b_el_import: Flow()},
-                                          outputs={bus_th: Flow(nominal_value=input_parameter[name_subnet+'_heat_pump']
-                                                                                             ['capacity_installed'])},
+                                          outputs={bus_th:
+                                                       Flow(nominal_value=input_parameter[name_subnet+'_heat_pump']
+                                                                                         ['capacity_installed'],
+                                                            variable_costs=input_parameter['pth_heat_pump_decentral']
+                                                                                          ['vom'])},
                                           conversion_factors={bus_th: input_parameter['pth_heat_pump_decentral']
                                                                                      ['efficiency']})
         tes_decentral = GenericStorage(label=name_subnet+'_storage_decentral',
@@ -156,7 +179,8 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
         list_demand_th.append(demand_th)
 
     energysystem.add(b_el_export, b_el_import, b_th_central, b_gas,
-                     chp, sold_el, source_gas, source_el, pth_central, tes_central,
+                     sold_el, source_gas, source_el, source_el_flex,
+                     chp, pth_central, tes_central,
                      *list_pipes, *list_bus_th_decentral, *list_pth_decentral,
                      *list_heat_pump_decentral, *list_tes_decentral, *list_demand_th)
 
