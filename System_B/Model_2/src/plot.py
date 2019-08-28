@@ -502,7 +502,6 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
               title='CHP')
     center_spines(axs2[0])
 
-
     plot_hist(price_el,
               produced_pth,
               axs2[1],
@@ -546,7 +545,10 @@ def plot_results_scalar_derived(results_scalar_derived, color_dict, filename):
     -------
     None
     """
-    grouped = results_scalar_derived.groupby('var_name')
+    df = results_scalar_derived.copy()
+    df.index = df.index.droplevel([0, 1, 2])
+    grouped = df.groupby('var_name', level=1)
+
     fig = plt.figure(figsize=(15, 10))
     gs = gridspec.GridSpec(3, 7)
 
@@ -605,6 +607,62 @@ def plot_results_scalar_derived(results_scalar_derived, color_dict, filename):
     plt.savefig(filename)
 
 
+def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_dict, filename):
+    df = results_scalar_derived_summary.copy()
+    df.index = df.index.droplevel([0, 2])
+    grouped = df.groupby('var_name')
+
+    def stacked_bar(group, ax):
+        data = grouped.get_group(group)['var_value'].unstack(level=1)
+        unit = grouped.get_group(group)['var_unit'][0]
+        data.plot.bar(ax=ax,
+                      stacked=True)
+        ax.set_xticklabels(data.index.get_level_values('scenario'))
+        ax.set_title(group.replace('_','\n')+f' [{unit}]')
+        ax.get_legend().remove()
+
+    def horizontal_bar(group, ax):
+        data = grouped.get_group(group)['var_value'].unstack(level=1)
+        unit = grouped.get_group(group)['var_unit'][0]
+        data.plot.bar(ax=ax)
+        ax.set_xticklabels(data.index.get_level_values('scenario'))
+        ax.set_title(group.replace('_','\n')+f' [{unit}]')
+        ax.get_legend().remove()
+
+    fig = plt.figure(figsize=(15, 10))
+    gs = gridspec.GridSpec(3, 7)
+
+    # ax = fig.add_subplot(gs[:, 0])
+    # stacked_bar('cost_total_system', ax)
+
+    ax = fig.add_subplot(gs[:, 1])
+    stacked_bar('installed_production_capacity', ax)
+
+    ax = fig.add_subplot(gs[:, 2])
+    stacked_bar('energy_thermal_produced_sum', ax)
+
+    ax = fig.add_subplot(gs[:, 3])
+    stacked_bar('energy_consumed_sum', ax)
+
+    ax = fig.add_subplot(gs[:, 4])
+    stacked_bar('emissions_sum', ax)
+
+    ax = fig.add_subplot(gs[0, 5:])
+    horizontal_bar('hours_full_load', ax)
+
+    ax = fig.add_subplot(gs[1, 5:])
+    horizontal_bar('hours_operating_sum', ax)
+
+    ax = fig.add_subplot(gs[2, 5:])
+    horizontal_bar('number_starts', ax)
+
+    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
+
+    plt.tight_layout()
+    plt.savefig(filename)
+    return None
+
+
 def create_plots(config_path, results_dir):
     r"""
     Runs the plot production pipeline.
@@ -620,20 +678,12 @@ def create_plots(config_path, results_dir):
 
     # load model_runs
     model_runs = helpers.load_model_runs(results_dir, cfg)
+    list_results_scalar_derived = []
     for index, input_parameter in model_runs.iterrows():
         label = "_".join(map(str, index))
         dir_postproc = os.path.join(results_dir, 'data_postprocessed', label)
-
         energysystem = solph.EnergySystem()
         energysystem.restore(dpath=os.path.join(results_dir, 'optimisation_results'), filename=f'{label}_es.dump')
-        energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'data_plots/energysystem_graph.pkl'))
-
-        draw_graph(energysystem_graph,
-                   plot=False,
-                   store=True,
-                   filename=os.path.join(results_dir, 'plots', 'es_graph.pdf'),
-                   node_size=5000, edge_color='k',
-                   node_color=color_dict)
 
         rcParams['figure.figsize'] = [10.0, 10.0]
 
@@ -653,39 +703,53 @@ def create_plots(config_path, results_dir):
 
         results_scalar_derived = pd.read_csv(os.path.join(dir_postproc,
                                                           cfg['data_postprocessed']['scalars']['derived']),
-                                             header=0, index_col=[0,1], parse_dates=True)
+                                             header=0, index_col=[0, 1, 2, 3, 4], parse_dates=True)
+
+        list_results_scalar_derived.append(results_scalar_derived)
 
         dir_plot = os.path.join(results_dir, 'plots', label)
         if not os.path.exists(dir_plot):
             os.makedirs(os.path.join(dir_plot))
 
-        plot_heat_demand(demand_heat,
-                         os.path.join(dir_plot, 'demand_heat.pdf'))
-        plot_dispatch(timeseries,
-                      color_dict,
-                      os.path.join(dir_plot, 'dispatch_stack_plot.pdf'))
-        plot_load_duration_curves(timeseries,
-                                  color_dict,
-                                  os.path.join(dir_plot, 'load_duration_curves.pdf'))
-        plot_storage_level(timeseries,
-                           color_dict,
-                           os.path.join(dir_plot, 'storage_level.pdf'))
-        plot_price_el(price_el,
-                      os.path.join(dir_plot, 'timeseries_price_el.pdf'))
-        plot_p_q_diagram(timeseries,
-                         param_chp,
-                         capacity_installed_chp,
-                         color_dict,
-                         os.path.join(dir_plot, 'pq_diagram.pdf'))
-        plot_heat_feedin_price_el(timeseries,
-                                  price_el,
-                                  color_dict,
-                                  os.path.join(dir_plot, 'heat_feedin_vs_price_el.pdf'))
-        plot_results_scalar_derived(results_scalar_derived,
-                                    color_dict,
-                                    os.path.join(dir_plot,'results_scalar_derived.pdf'))
-        plt.close('all')
+        # plot_heat_demand(demand_heat,
+        #                  os.path.join(dir_plot, 'demand_heat.pdf'))
+        # plot_dispatch(timeseries,
+        #               color_dict,
+        #               os.path.join(dir_plot, 'dispatch_stack_plot.pdf'))
+        # plot_load_duration_curves(timeseries,
+        #                           color_dict,
+        #                           os.path.join(dir_plot, 'load_duration_curves.pdf'))
+        # plot_storage_level(timeseries,
+        #                    color_dict,
+        #                    os.path.join(dir_plot, 'storage_level.pdf'))
+        # plot_price_el(price_el,
+        #               os.path.join(dir_plot, 'timeseries_price_el.pdf'))
+        # plot_p_q_diagram(timeseries,
+        #                  param_chp,
+        #                  capacity_installed_chp,
+        #                  color_dict,
+        #                  os.path.join(dir_plot, 'pq_diagram.pdf'))
+        # plot_heat_feedin_price_el(timeseries,
+        #                           price_el,
+        #                           color_dict,
+        #                           os.path.join(dir_plot, 'heat_feedin_vs_price_el.pdf'))
+        # plot_results_scalar_derived(results_scalar_derived,
+        #                             color_dict,
+        #                             os.path.join(dir_plot,'results_scalar_derived.pdf'))
+        # plt.close('all')
 
+    energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'data_plots/energysystem_graph.pkl'))
+    draw_graph(energysystem_graph,
+               plot=False,
+               store=True,
+               filename=os.path.join(results_dir, 'plots', 'es_graph.pdf'),
+               node_size=5000, edge_color='k',
+               node_color=color_dict)
+
+    results_scalar_derived_all = pd.concat(list_results_scalar_derived)
+    plot_results_scalar_derived_summary(results_scalar_derived_all,
+                                        color_dict,
+                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_summary.pdf'))
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
