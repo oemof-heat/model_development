@@ -78,13 +78,11 @@ def create_list_model_runs(config_path, results_dir):
                                                      cfg['data_preprocessed']['timeseries']['price_electricity_spot'])
     price_electricity = pd.read_csv(file_timeseries_price_electricity, index_col=0)['price_electricity_spot'].values
 
-    # scenarios = input_parameter.index.get_level_values('scenario').unique()
     filename_scenarios = os.path.join(abs_path, cfg['data_raw']['scenarios'])
     scenarios = pd.read_csv(filename_scenarios)['name']
     model_runs = pd.DataFrame()
-    scenarios = ['2018_ff']
     for scenario in scenarios:
-        if cfg['uncertainty_sampling']:
+        if cfg['uncertainty_sampling']:  # TODO: Combine certain and uncertain parameters
             uncertain_parameters = get_uncertain_parameters(scenario, input_parameter)
             certain_parameters = get_certain_parameters(scenario, input_parameter)
             n_samples = 3  # TODO
