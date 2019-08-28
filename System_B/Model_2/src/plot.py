@@ -161,12 +161,16 @@ def plot_dispatch(timeseries, color_dict, filename):
             else:
                 color_i = None
             ax.fill_between(data_cum_sum.index, data_cum_sum[first], data_cum_sum[next],
-                        step='mid', label=next)#, color=color_i)
+                        step='mid', label=next, color=color_i)
+
+    group_subnets = lambda x: re.sub('subnet-._', '', x[0])
+    feedin_aggregated = df_resam[feedin_heat].groupby(group_subnets, axis=1).agg(sum)
+    charge_aggregated = df_resam[storage_heat_charge].groupby(group_subnets, axis=1).agg(sum)
 
     fig, ax = plt.subplots(figsize=(12, 6))
-    stacked_bar_plot(ax, df_resam[storage_heat_charge])
-    stacked_bar_plot(ax, df_resam[feedin_heat], color=colors)
-    ax.set_ylim(-500, 500)
+    stacked_bar_plot(ax, charge_aggregated)
+    stacked_bar_plot(ax, feedin_aggregated, color=colors)
+    ax.set_ylim(-20, 110)
     ax.grid(axis='y')
 
     # set title, labels and legend
@@ -229,11 +233,15 @@ def plot_load_duration_curves(timeseries, color_dict, filename):
     colors_heat_feedin = [color_dict[label] for label in labels]
     colors = colors_heat_feedin + ['k']
 
+    group_subnets = lambda x: re.sub('subnet-._', '', x[0])
+    feedin_aggregated = sorted_df[feedin_heat].groupby(group_subnets, axis=1).agg(sum)
+    charge_aggregated = sorted_df[storage_heat_charge].groupby(group_subnets, axis=1).agg(sum)
+
     # plot
     fig, ax = plt.subplots(figsize=(12, 6))
-    sorted_df[storage_heat_charge].plot(ax=ax)
-    sorted_df[feedin_heat].plot(ax=ax, color=colors)
-    ax.set_ylim(-50, 200)
+    charge_aggregated.plot(ax=ax)
+    feedin_aggregated.plot(ax=ax, color=colors)
+    ax.set_ylim(-20, 110)
     ax.grid(axis='y')
 
     # set title, labels and legend
@@ -304,15 +312,20 @@ def plot_storage_level(timeseries, color_dict, filename):
     labels = [re.sub('subnet-._', '', i[0]) for i in storage_heat_level]
     colors_level = [color_dict[label] for label in labels]
 
+    group_subnets = lambda x: re.sub('subnet-._', '', x[0])
+    aggregated_charge = df_resam[storage_heat_charge].groupby(group_subnets, axis=1).agg(sum)
+    aggregated_discharge = df_resam[storage_heat_discharge].groupby(group_subnets, axis=1).agg(sum)
+    aggregated_level = df_resam[storage_heat_level].groupby(group_subnets, axis=1).agg(sum)
+
     # plot
     fig, ax = plt.subplots(2, 1, figsize=(12, 6))
-    df_resam[storage_heat_charge].plot.area(ax=ax[0], color=colors_charge)
-    df_resam[storage_heat_discharge].plot.area(ax=ax[0], color=colors_discharge)
-    df_resam[storage_heat_level].plot.area(ax=ax[1], color=colors_level, alpha=0.3)
+    aggregated_charge.plot.area(ax=ax[0], color=colors_charge)
+    aggregated_discharge.plot.area(ax=ax[0], color=colors_discharge)
+    aggregated_level.plot.area(ax=ax[1], color=colors_level, alpha=0.3)
 
-    ax[0].set_ylim(-50, 50)
+    ax[0].set_ylim(-40, 40)
     ax[0].grid(axis='y', color='b')
-    ax[1].set_ylim(0, 500)
+    ax[1].set_ylim(0, 2000)
     ax[1].grid(axis='y', color='k')
 
     # set title, labels and legend
