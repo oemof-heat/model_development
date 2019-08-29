@@ -71,3 +71,9 @@ def load_model_runs(results_dir, cfg):
                              cfg['data_preprocessed']['scalars']['model_runs']),
                              index_col=[0, 1, 2], header=[0, 1])
     return model_runs
+
+
+def prepend_index(df, keys, names):
+    for key, name in zip(reversed(list(keys)), reversed(list(names))):
+        df = pd.concat([df], keys=[key], names=[name])
+    return df
