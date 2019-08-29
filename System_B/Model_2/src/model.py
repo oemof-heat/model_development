@@ -54,51 +54,66 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     b_th_central = Bus(label='bus_th_central')
     b_gas = Bus(label='bus_gas')
 
-    variable_costs_el = np.nan_to_num(price_electricity) + input_parameter['source_electricity']['tax_levys']
+    scaling_factor = input_parameter['source_electricity']['spot_price'] / np.mean(price_electricity)
+    variable_costs_el = scaling_factor * np.nan_to_num(price_electricity)\
+                        + input_parameter['source_electricity']['tax_levys']
+
     source_el = Source(label='source_electricity',
                        outputs={b_el_import: Flow(variable_costs=variable_costs_el,
                                                   emission_specific=input_parameter['source_electricity']
                                                                                    ['emission_specific'])})
 
-    variable_costs_el_flex = np.nan_to_num(price_electricity)
-    flex_friendly = bool(re.search('ff', index[1]))
-    if flex_friendly:
-        variable_costs_el_flex += input_parameter['source_electricity_flex']['tax_levys']  # TODO: Check
+    variable_costs_el_flex = scaling_factor * np.nan_to_num(price_electricity)
+    variable_costs_el_flex += input_parameter['source_electricity_flex']['tax_levys']  # TODO: Check
+    price_el_negative = np.nan_to_num(price_electricity) <= 0
+
     source_el_flex = Source(label='source_electricity_flex',
-                            outputs={b_el_import: Flow(variable_costs=variable_costs_el_flex,
+                            outputs={b_el_import: Flow(actual_value=1e6*price_el_negative.astype(int),
+                                                       variable_costs=variable_costs_el_flex,
                                                        emission_specific=input_parameter['source_electricity']
                                                                                         ['emission_specific'])})
 
     variable_costs_gas = input_parameter['source_gas']['carrier_price'] \
                        + input_parameter['source_gas']['co2_ets']
-    if flex_friendly:
-        variable_costs_gas += input_parameter['source_gas']['co2_fee']  # TODO: Check
-    # TODO network charges. for boiler: energy tax
+    variable_costs_gas += input_parameter['source_gas']['co2_fee']  # TODO: Check
+
     source_gas = Source(label='source_gas',
-                        outputs={b_gas: Flow(variable_costs=variable_costs_gas)})
+                        outputs={b_gas: Flow(variable_costs=variable_costs_gas,
+                                             emission_specific=input_parameter['source_gas']
+                                                                              ['emission_specific'])})
 
     revenue_sold_el = -1 * np.nan_to_num(price_electricity)
     revenue_sold_el -= input_parameter['chp', 'chp_surcharges']  # TODO: Check
     sold_el = Sink(label='sold_el', inputs={b_el_export: Flow(variable_costs=revenue_sold_el)})
 
-
     nominal_value_gas = input_parameter['chp', 'capacity_installed'] * 1/input_parameter['chp', 'efficiency_th']
     chp = ExtractionTurbineCHP(label='chp',
                                inputs={b_gas: Flow(nominal_value=nominal_value_gas,
-                                                   emission_specific=input_parameter['source_gas']
-                                                                                    ['emission_specific'])},
+                                                   variable_costs=input_parameter['chp', 'network_charges_WP'])},
                                outputs={b_th_central: Flow(nominal_value=input_parameter['chp',
                                                                                          'capacity_installed'],
-                                                           variable_costs=input_parameter['chp']['vom']),
+                                                           variable_costs=input_parameter['chp', 'vom']),
                                         b_el_export: Flow()},
                                conversion_factors={b_th_central: input_parameter['chp', 'efficiency_th'],
                                                    b_el_export: input_parameter['chp', 'efficiency_el']},
                                conversion_factor_full_condensation={
                                    b_el_export: input_parameter['chp', 'efficiency_el_full_cond']})
 
+    gas_boiler_central = Transformer(label='gas_boiler_central',
+                                     inputs={b_el_import: Flow(variable_costs=input_parameter['gas_boiler_central']
+                                                                                             ['energy_tax']
+                                                                            + input_parameter['gas_boiler_central']
+                                                                                             ['network_charges_WP'])},
+                                     outputs={b_th_central: Flow(nominal_value=input_parameter['gas_boiler_central']
+                                                                                              ['capacity_installed'],
+                                                                 variable_costs=input_parameter['gas_boiler_central']
+                                                                                               ['vom'],)},
+                                     conversion_factors={b_th_central: input_parameter['gas_boiler_central']
+                                                                                      ['efficiency']})
+
     pth_central = Transformer(label='pth_resistive_central',
-                              inputs={b_el_import: Flow(variable_costs= input_parameter['pth_resistive_central']
-                                                                                       ['network_charges_WP'])},
+                              inputs={b_el_import: Flow(variable_costs=input_parameter['pth_resistive_central']
+                                                                                      ['network_charges_WP'])},
                               outputs={b_th_central: Flow(nominal_value=input_parameter['pth_resistive_central']
                                                                                        ['capacity_installed'],
                                                           variable_costs=input_parameter['pth_resistive_central']
@@ -143,7 +158,8 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                     conversion_factors={bus_th: input_parameter['pth_resistive_decentral']
                                                                                ['efficiency']})
         heat_pump_decentral = Transformer(label=name_subnet+'_pth_heat_pump_decentral',
-                                          inputs={b_el_import: Flow()},
+                                          inputs={b_el_import: Flow(variable_costs=input_parameter['pth_heat_pump_decentral']
+                                                                                                  ['network_charges_WP'])},
                                           outputs={bus_th:
                                                        Flow(nominal_value=input_parameter[name_subnet+'_pth_heat_pump_decentral']
                                                                                          ['capacity_installed'],
@@ -180,7 +196,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
 
     energysystem.add(b_el_export, b_el_import, b_th_central, b_gas,
                      sold_el, source_gas, source_el, source_el_flex,
-                     chp, pth_central, tes_central,
+                     chp, gas_boiler_central, pth_central, tes_central,
                      *list_pipes, *list_bus_th_decentral, *list_pth_decentral,
                      *list_heat_pump_decentral, *list_tes_decentral, *list_demand_th)
 
