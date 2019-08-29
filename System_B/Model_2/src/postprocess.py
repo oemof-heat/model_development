@@ -93,7 +93,7 @@ def get_derived_results_timeseries_emissions(energysystem):
     return timeseries_emission
 
 
-def get_derived_results_timeseries_costs_variable(energysystem):
+def get_derived_results_timeseries_costs_variable(energysystem):  # TODO: Check
     param_scalar = get_param_scalar(energysystem)
     flows = get_results_flows(energysystem)
     cost_variable = param_scalar.loc[(param_scalar['var_name']=='variable_costs')]
@@ -180,7 +180,7 @@ def get_derived_results_scalar(input_parameter,
     # Production
     producers_heat = [component for component in results_timeseries_flows.columns
                       if bool(re.search('bus_th', component[1]))
-                      and not bool(re.search('storage', component[0]))
+                      and not bool(re.search('tes', component[0]))
                       and not bool(re.search('pipe', component[0]))]
 
     energy_thermal_produced_sum = results_timeseries_flows[producers_heat].sum()
@@ -237,7 +237,7 @@ def get_derived_results_scalar(input_parameter,
     # Storage operation
     storage_discharge = [component for component in results_timeseries_flows.columns
                          if component[1]!='None'
-                         and bool(re.search('storage', component[0]))]
+                         and bool(re.search('tes', component[0]))]
     energy_heat_storage_discharge_sum = results_timeseries_flows[storage_discharge].sum()
     energy_heat_storage_discharge_sum = format_results(energy_heat_storage_discharge_sum,
                                                        'energy_heat_storage_discharge_sum',
@@ -278,13 +278,19 @@ def get_derived_results_scalar(input_parameter,
                                        'Eur')
 
     cost_fix = input_parameter.loc[slice(None), ['capacity_installed', 'overnight_cost', 'lifetime', 'fom'], :]
-    cost_fix.loc['pth_heat_pump_decentral', 'capacity_installed'] = cost_fix.filter(regex='subnet-._heat_pump').sum()
-    cost_fix.loc['pth_resistive_decentral', 'capacity_installed'] = cost_fix.filter(regex='subnet-._pth').sum()
-    cost_fix.loc['tes_decentral', 'capacity_installed'] = cost_fix.filter(regex='subnet-._tes').sum()
-    drop_rows = [key for key in cost_fix.index if bool(re.search('subnet-.', key[0]))]
-    cost_fix = cost_fix.drop(drop_rows)
     cost_fix = cost_fix.unstack(1)
-    wacc = 0.03  # TODO
+    cost_fix.loc[[key for key in cost_fix.index if bool(re.search('subnet-._tes', key))],
+                 ['fom', 'lifetime', 'overnight_cost']] = cost_fix.loc['tes_decentral',
+                                                                      ['fom', 'lifetime', 'overnight_cost']].values
+    cost_fix.loc[[key for key in cost_fix.index if bool(re.search('subnet-._heat_pump', key))],
+                 ['fom', 'lifetime', 'overnight_cost']] = cost_fix.loc['pth_heat_pump_decentral',
+                                                                      ['fom', 'lifetime', 'overnight_cost']].values
+    cost_fix.loc[[key for key in cost_fix.index if bool(re.search('subnet-._pth', key))],
+                 ['fom', 'lifetime', 'overnight_cost']] = cost_fix.loc['pth_resistive_decentral',
+                                                                      ['fom', 'lifetime', 'overnight_cost']].values
+    cost_fix = cost_fix.drop(['pth_heat_pump_decentral', 'pth_resistive_decentral'])
+
+    wacc = 0.03  # TODO get from input parameter
     cost_fix['annuity'] = cost_fix.apply(lambda x: economics.annuity(x['overnight_cost'], x['lifetime'], wacc), axis=1)
     cost_fix['capex'] = cost_fix.apply(lambda x: x['capacity_installed'] * x['annuity'],axis=1)
     cost_fix['fom_abs'] = cost_fix.apply(lambda x: x['capacity_installed'] * x['fom'],axis=1)
@@ -322,7 +328,6 @@ def get_derived_results_scalar(input_parameter,
                                         energy_losses_heat_dhn_sum,
                                         cost_total_system,
                                         emissions_sum], sort=True)
-
     derived_results_scalar.index.rename('var_name',
                                         'variable_name',
                                         inplace=True)
@@ -334,6 +339,7 @@ def get_derived_results_scalar(input_parameter,
         regex = re.compile(r"subnet-._")
         remove_subnet = lambda str: re.sub(regex, '', str)
         results_decentral = results_decentral.rename(index={key: remove_subnet(key) for key in keys_decentral})
+
         def func(x):
             to_sum = ['energy_heat_storage_discharge_sum',
                       'energy_consumed_sum',
@@ -346,9 +352,11 @@ def get_derived_results_scalar(input_parameter,
                 return sum(x)
             else:
                 return np.mean(x)
-        aggregated = results_decentral.groupby(['component', 'var_name']).agg(func)  # TODO Aggregation depending on var_name
-        aggregated_results = pd.concat([aggregated,
-                                        derived_results_scalar.drop(keys_decentral, level=0)],
+
+        aggregated_decentral = results_decentral.groupby(['component', 'var_name']).agg(func)
+        results_central = derived_results_scalar.drop(keys_decentral, level=0)
+        aggregated_results = pd.concat([aggregated_decentral,
+                                        results_central],
                                         axis=0, sort=True).sort_index()
         return aggregated_results
 
@@ -398,6 +406,9 @@ def postprocess(config_path, results_dir):
                                                             results_timeseries_flows,
                                                             derived_results_timeseries_costs_variable,
                                                             derived_results_timeseries_emissions)
+        derived_results_scalar = helpers.prepend_index(derived_results_scalar,
+                                                       index,
+                                                       ['run_id', 'scenario', 'uncert_sample_id'])
         derived_results_scalar.to_csv(os.path.join(dir_postproc,
                                                    cfg['data_postprocessed']['scalars']['derived']), header=True)
 
