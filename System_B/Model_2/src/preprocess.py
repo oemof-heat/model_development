@@ -15,7 +15,6 @@ import os
 import re
 import pandas as pd
 from ast import literal_eval
-# import datetime
 from workalendar.europe import Germany
 import yaml
 import demandlib.bdew as bdew
@@ -61,7 +60,6 @@ def prepare_timeseries_demand_heat(year, parameter_bdew,
     # create a DataFrame to hold the timeseries
     demand = pd.DataFrame(index=temperature.index)
     for component, parameter_list in parameter_bdew.items():
-        # print(component)
         component_demand = pd.DataFrame()
         for item in parameter_list:
             timeseries_demand = bdew.HeatBuilding(demand.index,
@@ -71,8 +69,6 @@ def prepare_timeseries_demand_heat(year, parameter_bdew,
                                                   **item).get_bdew_profile()
             component_demand[item['shlp_type']] = timeseries_demand
         demand[component] = component_demand.sum(axis=1)
-    # print(output_filename)
-    # print(demand.head())
     if not os.path.exists(os.path.dirname(output_filename)):
         os.makedirs(os.path.dirname(output_filename))
     demand.to_csv(output_filename)
