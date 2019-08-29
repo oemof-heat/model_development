@@ -125,12 +125,12 @@ def plot_dispatch(timeseries, color_dict, filename):
     """
     storage_heat_charge_central = [component for component in timeseries.columns
                                    if bool(re.search('bus_th_central', component[0]))
-                                   and bool(re.search('storage', component[1]))]
+                                   and bool(re.search('tes', component[1]))]
     feedin_heat_central = [component for component in timeseries.columns
                            if bool(re.search('bus_th_central', component[1]))]
     storage_heat_charge_decentral = [component for component in timeseries.columns
                                      if bool(re.search('bus_th', component[0]))
-                                     and bool(re.search('storage_decentral', component[1]))]
+                                     and bool(re.search('tes_decentral', component[1]))]
     feedin_heat_decentral = [component for component in timeseries.columns
                              if bool(re.search('bus_th_decentral', component[1]))
                              and not bool(re.search('pipe', component[0]))]
@@ -205,12 +205,12 @@ def plot_load_duration_curves(timeseries, color_dict, filename):
     """
     storage_heat_charge_central = [component for component in timeseries.columns
                                    if bool(re.search('bus_th_central', component[0]))
-                                   and bool(re.search('storage', component[1]))]
+                                   and bool(re.search('tes', component[1]))]
     feedin_heat_central = [component for component in timeseries.columns
                            if bool(re.search('bus_th_central', component[1]))]
     storage_heat_charge_decentral = [component for component in timeseries.columns
                                      if bool(re.search('bus_th', component[0]))
-                                     and bool(re.search('storage_decentral', component[1]))]
+                                     and bool(re.search('tes_decentral', component[1]))]
     feedin_heat_decentral = [component for component in timeseries.columns
                              if bool(re.search('bus_th_decentral', component[1]))
                              and not bool(re.search('pipe', component[0]))]
@@ -278,22 +278,22 @@ def plot_storage_level(timeseries, color_dict, filename):
     """
     storage_heat_charge_central = [component for component in timeseries.columns
                                    if bool(re.search('bus_th_central', component[0]))
-                                   and bool(re.search('storage', component[1]))]
+                                   and bool(re.search('tes', component[1]))]
     storage_heat_charge_decentral = [component for component in timeseries.columns
                                      if bool(re.search('bus_th', component[0]))
-                                     and bool(re.search('storage_decentral', component[1]))]
+                                     and bool(re.search('tes_decentral', component[1]))]
 
     storage_heat_discharge_central = [component for component in timeseries.columns
                                       if bool(re.search('bus_th_central', component[1]))
-                                      and bool(re.search('storage', component[0]))]
+                                      and bool(re.search('tes', component[0]))]
     storage_heat_discharge_decentral = [component for component in timeseries.columns
                                         if bool(re.search('bus_th', component[1]))
-                                        and bool(re.search('storage_decentral', component[0]))]
+                                        and bool(re.search('tes_decentral', component[0]))]
     storage_heat_level_central = [component for component in timeseries.columns
-                                  if bool(re.search('storage', component[0]))
+                                  if bool(re.search('tes', component[0]))
                                   and component[1]=='None']
     storage_heat_level_decentral = [component for component in timeseries.columns
-                                    if bool(re.search('storage_decentral', component[0]))
+                                    if bool(re.search('tes_decentral', component[0]))
                                     and component[1]=='None']
     storage_heat_charge = [*storage_heat_charge_central, *storage_heat_charge_decentral]
     storage_heat_discharge = [*storage_heat_discharge_central, *storage_heat_discharge_decentral]
@@ -381,12 +381,12 @@ def plot_p_q_diagram(timeseries, param_chp, capacity_installed_chp, color_dict, 
 
     operating_heat_pump.name = 'operating_pth_resistive'
     discharging_storage = timeseries.loc[:, [key for key in timeseries.columns
-                                           if bool(re.search('storage', key[0]))
+                                           if bool(re.search('tes', key[0]))
                                            and key[1]!='None']].sum(axis=1) > 0
 
     discharging_storage.name = 'discharging_storage'
     charging_storage = timeseries.loc[:, [key for key in timeseries.columns
-                                          if bool(re.search('storage', key[1]))]].sum(axis=1) > 0
+                                          if bool(re.search('tes', key[1]))]].sum(axis=1) > 0
 
     charging_storage.name = 'charging_storage'
     coloring = pd.concat([operating_pth_resistive,
@@ -450,10 +450,10 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
                                       and key[1]=='bus_th_central']]
     storage_charge = timeseries.loc[:, [key for key in timeseries.columns
                                         if bool(re.search('bus_th', key[0]))
-                                        and bool(re.search('storage', key[1]))]].sum(axis=1)
+                                        and bool(re.search('tes', key[1]))]].sum(axis=1)
 
     storage_discharge = timeseries.loc[:, [key for key in timeseries.columns
-                                           if bool(re.search('storage', key[0]))
+                                           if bool(re.search('tes', key[0]))
                                            and bool(re.search('bus_th', key[1]))]].sum(axis=1)
 
     storage_charge_discharge = storage_charge - storage_discharge
@@ -613,13 +613,14 @@ def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_di
     grouped = df.groupby('var_name')
 
     def stacked_bar(group, ax):
-        data = grouped.get_group(group)['var_value'].unstack(level=1)
+        data = grouped.get_group(group)['var_value']\
+            .unstack(level=1)
         unit = grouped.get_group(group)['var_unit'][0]
         data.plot.bar(ax=ax,
                       stacked=True)
         ax.set_xticklabels(data.index.get_level_values('scenario'))
         ax.set_title(group.replace('_','\n')+f' [{unit}]')
-        ax.get_legend().remove()
+        # ax.get_legend().remove()
 
     def horizontal_bar(group, ax):
         data = grouped.get_group(group)['var_value'].unstack(level=1)
@@ -632,8 +633,8 @@ def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_di
     fig = plt.figure(figsize=(15, 10))
     gs = gridspec.GridSpec(3, 7)
 
-    # ax = fig.add_subplot(gs[:, 0])
-    # stacked_bar('cost_total_system', ax)
+    ax = fig.add_subplot(gs[:, 0])
+    stacked_bar('cost_total_system', ax)
 
     ax = fig.add_subplot(gs[:, 1])
     stacked_bar('installed_production_capacity', ax)
@@ -660,6 +661,16 @@ def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_di
 
     plt.tight_layout()
     plt.savefig(filename)
+    return None
+
+
+def scenario_input_overview(parameter_changing, color_dict, filename):
+    fig = plt.figure(figsize=(15, 10))
+    gs = gridspec.GridSpec(3, 7)
+
+    # ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
+    # plt.tight_layout()
+    # plt.savefig(filename)
     return None
 
 
@@ -736,7 +747,7 @@ def create_plots(config_path, results_dir):
         # plot_results_scalar_derived(results_scalar_derived,
         #                             color_dict,
         #                             os.path.join(dir_plot,'results_scalar_derived.pdf'))
-        # plt.close('all')
+        plt.close('all')
 
     energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'data_plots/energysystem_graph.pkl'))
     draw_graph(energysystem_graph,
@@ -750,6 +761,13 @@ def create_plots(config_path, results_dir):
     plot_results_scalar_derived_summary(results_scalar_derived_all,
                                         color_dict,
                                         os.path.join(results_dir, 'plots', 'results_scalar_derived_summary.pdf'))
+
+    parameter_changing = pd.read_csv(os.path.join(results_dir,
+                                                  'data_preprocessed',
+                                                  cfg['data_preprocessed']['scalars']['parameters_changing']))
+    scenario_input_overview(parameter_changing,
+                            color_dict,
+                            os.path.join(results_dir, 'plots', 'scenario_input_overview.pdf'))
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
