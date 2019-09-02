@@ -180,6 +180,7 @@ def get_derived_results_scalar(input_parameter,
     # Production
     producers_heat = [component for component in results_timeseries_flows.columns
                       if bool(re.search('bus_th', component[1]))
+                      and not bool(re.search('behind', component[1]))
                       and not bool(re.search('tes', component[0]))
                       and not bool(re.search('pipe', component[0]))]
 
@@ -288,7 +289,7 @@ def get_derived_results_scalar(input_parameter,
     cost_fix.loc[[key for key in cost_fix.index if bool(re.search('subnet-._pth', key))],
                  ['fom', 'lifetime', 'overnight_cost']] = cost_fix.loc['pth_resistive_decentral',
                                                                       ['fom', 'lifetime', 'overnight_cost']].values
-    cost_fix = cost_fix.drop(['pth_heat_pump_decentral', 'pth_resistive_decentral'])
+    cost_fix = cost_fix.drop(['pth_heat_pump_decentral', 'pth_resistive_decentral', 'tes_decentral'])
 
     wacc = 0.03  # TODO get from input parameter
     cost_fix['annuity'] = cost_fix.apply(lambda x: economics.annuity(x['overnight_cost'], x['lifetime'], wacc), axis=1)
