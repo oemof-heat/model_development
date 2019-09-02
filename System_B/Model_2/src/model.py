@@ -100,10 +100,10 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                    b_el_export: input_parameter['chp', 'efficiency_el_full_cond']})
 
     gas_boiler_central = Transformer(label='gas_boiler_central',
-                                     inputs={b_el_import: Flow(variable_costs=input_parameter['gas_boiler_central']
-                                                                                             ['energy_tax']
-                                                                            + input_parameter['gas_boiler_central']
-                                                                                             ['network_charges_WP'])},
+                                     inputs={b_gas: Flow(variable_costs=input_parameter['gas_boiler_central']
+                                                                                       ['energy_tax']
+                                                                      + input_parameter['gas_boiler_central']
+                                                                                       ['network_charges_WP'])},
                                      outputs={b_th_central: Flow(nominal_value=input_parameter['gas_boiler_central']
                                                                                               ['capacity_installed'],
                                                                  variable_costs=input_parameter['gas_boiler_central']
