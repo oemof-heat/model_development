@@ -155,13 +155,19 @@ def plot_dispatch(timeseries, color_dict, filename):
                                    if bool(re.search('bus_th_central', component[0]))
                                    and bool(re.search('tes', component[1]))]
     feedin_heat_central = [component for component in timeseries.columns
-                           if bool(re.search('bus_th_central', component[1]))]
+                           if bool(re.search('bus_th_central', component[1]))
+                           and not bool(re.search('behind', component[1]))]
+    feedin_heat_central.append(('tes_central', 'bus_th_central_behind_storage', 'flow'))
     storage_heat_charge_decentral = [component for component in timeseries.columns
                                      if bool(re.search('bus_th', component[0]))
                                      and bool(re.search('tes_decentral', component[1]))]
     feedin_heat_decentral = [component for component in timeseries.columns
                              if bool(re.search('bus_th_decentral', component[1]))
-                             and not bool(re.search('pipe', component[0]))]
+                             and not bool(re.search('pipe', component[0]))
+                             and not bool(re.search('behind', component[1]))]
+    feedin_heat_decentral.extend([component for component in timeseries.columns
+                                  if bool(re.search('tes_decentral', component[0]))
+                                  and bool(re.search('bus_th_decentral_behind', component[1]))])
     feedin_heat_decentral = sorted(feedin_heat_decentral, key=lambda x: re.sub('subnet-._', '', x[0]))
     storage_heat_charge = [*storage_heat_charge_central, *storage_heat_charge_decentral]
     feedin_heat = [*feedin_heat_central, *feedin_heat_decentral]
@@ -221,13 +227,19 @@ def plot_load_duration_curves(timeseries, color_dict, filename):
                                    if bool(re.search('bus_th_central', component[0]))
                                    and bool(re.search('tes', component[1]))]
     feedin_heat_central = [component for component in timeseries.columns
-                           if bool(re.search('bus_th_central', component[1]))]
+                           if bool(re.search('bus_th_central', component[1]))
+                           and not bool(re.search('behind', component[1]))]
+    feedin_heat_central.append(('tes_central', 'bus_th_central_behind_storage', 'flow'))
     storage_heat_charge_decentral = [component for component in timeseries.columns
                                      if bool(re.search('bus_th', component[0]))
                                      and bool(re.search('tes_decentral', component[1]))]
     feedin_heat_decentral = [component for component in timeseries.columns
                              if bool(re.search('bus_th_decentral', component[1]))
-                             and not bool(re.search('pipe', component[0]))]
+                             and not bool(re.search('pipe', component[0]))
+                             and not bool(re.search('behind', component[1]))]
+    feedin_heat_decentral.extend([component for component in timeseries.columns
+                                  if bool(re.search('tes_decentral', component[0]))
+                                  and bool(re.search('bus_th_decentral_behind', component[1]))])
     feedin_heat_decentral = sorted(feedin_heat_decentral, key=lambda x: re.sub('subnet-._', '', x[0]))
     storage_heat_charge = [*storage_heat_charge_central, *storage_heat_charge_decentral]
     feedin_heat = [*feedin_heat_central, *feedin_heat_decentral]
@@ -412,11 +424,11 @@ def plot_p_q_diagram(timeseries, param_chp, capacity_installed_chp, color_dict, 
                           discharging_storage], axis=1)
     def func(row):
         sel = tuple(i for (i, v) in zip(['heat_pump', 'resistive', 'charging', 'discharging'], row.values) if v)
-        col =  {('heat_pump', 'resistive', 'charging', 'discharging'): 'b',
-                ('resistive', 'charging', 'discharging'): 'b',
+        col =  {('heat_pump', 'resistive', 'charging', 'discharging'): 'r',
+                ('resistive', 'charging', 'discharging'): 'r',
                 ('charging', 'discharging'): 'r',
                 ('heat_pump', 'resistive', 'charging'): 'b',
-                ('heat_pump', 'resistive', 'discharging'): 'r',
+                ('heat_pump', 'resistive', 'discharging'): 'b',
                 ('heat_pump', 'resistive'): 'y',
                 ('heat_pump', 'charging'): 'y',
                 ('resistive', 'charging'): 'b',
