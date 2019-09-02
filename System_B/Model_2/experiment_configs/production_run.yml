@@ -1,14 +1,12 @@
 debug: False
 solver: 'cbc'
 
-# zensus_url: 'https://ergebnisse.zensus2011.de/auswertungsdb/download?csv=dynTable&tableHash=statUnit=WOHNUNG;absRel=ANZAHL;ags=150010000000;agsAxis=X;yAxis=BAUJAHR_MZ,ZAHLWOHNGN_HHG,WOHNFLAECHE_10S&locale=DE'
-
 # sources for raw data
 data_raw:
   timeseries: 'data/timeseries.csv'
   scalars:
-    parameters: 'data/parameter_v0-6.csv'
-  scenarios: 'data/scenarios.csv'
+    parameters: 'data/parameter_v0-7.csv'
+  scenarios: 'data/scenarios_all.csv'
 
 # Preprocessed data to use
 data_preprocessed:
@@ -17,13 +15,7 @@ data_preprocessed:
     price_electricity_spot: 'price_electricity_spot/price_electricity_spot_2017.csv'
   scalars:
     model_runs: 'model_runs.csv'
-
-# optimisation settings
-investment:
-  invest_pth: False
-
-# CHP representation
-chp_repr: 'option_2'
+    parameters_changing: 'parameters_changing.csv'
 
 uncertainty_sampling: False
 
