@@ -49,13 +49,25 @@ def get_samples(scenario, certain_parameters, uncertain_parameters, n_samples):
 
 
 def get_deterministic_run(scenario, input_parameters):
-    df = input_parameters.loc[([scenario, '1_basic'],
-                               ['reference', 'deterministic'],
-                               slice(None),
-                               slice(None))]
-    df.index = df.index.droplevel(0)
+    df = input_parameters.xs(['1_basic', 'reference'])
+    print(scenario)
+    accumulate_key = []
+    for str in scenario.split('_'):
+        accumulate_key.append(str)
+        key = '_'.join(accumulate_key)
+        if key in input_parameters.index.get_level_values(0):
+            df_additional = input_parameters.xs([key, 'reference'])
+            df = pd.merge(df_additional,
+                          df,
+                          how='outer',
+                          on=['var_value', 'var_unit'],
+                          left_index=True,
+                          right_index=True)
+
+    df = helpers.prepend_index(df, [scenario], ['scenario'])
+
     if df.index.duplicated().any():
-        raise ValueError(f'Duplicated entries in {scenario} and 1_basic')
+        raise ValueError('Duplicated entries in {} and 1_basic'.format(scenario))
 
     df = df['var_value'].unstack(level=[1, 2])
     df = df.reset_index(drop=True)
