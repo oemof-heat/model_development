@@ -2,7 +2,7 @@ from oemof.solph import Bus, Transformer, Sink, Flow
 
 
 class Pipe():
-    def __init__(self, label, inputs, outputs, losses_relative=1, losses_fixed=0):
+    def __init__(self, label, inputs, outputs, loss_factor=1, losses_fixed=0):
         self.component_list = []
 
         self.bus = Bus(label=label + '_bus')
@@ -10,7 +10,7 @@ class Pipe():
         self.trsf_in = Transformer(label=label + '_in',
                                    inputs=inputs,
                                    outputs={self.bus: Flow()},
-                                   conversion_factors={self.bus: losses_relative})
+                                   conversion_factors={self.bus: loss_factor})
 
         self.trsf_out = Transformer(label=label + '_out',
                                     inputs={self.bus: Flow()},

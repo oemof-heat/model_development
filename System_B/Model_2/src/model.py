@@ -155,8 +155,8 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
         pipe = Pipe(label=name_subnet+'_pipe',
                     inputs={b_th_central_behind_storage: Flow()},
                     outputs={b_th_decentral: Flow()},
-                    losses_fixed=10,
-                    losses_relative=input_parameter[name_subnet+'_pipe']['efficiency']).get_components()
+                    losses_fixed=input_parameter[name_subnet+'_pipe']['losses_fixed'],
+                    loss_factor=1).get_components()
 
         pth_decentral = Transformer(label=name_subnet+'_pth_resistive_decentral',
                                     inputs={b_el_import: Flow(variable_costs=input_parameter['pth_resistive_decentral']
