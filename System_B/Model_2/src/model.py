@@ -17,6 +17,7 @@ from oemof.solph.components import GenericStorage, ExtractionTurbineCHP
 import oemof.graph as graph
 
 import helpers
+from facades import Pipe
 
 
 def model(index, input_parameter, demand_heat, price_electricity, results_dir, solver='cbc', debug=True):
@@ -151,10 +152,12 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     for column in demand_heat.columns:
         name_subnet = find_subnet(column)
         b_th_decentral = Bus(label=name_subnet+'_bus_th_decentral')
-        pipe = Transformer(label=name_subnet+'_pipe',
-                           inputs={b_th_central_behind_storage: Flow()},
-                           outputs={b_th_decentral: Flow()},
-                           conversion_factors={b_th_decentral: input_parameter[name_subnet+'_pipe']['efficiency']})
+        pipe = Pipe(label=name_subnet+'_pipe',
+                    inputs={b_th_central_behind_storage: Flow()},
+                    outputs={b_th_decentral: Flow()},
+                    losses_fixed=10,
+                    losses_relative=input_parameter[name_subnet+'_pipe']['efficiency']).get_components()
+
         pth_decentral = Transformer(label=name_subnet+'_pth_resistive_decentral',
                                     inputs={b_el_import: Flow(variable_costs=input_parameter['pth_resistive_decentral']
                                                                                             ['network_charges_WP'])},
@@ -164,7 +167,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                         variable_costs=input_parameter['pth_resistive_decentral']
                                                                       ['vom'])},
                                     conversion_factors={b_th_decentral: input_parameter['pth_resistive_decentral']
-                                                                               ['efficiency']})
+                                                                                       ['efficiency']})
         heat_pump_decentral = Transformer(label=name_subnet+'_pth_heat_pump_decentral',
                                           inputs={b_el_import: Flow(variable_costs=input_parameter['pth_heat_pump_decentral']
                                                                                                   ['network_charges_WP'])},
@@ -205,7 +208,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
         list_bus_th_decentral.append(b_th_decentral)
         list_bus_th_decentral_behind_storage.append(b_th_decentral_behind_storage)
         list_transformer_bus_th_decentral.append(transformer_b_th_decentral)
-        list_pipes.append(pipe)
+        list_pipes.extend(pipe)
         list_pth_decentral.append(pth_decentral)
         list_heat_pump_decentral.append(heat_pump_decentral)
         list_tes_decentral.append(tes_decentral)
