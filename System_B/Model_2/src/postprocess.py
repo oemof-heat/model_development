@@ -291,7 +291,7 @@ def get_derived_results_scalar(input_parameter,
                                                                       ['fom', 'lifetime', 'overnight_cost']].values
     cost_fix = cost_fix.drop(['pth_heat_pump_decentral', 'pth_resistive_decentral', 'tes_decentral'])
 
-    wacc = 0.03  # TODO get from input parameter
+    wacc = input_parameter.loc['global', 'wacc']
     cost_fix['annuity'] = cost_fix.apply(lambda x: economics.annuity(x['overnight_cost'], x['lifetime'], wacc), axis=1)
     cost_fix['capex'] = cost_fix.apply(lambda x: x['capacity_installed'] * x['annuity'],axis=1)
     cost_fix['fom_abs'] = cost_fix.apply(lambda x: x['capacity_installed'] * x['fom'],axis=1)
@@ -305,7 +305,16 @@ def get_derived_results_scalar(input_parameter,
     cost_total_system['var_name'] = 'cost_total_system'
     cost_total_system = cost_total_system.set_index(['component', 'var_name'])
 
-    cost_specific_heat_mean = 0  # TODO: Durchschnittliche Waermegestehungskosten
+    consumers_heat = [component for component in results_timeseries_flows.columns
+                      if bool(re.search('demand_th', component[1]))]
+    energy_thermal_consumed = results_timeseries_flows[consumers_heat].sum()
+
+    cost_specific_heat = cost_total_system.sum() / energy_thermal_consumed.sum()
+
+    cost_specific_heat = helpers.prepend_index(pd.DataFrame(cost_specific_heat).T,
+                                               ['demand_th', 'cost_specific_heat'],
+                                               ['component', 'var_name'])
+    cost_specific_heat['var_unit'] = 'Eur/MWh'
 
     # Emissions
     emissions_sum = derived_results_timeseries_emissions.sum()
@@ -328,6 +337,7 @@ def get_derived_results_scalar(input_parameter,
                                         energy_heat_storage_discharge_sum,
                                         energy_losses_heat_dhn_sum,
                                         cost_total_system,
+                                        cost_specific_heat,
                                         emissions_sum], sort=True)
     derived_results_scalar.index.rename('var_name',
                                         'variable_name',
