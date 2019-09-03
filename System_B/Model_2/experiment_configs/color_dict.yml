@@ -1,15 +1,21 @@
-gas: '#19A8B8'
-source_gas: '#19A8B8'
-chp: '#19A8B8'
-source_electricity: '#F9FF00'
-bus_el_import: '#F9FF00'
-pth_resistive_central: '#F9FF00'
-storage_central: '#FF0000'
-pth_resistive_decentral: '#F9FF00'
-pth_heat_pump_decentral: '#10FF00'
-storage_decentral: '#FF0000'
+gas: '#cc6600'
+source_gas: '#cc6600'
+
+chp: '#660000'
+gas_boiler_central: '#d55e00'
+
+source_electricity: '#cccc00'
+source_electricity_flex: '#ffff00'
+bus_el_import: '#ece133'
+
+pth_resistive_central: '#cc78bc'
+pth_resistive_decentral: '#fbafe4'
+pth_heat_pump_decentral: '#56b4e9'
+
+tes_central: '#33a02c'
+tes_decentral: '#b2df8a'
+
 bus_th_central: '#FF0000'
 pipe: '#686868'
 bus_th_decentral: '#FF5300'
-shortage_heat: '#FF0000'
 demand_th: '#eeac7e'
