@@ -29,13 +29,16 @@ register_matplotlib_converters()
 
 def plot_heat_demand(demand_heat, filename):
     # Plot demand of building
-    fig, ax = plt.subplots(figsize=(12, 6))
-    demand_heat.sum(axis=1).plot(ax=ax,
+    fig, ax = plt.subplots(2, 1)
+    demand_heat.iloc[0:1000].sum(axis=1).plot(ax=ax[0],
                                  linewidth=1,
                                  c='r')
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Heat demand in MW")
-    plt.savefig(filename, figsize=(12, 6), bbox_inches='tight')
+    ax[0].set_xlabel("Date")
+    ax[0].set_ylabel("Heat demand in MW")
+    demand_heat.iloc[0:1000].plot(ax=ax[1],
+                     linewidth=1,
+                     c='r')
+    plt.savefig(filename, bbox_inches='tight')
 
 
 def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
@@ -89,7 +92,7 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
     labeldict = {node: node.replace('_', '\n') for node in grph.nodes}
 
     # draw graph
-    plt.figure(figsize=(12, 6))
+    plt.figure()
     pos = nx.drawing.nx_agraph.graphviz_layout(grph, prog='dot', args="-Grankdir=LR")
     nx.draw(grph, pos=pos, labels=labeldict, **options)
 
@@ -171,6 +174,8 @@ def plot_dispatch(timeseries, color_dict, filename):
     feedin_heat_decentral = sorted(feedin_heat_decentral, key=lambda x: re.sub('subnet-._', '', x[0]))
     storage_heat_charge = [*storage_heat_charge_central, *storage_heat_charge_decentral]
     feedin_heat = [*feedin_heat_central, *feedin_heat_decentral]
+    demand_heat = [component for component in timeseries.columns
+                   if bool(re.search('demand', component[1]))]
 
     # resample
     df_resam = timeseries.copy()
@@ -180,19 +185,29 @@ def plot_dispatch(timeseries, color_dict, filename):
     # invert heat to storage
     df_resam[storage_heat_charge] *= -1
 
-    # prepare colors
-    labels = [re.sub('subnet-._', '', i[0]) for i in feedin_heat]
-    colors_heat_feedin = [color_dict[label] for label in labels]
-    colors = colors_heat_feedin + ['k']
-
+    # aggregate decentral
     group_subnets = lambda x: re.sub('subnet-._', '', x[0])
     feedin_aggregated = df_resam[feedin_heat].groupby(group_subnets, axis=1).agg(sum)
+    group_subnets = lambda x: re.sub('subnet-._', '', x[1])
     charge_aggregated = df_resam[storage_heat_charge].groupby(group_subnets, axis=1).agg(sum)
+    demand_heat = df_resam[demand_heat].sum(axis=1)
 
-    fig, ax = plt.subplots(figsize=(12, 6))
-    stacked_bar_plot(ax, charge_aggregated)
-    stacked_bar_plot(ax, feedin_aggregated, color=colors)
-    ax.set_ylim(-50, 150)
+
+    # prepare colors
+    colors_feedin_heat = [color_dict[label] for label in feedin_aggregated]
+    color_storage_heat_charge = [color_dict[label] for label in charge_aggregated]
+
+    fig, ax = plt.subplots()
+    stacked_bar_plot(ax,
+                     charge_aggregated,
+                     color=color_storage_heat_charge)
+    stacked_bar_plot(ax,
+                     feedin_aggregated,
+                     color=colors_feedin_heat)
+    ax.plot(demand_heat,
+            linewidth='1.5',
+            color='r')
+    ax.set_ylim(-50, 250)
     ax.grid(axis='y')
 
     # set title, labels and legend
@@ -202,7 +217,7 @@ def plot_dispatch(timeseries, color_dict, filename):
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
 
     # save figure
-    fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
+    fig.savefig(filename, bbox_inches='tight')
     return None
 
 
@@ -266,7 +281,7 @@ def plot_load_duration_curves(timeseries, color_dict, filename):
     charge_aggregated = sorted_df[storage_heat_charge].groupby(group_subnets, axis=1).agg(sum)
 
     # plot
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots()
     charge_aggregated.plot(ax=ax,
                            linewidth=5)
     feedin_aggregated.plot(ax=ax,
@@ -282,7 +297,7 @@ def plot_load_duration_curves(timeseries, color_dict, filename):
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
 
     # save figure
-    fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
+    fig.savefig(filename, bbox_inches='tight')
     return None
 
 
@@ -349,7 +364,7 @@ def plot_storage_level(timeseries, color_dict, filename):
     aggregated_level = df_resam[storage_heat_level].groupby(group_subnets, axis=1).agg(sum)
 
     # plot
-    fig, ax = plt.subplots(2, 1, figsize=(12, 6))
+    fig, ax = plt.subplots(2, 1)
     aggregated_charge.plot.area(ax=ax[0], color=colors_charge)
     aggregated_discharge.plot.area(ax=ax[0], color=colors_discharge)
     aggregated_level.plot.area(ax=ax[1], color=colors_level, alpha=0.3)
@@ -367,14 +382,14 @@ def plot_storage_level(timeseries, color_dict, filename):
     ax[0].legend(loc='upper left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
     ax[1].legend(loc='lower left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
 
-    fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
+    fig.savefig(filename, bbox_inches='tight')
     return None
 
 
 def plot_price_el(price_el, filename):
     sorted_price_el = price_el.sort_values('variable_costs', ascending=False).reset_index(drop=True)
     # plot
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots()
     ax.plot(price_el,
             c='k',
             label='Electricity spot price')
@@ -391,7 +406,7 @@ def plot_price_el(price_el, filename):
     ax.set_title('Electricity price timeseries and duration curve')
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
 
-    fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
+    fig.savefig(filename, bbox_inches='tight')
     return None
 
 
@@ -424,27 +439,30 @@ def plot_p_q_diagram(timeseries, param_chp, capacity_installed_chp, color_dict, 
                           discharging_storage], axis=1)
     def func(row):
         sel = tuple(i for (i, v) in zip(['heat_pump', 'resistive', 'charging', 'discharging'], row.values) if v)
-        col =  {('heat_pump', 'resistive', 'charging', 'discharging'): 'r',
-                ('resistive', 'charging', 'discharging'): 'r',
-                ('charging', 'discharging'): 'r',
-                ('heat_pump', 'resistive', 'charging'): 'b',
-                ('heat_pump', 'resistive', 'discharging'): 'b',
-                ('heat_pump', 'resistive'): 'y',
-                ('heat_pump', 'charging'): 'y',
-                ('resistive', 'charging'): 'b',
-                ('resistive', 'discharging'): 'y',
-                ('charging',): 'b',
-                ('discharging',): 'y',
-                ('resistive',): 'g',
-                (): 'k'}
+        col = {('heat_pump', 'resistive', 'charging', 'discharging'): 'r',
+               ('resistive', 'charging', 'discharging'): 'r',
+               ('heat_pump', 'charging', 'discharging'): 'r',
+               ('charging', 'discharging'): 'r',
+               ('heat_pump', 'resistive', 'charging'): 'g',
+               ('heat_pump', 'resistive', 'discharging'): 'b',
+               ('heat_pump', 'resistive'): 'y',
+               ('heat_pump', 'charging'): 'g',
+               ('resistive', 'charging'): 'g',
+               ('resistive', 'discharging'): 'b',
+               ('heat_pump', 'discharging'): 'b',
+               ('charging',): 'g',
+               ('discharging',): 'b',
+               ('resistive',): 'y',
+               ('heat_pump',): 'y',
+               (): 'k'}
         return col[sel]
     color = coloring.apply(func, axis=1)
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(5, 5))
     ax.scatter(supply_heat,
                supply_electricity,
                marker='.',
                color=color,
-               s=50,
+               s=70,
                alpha=0.1)
 
     def plot_operation_range_chp():
@@ -462,11 +480,11 @@ def plot_p_q_diagram(timeseries, param_chp, capacity_installed_chp, color_dict, 
     plot_operation_range_chp()
 
     ax.grid('x', alpha=0.3)
-    ax.set_xlim(0, 250)
-    ax.set_ylim(0, 200)
+    ax.set_xlim(0, 120)
+    ax.set_ylim(0, 60)
     ax.set_ylabel('Power in MW')
     ax.set_xlabel('Heat flow in MW')
-    fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
+    fig.savefig(filename, bbox_inches='tight', dpi=300)
     return None
 
 
@@ -491,7 +509,14 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
 
     storage_charge_discharge = storage_charge - storage_discharge
     produced_pth = produced_pth_resistive + produced_pth_heat_pump
-    fig, axs = plt.subplots(4, 1, figsize=(6, 6))
+
+    with_pth = (produced_pth.sum()!=0)
+    if with_pth:
+        n_subplots = 4
+    else:
+        n_subplots = 3
+
+    fig, axs = plt.subplots(n_subplots, 1, figsize=(6, 8))
 
     def plot_hist(x, y, ax, ylim=None, title=None):
         y = y.reset_index(drop=True)
@@ -520,15 +545,17 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
                    alpha=0.01,
                    zorder=-1)
     axs[2].scatter(price_el,
-                   produced_pth,
-                   color='r',
-                   alpha=0.01,
-                   zorder=-1)
-    axs[3].scatter(price_el,
                    storage_charge_discharge,
                    color='r',
                    alpha=0.01,
                    zorder=-1)
+    if with_pth:
+        axs[3].scatter(price_el,
+                       produced_pth,
+                       color='r',
+                       alpha=0.01,
+                       zorder=-1)
+
     def center_spines(axis):  # TODO: Is this necessary?
         axis.spines['left'].set_position('zero')
         axis.spines['bottom'].set_position('zero')
@@ -545,29 +572,30 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
               ylim=(0, 15000),
               title='Gas boiler')
     plot_hist(price_el,
-              produced_pth,
-              axs2[2],
-              ylim=(0, 15000),
-              title='PtH')
-    plot_hist(price_el,
               storage_charge,
-              axs2[3])
+              axs2[2])
     plot_hist(price_el,
               -1*storage_discharge,
-              axs2[3],
-              ylim=(-2000, 2000),
+              axs2[2],
+              ylim=(-5000, 15000),
               title='Storage')
+    if with_pth:
+        plot_hist(price_el,
+                  produced_pth,
+                  axs2[3],
+                  ylim=(0, 15000),
+                  title='PtH')
 
     for ax in axs2:
         center_spines(ax)
-        ax.set_xlim(-90, 250)
+        ax.set_xlim(-50, 250)
         ax.set_ylabel('Heat [MWh_th]')
         ax.set_xlabel('Electricity spot price [Eur]')
-    fig.savefig(filename, bbox_inches='tight', figsize=(12, 6))
+    fig.savefig(filename, bbox_inches='tight', dpi=300)
     return None
 
 
-def plot_results_scalar_derived(results_scalar_derived, color_dict, filename):
+def plot_results_scalar_derived(results_scalar_derived, color_dict, label_dict, filename):
     r"""
     Creates and saves an overview plot of derived results.
 
@@ -590,7 +618,7 @@ def plot_results_scalar_derived(results_scalar_derived, color_dict, filename):
     df.index = df.index.droplevel([0, 1, 2])
     grouped = df.groupby('var_name', level=1)
 
-    fig = plt.figure(figsize=(15, 10))
+    fig = plt.figure()
     gs = gridspec.GridSpec(3, 7)
 
     def stacked_single_bar(group, ax):
@@ -602,26 +630,31 @@ def plot_results_scalar_derived(results_scalar_derived, color_dict, filename):
             color = color_dict[re.sub('subnet-._', '', label)]
             ax.bar(0, data.iloc[i],
                    color=color,
-                   label=label,
+                   label=label_dict[label],
                    bottom=bottom)
             bottom += data.iloc[i].copy()
         ax.set_xticklabels([])
         ax.set_title(group.replace('_','\n')+f' [{unit}]')
-        ax.legend(loc='lower center', bbox_to_anchor=(0, -0.2))
+        ax.legend().remove()
+
 
     def horizontal_bar(group, ax):
         data = grouped.get_group(group)['var_value']
         data.index = data.index.droplevel([1])
         unit = grouped.get_group(group)['var_unit'][0]
         keys = [re.sub('subnet-._', '', key) for key in data.index]
+        labels = [label_dict[label] for label in data.index]
+        print(labels)
         colors = [color_dict[key] for key in keys]
         data.plot(ax=ax,
                   kind='bar',
                   color=colors)
+        ax.set_xticklabels(labels, rotation=45, ha='right')
         ax.set_title(group+f' [{unit}]')
 
     ax = fig.add_subplot(gs[:, 0])
     stacked_single_bar('cost_total_system', ax)
+    ax.legend(loc='center left', bbox_to_anchor=(0, -0.2))
 
     ax = fig.add_subplot(gs[:, 1])
     stacked_single_bar('installed_production_capacity', ax)
@@ -634,6 +667,7 @@ def plot_results_scalar_derived(results_scalar_derived, color_dict, filename):
 
     ax = fig.add_subplot(gs[:, 4])
     stacked_single_bar('emissions_sum', ax)
+    ax.legend(loc='center left', bbox_to_anchor=(0, -0.2))
 
     ax = fig.add_subplot(gs[0, 5:])
     horizontal_bar('hours_full_load', ax)
@@ -644,9 +678,8 @@ def plot_results_scalar_derived(results_scalar_derived, color_dict, filename):
     ax = fig.add_subplot(gs[2, 5:])
     horizontal_bar('number_starts', ax)
 
-    plt.tight_layout()
+    gs.tight_layout(fig)
     plt.savefig(filename)
-
 
 def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_dict, filename):
     df = results_scalar_derived_summary.copy()
@@ -662,7 +695,7 @@ def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_di
                       color=[color_dict[col] for col in data.columns])
         ax.set_xticklabels(data.index.get_level_values('scenario'))
         ax.set_title(group.replace('_','\n')+f' [{unit}]')
-        # ax.get_legend().remove()
+        ax.get_legend().remove()
 
     def horizontal_bar(group, ax):
         data = grouped.get_group(group)['var_value'].unstack(level=1)
@@ -670,7 +703,7 @@ def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_di
         data.plot.bar(ax=ax,
                       color=[color_dict[col] for col in data.columns])
         ax.set_xticklabels(data.index.get_level_values('scenario'))
-        ax.set_title(group.replace('_','\n')+f' [{unit}]')
+        ax.set_title(group.replace('_',' ')+f' [{unit}]')
         ax.get_legend().remove()
 
     fig = plt.figure(figsize=(15, 10))
@@ -700,9 +733,7 @@ def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_di
     ax = fig.add_subplot(gs[2, 5:])
     horizontal_bar('number_starts', ax)
 
-    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
-
-    plt.tight_layout()
+    gs.tight_layout(fig)
     plt.savefig(filename)
     return None
 
@@ -714,7 +745,7 @@ def scenario_input_overview(parameter_changing, color_dict, filename):
     parameter_changing = parameter_changing.set_index(['scenario', 'year', 'modus'])
 
     grouped = parameter_changing.groupby(axis=1, level=0)
-    fig, ax = plt.subplots(len(grouped), 1, figsize=(15, 10))
+    fig, ax = plt.subplots(len(grouped), 1)
     for i, group in enumerate(grouped):
         group[1].plot.bar(ax=ax[i], stacked=True)
         ax[i].set_xticklabels([])
@@ -752,18 +783,25 @@ def plot_timeseries_price_el(input_parameter, price_el, filename):
 
     total_price_el_pos = total_price_el.copy().iloc[lb:ub]
     total_price_el_pos.loc[total_price_el['spot price'] <= 0] = 0
-    print(pd.concat([total_price_el_pos, total_price_el_neg], axis=1))
 
-    fig, axs = plt.subplots(2, 1, figsize=(13, 8))
-
-    stacked_bar_plot(axs[0], total_price_el.iloc[lb:ub], ['r', 'g', 'b'])
-    stacked_bar_plot(axs[1], total_price_el_pos, color=['r', 'g', 'b'])
-    stacked_bar_plot(axs[1], total_price_el_neg, color=['r', 'g', 'b'])
-
-    for ax in axs:
-        ax.set_ylim(-90, 150)
-    axs[0].legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
+    fig, ax = plt.subplots()
+    stacked_bar_plot(ax, total_price_el.iloc[lb:ub], ['r', 'g', 'b'])
+    ax.set_ylim(-90, 150)
+    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
+    ax.set_title('Electricity price')
     plt.tight_layout()
+    plt.savefig(filename)
+
+    fig, ax = plt.subplots()
+    stacked_bar_plot(ax, total_price_el_pos, color=['r', 'g', 'b'])
+    stacked_bar_plot(ax, total_price_el_neg, color=['r', 'g', 'b'])
+    ax.set_ylim(-90, 150)
+    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
+    ax.set_title('Electricity price flex')
+    plt.tight_layout()
+    filename = filename.split('.')
+    filename.insert(1, '_flex.')
+    filename  = ''.join(filename)
     plt.savefig(filename)
     return None
 
@@ -781,18 +819,20 @@ def create_plots(config_path, results_dir):
     with open(os.path.join(abs_path, 'experiment_configs/color_dict.yml'), 'r') as color_file:
         color_dict = yaml.load(color_file)
 
+    with open(os.path.join(abs_path, 'experiment_configs/label_dict.yml'), 'r') as label_file:
+        label_dict = yaml.load(label_file)
+
+
     # load model_runs
     model_runs = helpers.load_model_runs(results_dir, cfg)
-    list_results_scalar_derived = []
     for index, input_parameter in model_runs.iterrows():
         label = "_".join(map(str, index))
         dir_postproc = os.path.join(results_dir, 'data_postprocessed', label)
         energysystem = solph.EnergySystem()
         energysystem.restore(dpath=os.path.join(results_dir, 'optimisation_results'), filename=f'{label}_es.dump')
 
-        print(rcParams.keys())
-        rcParams['figure.figsize'] = [10.0, 10.0]
-        # rcParams['font.size'] = 15
+        rcParams['figure.figsize'] = [20.0, 10.0]
+        rcParams['font.size'] = 15
 
         param = outputlib.processing.convert_keys_to_strings(energysystem.results['Param'])
         price_el = param['source_electricity', 'bus_el_import']['sequences']
@@ -812,8 +852,6 @@ def create_plots(config_path, results_dir):
                                                           cfg['data_postprocessed']['scalars']['derived']),
                                              header=0, index_col=[0, 1, 2, 3, 4], parse_dates=True)
 
-        list_results_scalar_derived.append(results_scalar_derived)
-
         dir_plot = os.path.join(results_dir, 'plots', label)
         if not os.path.exists(dir_plot):
             os.makedirs(os.path.join(dir_plot))
@@ -826,26 +864,25 @@ def create_plots(config_path, results_dir):
                          os.path.join(dir_plot, 'demand_heat.pdf'))
         plot_dispatch(timeseries,
                       color_dict,
-                      os.path.join(dir_plot, 'dispatch_stack_plot.pdf'))
+                      os.path.join(dir_plot, 'dispatch_stack_plot.png'))
         plot_load_duration_curves(timeseries,
                                   color_dict,
                                   os.path.join(dir_plot, 'load_duration_curves.pdf'))
         plot_storage_level(timeseries,
                            color_dict,
                            os.path.join(dir_plot, 'storage_level.pdf'))
-        plot_price_el(price_el,
-                      os.path.join(dir_plot, 'timeseries_price_el.pdf'))
         plot_p_q_diagram(timeseries,
                          param_chp,
                          capacity_installed_chp,
                          color_dict,
-                         os.path.join(dir_plot, 'pq_diagram.pdf'))
+                         os.path.join(dir_plot, 'pq_diagram.png'))
         plot_heat_feedin_price_el(timeseries,
                                   price_el,
                                   color_dict,
-                                  os.path.join(dir_plot, 'heat_feedin_vs_price_el.pdf'))
+                                  os.path.join(dir_plot, 'heat_feedin_vs_price_el.png'))
         plot_results_scalar_derived(results_scalar_derived,
                                     color_dict,
+                                    label_dict,
                                     os.path.join(dir_plot,'results_scalar_derived.pdf'))
         plt.close('all')
 
@@ -857,10 +894,28 @@ def create_plots(config_path, results_dir):
                node_size=5000, edge_color='k',
                node_color=color_dict)
 
-    results_scalar_derived_all = pd.concat(list_results_scalar_derived)
-    plot_results_scalar_derived_summary(results_scalar_derived_all,
+    results_scalar_derived_all = pd.read_csv(os.path.join(results_dir,
+                                                          'data_postprocessed',
+                                                          'results_scalar_derived_all.csv'),
+                                             header=0, index_col=[0, 1, 2, 3, 4])
+    print(results_scalar_derived_all)
+    results_scalar_derived_sq  = results_scalar_derived_all.loc[(slice(None),
+                                                                ['hp-2018_sq', 'hp-2030_sq', 'hp-2050_sq'],
+                                                                slice(None),
+                                                                slice(None),
+                                                                slice(None)), :]
+    plot_results_scalar_derived_summary(results_scalar_derived_sq,
                                         color_dict,
-                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_summary.pdf'))
+                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_sq.pdf'))
+
+    results_scalar_derived_ff  = results_scalar_derived_all.loc[(slice(None),
+                                                                ['hp-2018_ff', 'hp-2030_ff', 'hp-2050_ff'],
+                                                                slice(None),
+                                                                slice(None),
+                                                                slice(None)), :]
+    plot_results_scalar_derived_summary(results_scalar_derived_ff,
+                                        color_dict,
+                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_ff.pdf'))
 
     parameter_changing = pd.read_csv(os.path.join(results_dir,
                                                   'data_preprocessed',
