@@ -199,26 +199,29 @@ def get_derived_results_scalar(input_parameter,
                                        'power_thermal_min',
                                        'MW')
 
+    # operation
     operating = (results_timeseries_flows[producers_heat] > 0)
     operating.columns = operating.columns\
         .remove_unused_levels()\
         .set_levels(['status_operating'], level=2)
 
+    # mean power during operation
     power_thermal_during_operation_mean = results_timeseries_flows[producers_heat][operating].mean()
     power_thermal_during_operation_mean = format_results(power_thermal_during_operation_mean,
                                                          'power_thermal_during_operation_mean',
                                                          'MW')
-
+    # operating hours
     hours_operating_sum = operating.sum()
     hours_operating_sum = format_results(hours_operating_sum,
                                          'hours_operating_sum',
                                          'h')
-
+    # number of starts
     number_starts = (operating[:-1].reset_index(drop=True) < operating[1:].reset_index(drop=True)).sum()
     number_starts = format_results(number_starts,
                                    'number_starts',
                                    '')
 
+    # installed production capacity
     installed_production_capacity = param_scalar.loc[[key[:2] for key in producers_heat]]
     installed_production_capacity = installed_production_capacity.\
         loc[installed_production_capacity['var_name']=='nominal_value']
@@ -228,6 +231,7 @@ def get_derived_results_scalar(input_parameter,
     installed_production_capacity.index = installed_production_capacity.index.droplevel(1)
     installed_production_capacity['var_unit'] = 'MW'
 
+    # full load hours
     hours_full_load = energy_thermal_produced_sum['var_value'].reset_index(level=1, drop=True)\
         * 1/installed_production_capacity['var_value'].reset_index(level=[1], drop=True)
     hours_full_load = pd.DataFrame(hours_full_load, columns=['var_value'])
@@ -243,12 +247,11 @@ def get_derived_results_scalar(input_parameter,
     energy_heat_storage_discharge_sum = format_results(energy_heat_storage_discharge_sum,
                                                        'energy_heat_storage_discharge_sum',
                                                        'MW')
-    # TODO: number_storage_cycles = 0 # equivalent full cycles?
 
-    # Heat pump operation
+    # TODO: number_storage_cycles = 0 # equivalent full cycles?
     # TODO: seasonal_performance_factor_heat_pumps_mean = 0 # heat produced / electricity consumed
 
-    # DHN operation
+    # DHN losses
     pipes = [component[0] for component in results_timeseries_flows.columns
              if bool(re.search('_pipe', component[0]))]
     energy_losses_heat_dhn = results_timeseries_flows.loc[:, (slice(None), pipes, slice(None))].sum(axis=1)\
@@ -259,7 +262,7 @@ def get_derived_results_scalar(input_parameter,
 
     # TODO: energy_consumed_pump_sum = 0
 
-    # Whole system energy
+    # Whole system energy consumption
     energy_consumed_gas_sum = results_timeseries_flows.loc[:, ('bus_gas', slice(None), slice(None))].sum()
     energy_consumed_gas_sum = format_results(energy_consumed_gas_sum,
                                              'energy_consumed_sum',
@@ -272,12 +275,13 @@ def get_derived_results_scalar(input_parameter,
 
     # TODO: fraction_renewable_energy_thermal = 0 # renewable energy / total energy consumed
 
-    # Costs
+    # variable costs
     cost_variable_sum = derived_results_timeseries_costs_variable.sum()
     cost_variable_sum = format_results(cost_variable_sum,
                                        'cost_variable_sum',
                                        'Eur')
 
+    # fixed costs
     cost_fix = input_parameter.loc[slice(None), ['capacity_installed', 'overnight_cost', 'lifetime', 'fom'], :]
     cost_fix = cost_fix.unstack(1)
     cost_fix.loc[[key for key in cost_fix.index if bool(re.search('subnet-._tes', key))],
@@ -300,11 +304,13 @@ def get_derived_results_scalar(input_parameter,
     cost_fix.index.names = ['component', 'variable_name']
     cost_fix['var_unit'] = 'Eur'
 
+    # total system costs
     cost_total_system = pd.concat([cost_variable_sum, cost_fix], axis=0).groupby('component').agg(sum)
     cost_total_system = cost_total_system.reset_index()
     cost_total_system['var_name'] = 'cost_total_system'
     cost_total_system = cost_total_system.set_index(['component', 'var_name'])
 
+    # specific cost of heat
     consumers_heat = [component for component in results_timeseries_flows.columns
                       if bool(re.search('demand_th', component[1]))]
     energy_thermal_consumed = results_timeseries_flows[consumers_heat].sum()
@@ -322,6 +328,19 @@ def get_derived_results_scalar(input_parameter,
                                    'emissions_sum',
                                    'tCO2')
 
+    # specific emissions of heat
+    consumers_heat = [component for component in results_timeseries_flows.columns
+                      if bool(re.search('demand_th', component[1]))]
+    energy_thermal_consumed = results_timeseries_flows[consumers_heat].sum()
+
+    cost_specific_heat = cost_total_system.sum() / energy_thermal_consumed.sum()
+
+    cost_specific_heat = helpers.prepend_index(pd.DataFrame(cost_specific_heat).T,
+                                               ['demand_th', 'cost_specific_heat'],
+                                               ['component', 'var_name'])
+    cost_specific_heat['var_unit'] = 'Eur/MWh'
+
+    # join results
     derived_results_scalar = pd.concat([energy_thermal_produced_sum,
                                         power_thermal_max,
                                         power_thermal_min,
@@ -386,6 +405,7 @@ def postprocess(config_path, results_dir):
 
     # load model_runs
     model_runs = helpers.load_model_runs(results_dir, cfg)
+    list_results_scalar_derived = []
     for index, input_parameter in model_runs.iterrows():
         label = "_".join(map(str, index))
 
@@ -422,6 +442,12 @@ def postprocess(config_path, results_dir):
                                                        ['run_id', 'scenario', 'uncert_sample_id'])
         derived_results_scalar.to_csv(os.path.join(dir_postproc,
                                                    cfg['data_postprocessed']['scalars']['derived']), header=True)
+        list_results_scalar_derived.append(derived_results_scalar)
+
+    results_scalar_derived_all = pd.concat(list_results_scalar_derived)
+    results_scalar_derived_all.to_csv(os.path.join(results_dir,
+                                                   'data_postprocessed',
+                                                   'results_scalar_derived_all.csv'))
 
 
 if __name__ == '__main__':
