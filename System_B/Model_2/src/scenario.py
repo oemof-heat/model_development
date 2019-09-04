@@ -50,23 +50,30 @@ def get_samples(scenario, certain_parameters, uncertain_parameters, n_samples):
 
 def get_deterministic_run(scenario, input_parameters):
     df = input_parameters.xs(['1_basic', 'reference'])
-    print(scenario)
-    accumulate_key = []
-    for str in scenario.split('_'):
-        accumulate_key.append(str)
-        key = '_'.join(accumulate_key)
-        if key in input_parameters.index.get_level_values(0):
-            df_additional = input_parameters.xs([key, 'reference'])
-            df = pd.merge(df_additional,
-                          df,
-                          how='outer',
-                          on=['var_value', 'var_unit'],
-                          left_index=True,
-                          right_index=True)
+    print('#', scenario)
+    for key_orthogonal in scenario.split('-'):
+        accumulate_key = []
+        for key_overwrite in key_orthogonal.split('_'):
+            accumulate_key.append(key_overwrite)
+            key = '_'.join(accumulate_key)
+            if key in input_parameters.index.get_level_values(0):
+                df_additional = input_parameters.xs([key, 'reference'])
+                print('New data for scenario specification {} for these components:'.format(key))
+                for component in df_additional.index.get_level_values(0):
+                    print('\t', component)
+                df = pd.merge(df_additional,
+                              df,
+                              how='outer',
+                              on=['var_value', 'var_unit'],
+                              left_index=True,
+                              right_index=True)
+            else:
+                print('No additional data for scenario specification {}'.format(key))
 
     df = helpers.prepend_index(df, [scenario], ['scenario'])
 
     if df.index.duplicated().any():
+        print([key for key in df.index[df.index.duplicated()]])
         raise ValueError('Duplicated entries in {} and 1_basic'.format(scenario))
 
     df = df['var_value'].unstack(level=[1, 2])
