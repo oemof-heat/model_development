@@ -185,16 +185,15 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                                  outputs={b_th_decentral_behind_storage: Flow()},
                                                  conversion_factors={b_th_central_behind_storage: 1.})
         tes_decentral = GenericStorage(label=name_subnet+'_tes_decentral',
-                                       inputs={b_th_decentral: Flow(nominal_value=input_parameter['tes_decentral',
-                                                                                          'power_charging'],
+                                       inputs={b_th_decentral:
+                                                   Flow(nominal_value=input_parameter[name_subnet+'_tes_decentral']
+                                                                                     ['power_charging'],
                                                             variable_costs=0.0001)},
                                        outputs={b_th_decentral_behind_storage:
-                                                    Flow(nominal_value=input_parameter['tes_decentral',
-                                                                                       'power_discharging'])},
+                                                    Flow(nominal_value=input_parameter[name_subnet+'_tes_decentral']
+                                                                                      ['power_discharging'])},
                                        nominal_storage_capacity=input_parameter[name_subnet+'_tes_decentral']
                                                                                ['capacity_installed'],
-                                       annuity_specific=1,
-                                       fom_specific=0,
                                        loss_rate=input_parameter['tes_decentral']
                                                                 ['rate_loss'],
                                        inflow_conversion_factor=input_parameter['tes_decentral']
