@@ -200,8 +200,13 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                                                                ['efficiency_charging'],
                                        outflow_conversion_factor=input_parameter['tes_decentral']
                                                                                 ['efficiency_discharging'])
+
+        if not np.isnan(input_parameter['global', 'factor_load_reduction_heat']):
+            load_factor = input_parameter['global', 'factor_load_reduction_heat']
+        else:
+            load_factor = 1
         demand_th = Sink(label=name_subnet+'_demand_th',
-                         inputs={b_th_decentral: Flow(nominal_value=1,
+                         inputs={b_th_decentral: Flow(nominal_value=load_factor,
                                               actual_value=demand_heat[column],
                                               fixed=True)})
         list_bus_th_decentral.append(b_th_decentral)
@@ -226,7 +231,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     #####################################################################
 
     om = Model(energysystem)
-    om.solve(solver=solver, solve_kwargs={'tee': True}, cmdline_options={'AllowableGap=': '0.01'})
+    om.solve(solver=solver, solve_kwargs={'tee': True}, cmdline_options={'AllowableGap=': '0.0001'})
 
     if debug:
         abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
