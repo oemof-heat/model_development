@@ -1,11 +1,3 @@
-"""
-Create and save plots of
-
-* heat demand data
-* energy system graph
-
-"""
-
 __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
@@ -18,8 +10,10 @@ import numpy as np
 from pandas.plotting import register_matplotlib_converters
 import networkx as nx
 import matplotlib.pyplot as plt
+import matplotlib.transforms as transforms
 from matplotlib import rcParams as rcParams
 from matplotlib import gridspec
+
 import oemof.solph as solph
 import oemof.outputlib as outputlib
 import helpers
@@ -27,14 +21,15 @@ import helpers
 register_matplotlib_converters()
 
 
-def plot_heat_demand(demand_heat, filename):
-    # Plot demand of building
+def plot_heat_demand(demand_heat, label, filename):
+    # Plot demand of building1038:25
     fig, ax = plt.subplots(2, 1)
     demand_heat.iloc[0:1000].sum(axis=1).plot(ax=ax[0],
                                  linewidth=1,
                                  c='r')
     ax[0].set_xlabel("Date")
     ax[0].set_ylabel("Heat demand in MW")
+    ax[0].set_title('Heat demand {}'.format(label))
     demand_heat.iloc[0:1000].plot(ax=ax[1],
                      linewidth=1,
                      c='r')
@@ -137,7 +132,7 @@ def stacked_bar_plot(ax, data, color=None):
                         color=color_i)
 
 
-def plot_dispatch(timeseries, color_dict, filename):
+def plot_dispatch(timeseries, color_dict, label, filename):
     r"""
     Creates and saves a plot of the heat dispatch.
 
@@ -179,7 +174,7 @@ def plot_dispatch(timeseries, color_dict, filename):
 
     # resample
     df_resam = timeseries.copy()
-    df_resam = df_resam.loc['2019-02-01':'2019-02-28']
+    # df_resam = df_resam.loc['2019-02-01':'2019-02-28']
     # df_resam = df_resam.resample('24H').mean()
 
     # invert heat to storage
@@ -197,7 +192,7 @@ def plot_dispatch(timeseries, color_dict, filename):
     colors_feedin_heat = [color_dict[label] for label in feedin_aggregated]
     color_storage_heat_charge = [color_dict[label] for label in charge_aggregated]
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(60,6))
     stacked_bar_plot(ax,
                      charge_aggregated,
                      color=color_storage_heat_charge)
@@ -213,7 +208,7 @@ def plot_dispatch(timeseries, color_dict, filename):
     # set title, labels and legend
     ax.set_ylabel('Power in MW')
     ax.set_xlabel('Time')
-    ax.set_title('Heat generation dispatch')
+    ax.set_title('Heat generation dispatch {}'.format(label))
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
 
     # save figure
@@ -221,7 +216,7 @@ def plot_dispatch(timeseries, color_dict, filename):
     return None
 
 
-def plot_load_duration_curves(timeseries, color_dict, filename):
+def plot_load_duration_curves(timeseries, color_dict, label, filename):
     r"""
     Creates and saves a plot of the heat dispatch.
 
@@ -293,7 +288,7 @@ def plot_load_duration_curves(timeseries, color_dict, filename):
     # set title, labels and legend
     ax.set_ylabel('Power in MW')
     ax.set_xlabel('Time (days)')
-    ax.set_title('Heat generation load duration curves')
+    ax.set_title('Heat generation load duration curves {}'.format(label))
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
 
     # save figure
@@ -301,7 +296,7 @@ def plot_load_duration_curves(timeseries, color_dict, filename):
     return None
 
 
-def plot_storage_level(timeseries, color_dict, filename):
+def plot_storage_level(timeseries, color_dict, label, filename):
     r"""
     Creates and saves a plot of storage level, charge and discharge.
 
@@ -378,7 +373,7 @@ def plot_storage_level(timeseries, color_dict, filename):
     ax[0].set_ylabel('Power in MW')
     ax[1].set_ylabel('Storage level in MWh')
     ax[1].set_xlabel('Time')
-    ax[0].set_title('Storage level, charge and discharge')
+    ax[0].set_title('Storage level, charge and discharge {}'.format(label))
     ax[0].legend(loc='upper left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
     ax[1].legend(loc='lower left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
 
@@ -386,7 +381,7 @@ def plot_storage_level(timeseries, color_dict, filename):
     return None
 
 
-def plot_price_el(price_el, filename):
+def plot_price_el(price_el, label, filename):
     sorted_price_el = price_el.sort_values('variable_costs', ascending=False).reset_index(drop=True)
     # plot
     fig, ax = plt.subplots()
@@ -403,92 +398,246 @@ def plot_price_el(price_el, filename):
     # set title, labels and legend
     ax.set_ylabel('Electricity price [Eur/MWh]')
     ax.set_xlabel('Hours')
-    ax.set_title('Electricity price timeseries and duration curve')
+    ax.set_title('Electricity price timeseries and duration curve {}'.format(label))
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
 
     fig.savefig(filename, bbox_inches='tight')
     return None
 
 
-def plot_p_q_diagram(timeseries, param_chp, capacity_installed_chp, color_dict, filename):
-    supply_electricity = timeseries.loc[:, [key for key in timeseries.columns if key[1]=='sold_el']]
+def plot_p_q_diagram(timeseries, param_chp, capacity_installed_chp, color_dict, label, filename):
+    supply_electricity = timeseries.loc[:, [key for key in timeseries.columns if key[1]=='sold_el']].iloc[:, 0]
+    supply_electricity.name = 'supply_electricity'
 
     supply_heat = timeseries.loc[:, [key for key in timeseries.columns if bool(re.search('_demand', key[1]))]]\
         .sum(axis=1)
+    supply_heat.name = 'supply_heat'
 
     operating_heat_pump = timeseries.loc[:, [key for key in timeseries.columns
                                              if bool(re.search('_pth_heat_pump_decentral', key[0]))]].sum(axis=1) > 0
 
-    operating_heat_pump.name = 'operating_heat_pump'
+    operating_heat_pump.name = 'heat_pump'
     operating_pth_resistive = timeseries.loc[:, [key for key in timeseries.columns
                                                  if bool(re.search('pth_resistive', key[0]))]].sum(axis=1) > 0
 
-    operating_heat_pump.name = 'operating_pth_resistive'
+    operating_pth_resistive.name = 'pth_resistive'
     discharging_storage = timeseries.loc[:, [key for key in timeseries.columns
-                                           if bool(re.search('tes', key[0]))
-                                           and key[1]!='None']].sum(axis=1) > 0
+                                             if bool(re.search('tes', key[0]))
+                                             and key[1]!='None']].sum(axis=1) > 0
 
     discharging_storage.name = 'discharging_storage'
     charging_storage = timeseries.loc[:, [key for key in timeseries.columns
                                           if bool(re.search('tes', key[1]))]].sum(axis=1) > 0
-
     charging_storage.name = 'charging_storage'
-    coloring = pd.concat([operating_pth_resistive,
-                          operating_heat_pump,
-                          charging_storage,
-                          discharging_storage], axis=1)
+
+    df = pd.concat([supply_electricity,
+                    supply_heat,
+                    operating_pth_resistive,
+                    operating_heat_pump,
+                    charging_storage,
+                    discharging_storage], axis=1)
+
     def func(row):
-        sel = tuple(i for (i, v) in zip(['heat_pump', 'resistive', 'charging', 'discharging'], row.values) if v)
-        col = {('heat_pump', 'resistive', 'charging', 'discharging'): 'r',
-               ('resistive', 'charging', 'discharging'): 'r',
-               ('heat_pump', 'charging', 'discharging'): 'r',
-               ('charging', 'discharging'): 'r',
-               ('heat_pump', 'resistive', 'charging'): 'g',
-               ('heat_pump', 'resistive', 'discharging'): 'b',
-               ('heat_pump', 'resistive'): 'y',
-               ('heat_pump', 'charging'): 'g',
-               ('resistive', 'charging'): 'g',
-               ('resistive', 'discharging'): 'b',
-               ('heat_pump', 'discharging'): 'b',
-               ('charging',): 'g',
-               ('discharging',): 'b',
-               ('resistive',): 'y',
+        sel = tuple(k for k, v in row.loc[['heat_pump',
+                                      'pth_resistive',
+                                      'charging_storage',
+                                      'discharging_storage']].items() if v)
+        col = {('heat_pump', 'pth_resistive', 'charging_storage', 'discharging_storage'): 'r',
+               ('pth_resistive', 'charging_storage', 'discharging_storage'): 'r',
+               ('heat_pump', 'charging_storage', 'discharging_storage'): 'r',
+               ('charging_storage', 'discharging_storage'): 'r',
+               ('heat_pump', 'pth_resistive', 'charging_storage'): 'g',
+               ('heat_pump', 'pth_resistive', 'discharging_storage'): 'b',
+               ('heat_pump', 'pth_resistive'): 'y',
+               ('heat_pump', 'charging_storage'): 'g',
+               ('pth_resistive', 'charging_storage'): 'g',
+               ('pth_resistive', 'discharging_storage'): 'b',
+               ('heat_pump', 'discharging_storage'): 'b',
+               ('charging_storage',): 'g',
+               ('discharging_storage',): 'b',
+               ('pth_resistive',): 'y',
                ('heat_pump',): 'y',
                (): 'k'}
         return col[sel]
-    color = coloring.apply(func, axis=1)
-    fig, ax = plt.subplots(figsize=(5, 5))
-    ax.scatter(supply_heat,
-               supply_electricity,
-               marker='.',
-               color=color,
-               s=70,
-               alpha=0.1)
+
+    df['color'] = df.apply(func, axis=1)
+
+    fig = plt.figure(figsize=(10, 10))
+    gs = plt.GridSpec(4, 4)
+
+    ax_joint = fig.add_subplot(gs[1:4, 0:3])
+    ax_marg_x = fig.add_subplot(gs[0, 0:3], sharex=ax_joint)
+    ax_marg_y = fig.add_subplot(gs[1:4, 3], sharey=ax_joint)
+
+    labels = {'y': 'PtH',
+              'g': 'charging_storage',
+              'b': 'discharging_storage',
+              'r': 'error',
+              'k': 'only CHP'}
+
+    for name, group in df.groupby('color'):
+        ax_joint.scatter(group['supply_heat'],
+                         group['supply_electricity'],
+                         marker='.',
+                         color=group['color'],
+                         label=labels[name],
+                         s=200,
+                         alpha=0.1)
 
     def plot_operation_range_chp():
         x = np.array([0, capacity_installed_chp])
         backpressure_line = x * param_chp['conversion_factors_bus_el_export'] \
-                            / param_chp['conversion_factors_bus_th_central']
-        ax.plot(x, backpressure_line, c='k', alpha=0.1)
-        extraction_line = capacity_installed_chp * param_chp['conversion_factor_full_condensation_bus_el_export'] \
-        / param_chp['conversion_factors_bus_th_central'] \
-        - x * (param_chp['conversion_factor_full_condensation_bus_el_export']
-        - param_chp['conversion_factors_bus_el_export']) \
-        / param_chp['conversion_factors_bus_th_central']
-        ax.plot(x, extraction_line, c='k', alpha=0.1)
+                              / param_chp['conversion_factors_bus_th_central']
+
+        extraction_line = capacity_installed_chp\
+                          * param_chp['conversion_factor_full_condensation_bus_el_export'] \
+                          / param_chp['conversion_factors_bus_th_central'] \
+                          - x * (param_chp['conversion_factor_full_condensation_bus_el_export']
+                          - param_chp['conversion_factors_bus_el_export']) \
+                          / param_chp['conversion_factors_bus_th_central']
+        ax_joint.plot(x, backpressure_line, linewidth=5, c='k', alpha=0.3)
+        ax_joint.plot(x, extraction_line, linewidth=5, c='k', alpha=0.3)
 
     plot_operation_range_chp()
 
-    ax.grid('x', alpha=0.3)
-    ax.set_xlim(0, 120)
-    ax.set_ylim(0, 60)
-    ax.set_ylabel('Power in MW')
-    ax.set_xlabel('Heat flow in MW')
+    ax_marg_x.hist(supply_heat.values,
+                   bins=80,
+                   color='k')
+
+    ax_marg_y.hist(supply_electricity.values,
+                   bins=80,
+                   color='k',
+                   orientation="horizontal")
+
+    # Turn off tick labels on marginals
+    plt.setp(ax_marg_x.get_xticklabels(), visible=False)
+    plt.setp(ax_marg_y.get_yticklabels(), visible=False)
+
+    # Set labels on joint
+    ax_joint.set_xlabel('Joint x label')
+    ax_joint.set_ylabel('Joint y label')
+
+    # Set labels on marginals
+    ax_marg_y.set_xlabel('Marginal distribution power')
+    ax_marg_x.set_ylabel('Marginal distribution heat flow')
+
+    ax_joint.grid('x', alpha=0.7)
+    ax_joint.set_ylabel('Power in MW')
+    ax_joint.set_xlabel('Heat flow in MW')
+    legend = ax_joint.legend(loc='upper left', bbox_to_anchor=(1.1, 1.3))
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    plt.tight_layout()
+    ax_marg_x.set_title('Electricity vs. heat output {}'.format(label))
     fig.savefig(filename, bbox_inches='tight', dpi=300)
     return None
 
 
-def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
+def plot_demand_heat_vs_price_el(timeseries, price_el, color_dict, label, filename):
+    demand_heat = timeseries.loc[:, [key for key in timeseries.columns
+                                     if bool(re.search('demand', key[1]))]].sum(axis=1)
+    demand_heat.name = 'demand_heat'
+
+    price_el = price_el.iloc[:, 0]
+    price_el.index = demand_heat.index
+    price_el.name = 'price_electricity'
+
+    heat_output_chp = timeseries.loc[:, [key for key in timeseries.columns
+                                       if key[0]=='chp'
+                                       and key[1]=='bus_th_central']].sum(axis=1)
+
+    heat_output_chp.name = 'chp'
+    heat_output_gas_boiler = timeseries.loc[:, [key for key in timeseries.columns
+                                              if key[0] == 'gas_boiler_central']].sum(axis=1)
+
+    heat_output_gas_boiler.name = 'gas_boiler_central'
+    heat_output_heat_pump = timeseries.loc[:, [key for key in timeseries.columns
+                                             if bool(re.search('_pth_heat_pump_decentral', key[0]))]].sum(axis=1)
+
+    heat_output_heat_pump.name = 'heat_pump'
+    heat_output_pth_resistive = timeseries.loc[:, [key for key in timeseries.columns
+                                                 if bool(re.search('pth_resistive', key[0]))]].sum(axis=1)
+
+    heat_output_pth_resistive.name = 'pth_resistive'
+    discharge_storage = timeseries.loc[:, [key for key in timeseries.columns
+                                           if bool(re.search('tes', key[0]))
+                                           and key[1]!='None']].sum(axis=1)
+
+    discharge_storage.name = 'discharge_storage'
+    charge_storage = timeseries.loc[:, [key for key in timeseries.columns
+                                          if bool(re.search('tes', key[1]))]].sum(axis=1)
+
+    charge_storage.name = 'charge_storage'
+
+    df = pd.concat([demand_heat,
+                    price_el,
+                    heat_output_chp,
+                    heat_output_gas_boiler,
+                    heat_output_pth_resistive,
+                    heat_output_heat_pump,
+                    discharge_storage],
+                    axis=1)
+
+    fig = plt.figure(figsize=(10, 10))
+    gs = plt.GridSpec(4, 4)
+
+    ax_joint = fig.add_subplot(gs[1:4, 0:3])
+    ax_marg_x = fig.add_subplot(gs[0, 0:3], sharex=ax_joint)
+    ax_marg_y = fig.add_subplot(gs[1:4, 3], sharey=ax_joint)
+
+    ax_joint.scatter(df['demand_heat'],
+                     df['price_electricity'],
+                     marker='.',
+                     # color=df['color'],
+                     s=70,
+                     edgecolors='none',
+                     alpha=0.1)
+
+    color_dict['heat_pump'] = color_dict['pth_heat_pump_decentral']
+    color_dict['pth_resistive'] = color_dict['pth_resistive_decentral']
+    color_dict['charge_storage'] = '#33a02c',
+    color_dict['discharge_storage'] = 'k'
+
+    sort_demand_heat = df.copy()
+    sort_demand_heat['demand_heat'] = sort_demand_heat['demand_heat'].round(0)
+    sort_demand_heat.set_index('demand_heat').sort_index()
+    sort_demand_heat = sort_demand_heat.groupby('demand_heat').agg(sum).iloc[:, 1:6]
+    sort_demand_heat.plot(ax=ax_marg_x,
+                          alpha=1,
+                          linewidth=1)
+    ax_marg_x.legend().remove()
+
+    sort_price_el = df.copy()
+    sort_price_el['price_electricity'] = sort_price_el['price_electricity'].round(0)
+    sort_price_el.set_index('price_electricity').sort_index()
+    sort_price_el = sort_price_el.groupby('price_electricity').agg(sum).iloc[:, 1:6]
+    base = plt.gca().transData
+    rot = transforms.Affine2D().rotate_deg(90)
+    ax_marg_y.plot(sort_price_el,
+                   alpha=1,
+                   linewidth=1,
+                   transform= rot + base)
+
+    # Turn off tick labels on marginals
+    plt.setp(ax_marg_x.get_xticklabels(), visible=False)
+    plt.setp(ax_marg_y.get_yticklabels(), visible=False)
+
+    # Set labels on marginals
+    ax_marg_y.set_xlabel('Heat vs electricity price')
+    ax_marg_x.set_ylabel('Heat vs heat demand')
+    ax_marg_x.set_title('Electricity price vs. heat demand {}'.format(label))
+
+    ax_joint.grid('x', alpha=0.3)
+    ax_joint.set_xlim(0, 120)
+    ax_joint.set_ylim(-90, 250)
+    ax_joint.set_ylabel('Electricity price [Eur/MWh]')
+    ax_joint.set_xlabel('Heat demand [MW]')
+
+    fig.savefig(filename, bbox_inches='tight', dpi=300)
+    return None
+
+
+def plot_heat_feedin_price_el(timeseries, price_el, color_dict, label, filename):
     produced_pth_resistive = timeseries.loc[:, [key for key in timeseries.columns
                                                 if bool(re.search('pth_resistive', key[0]))]].sum(axis=1)
     produced_pth_heat_pump = timeseries.loc[:, [key for key in timeseries.columns
@@ -538,22 +687,26 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
                    produced_chp,
                    color='r',
                    alpha=0.01,
+                   edgecolors='none',
                    zorder=-1)
     axs[1].scatter(price_el,
                    produced_gas_boiler,
                    color='r',
                    alpha=0.01,
+                   edgecolors='none',
                    zorder=-1)
     axs[2].scatter(price_el,
                    storage_charge_discharge,
                    color='r',
                    alpha=0.01,
+                   edgecolors='none',
                    zorder=-1)
     if with_pth:
         axs[3].scatter(price_el,
                        produced_pth,
                        color='r',
                        alpha=0.01,
+                       edgecolors='none',
                        zorder=-1)
 
     def center_spines(axis):  # TODO: Is this necessary?
@@ -563,13 +716,13 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
     plot_hist(price_el,
               produced_chp,
               axs2[0],
-              ylim=(0, 15000),
+              ylim=(0, 5000),
               title='CHP')
     center_spines(axs2[0])
     plot_hist(price_el,
               produced_gas_boiler,
               axs2[1],
-              ylim=(0, 15000),
+              ylim=(0, 5000),
               title='Gas boiler')
     plot_hist(price_el,
               storage_charge,
@@ -577,25 +730,30 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, filename):
     plot_hist(price_el,
               -1*storage_discharge,
               axs2[2],
-              ylim=(-5000, 15000),
+              ylim=(-5000, 5000),
               title='Storage')
     if with_pth:
         plot_hist(price_el,
                   produced_pth,
                   axs2[3],
-                  ylim=(0, 15000),
+                  ylim=(0, 5000),
                   title='PtH')
+    for ax in axs:
+        ax.set_ylim()
+        ax.set_ylabel('Heat \n output \n [MW]')
 
     for ax in axs2:
         center_spines(ax)
         ax.set_xlim(-50, 250)
-        ax.set_ylabel('Heat [MWh_th]')
-        ax.set_xlabel('Electricity spot price [Eur]')
+        ax.set_ylabel('Heat \n [MWh]')
+        ax.set_xlabel('Electricity price [Eur/MWh]')
+
+    axs[0].set_title('Heat output vs. electricity price {}'.format(label))
     fig.savefig(filename, bbox_inches='tight', dpi=300)
     return None
 
 
-def plot_results_scalar_derived(results_scalar_derived, color_dict, label_dict, filename):
+def plot_results_scalar_derived(results_scalar_derived, color_dict, label_dict, label, filename):
     r"""
     Creates and saves an overview plot of derived results.
 
@@ -644,7 +802,6 @@ def plot_results_scalar_derived(results_scalar_derived, color_dict, label_dict, 
         unit = grouped.get_group(group)['var_unit'][0]
         keys = [re.sub('subnet-._', '', key) for key in data.index]
         labels = [label_dict[label] for label in data.index]
-        print(labels)
         colors = [color_dict[key] for key in keys]
         data.plot(ax=ax,
                   kind='bar',
@@ -667,17 +824,21 @@ def plot_results_scalar_derived(results_scalar_derived, color_dict, label_dict, 
 
     ax = fig.add_subplot(gs[:, 4])
     stacked_single_bar('emissions_sum', ax)
+    ax.set_ylim(0, 150000)
     ax.legend(loc='center left', bbox_to_anchor=(0, -0.2))
 
     ax = fig.add_subplot(gs[0, 5:])
     horizontal_bar('hours_full_load', ax)
+    ax.set_ylim(0, 7000)
 
     ax = fig.add_subplot(gs[1, 5:])
     horizontal_bar('hours_operating_sum', ax)
 
     ax = fig.add_subplot(gs[2, 5:])
     horizontal_bar('number_starts', ax)
+    ax.set_ylim(0, 7000)
 
+    plt.suptitle('Summary results {}'.format(label))
     gs.tight_layout(fig)
     plt.savefig(filename)
 
@@ -706,35 +867,28 @@ def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_di
         ax.set_title(group.replace('_',' ')+f' [{unit}]')
         ax.get_legend().remove()
 
-    fig = plt.figure(figsize=(15, 10))
-    gs = gridspec.GridSpec(3, 7)
+    for i, var in enumerate(['cost_total_system',
+                             'installed_production_capacity',
+                             'energy_thermal_produced_sum',
+                             'energy_consumed_sum',
+                             'emissions_sum',
+                             'cost_specific_heat']):
+        fig = plt.figure(figsize=(6, 5))
+        ax = fig.add_subplot()
+        stacked_bar(var, ax)
+        plt.tight_layout()
+        f_name = '{0}_{2}.{1}'.format(*filename.split('.', 1) + [var])
+        plt.savefig(f_name)
 
-    ax = fig.add_subplot(gs[:, 0])
-    stacked_bar('cost_total_system', ax)
-
-    ax = fig.add_subplot(gs[:, 1])
-    stacked_bar('installed_production_capacity', ax)
-
-    ax = fig.add_subplot(gs[:, 2])
-    stacked_bar('energy_thermal_produced_sum', ax)
-
-    ax = fig.add_subplot(gs[:, 3])
-    stacked_bar('energy_consumed_sum', ax)
-
-    ax = fig.add_subplot(gs[:, 4])
-    stacked_bar('emissions_sum', ax)
-
-    ax = fig.add_subplot(gs[0, 5:])
-    horizontal_bar('hours_full_load', ax)
-
-    ax = fig.add_subplot(gs[1, 5:])
-    horizontal_bar('hours_operating_sum', ax)
-
-    ax = fig.add_subplot(gs[2, 5:])
-    horizontal_bar('number_starts', ax)
-
-    gs.tight_layout(fig)
-    plt.savefig(filename)
+    for j, var in enumerate(['hours_full_load',
+                             'hours_operating_sum',
+                             'number_starts']):
+        fig = plt.figure(figsize=(6, 5))
+        ax = fig.add_subplot()
+        horizontal_bar(var, ax)
+        plt.tight_layout()
+        f_name = '{0}_{2}.{1}'.format(*filename.split('.', 1) + [var])
+        plt.savefig(f_name)
     return None
 
 
@@ -776,28 +930,33 @@ def plot_timeseries_price_el(input_parameter, price_el, filename):
     total_price_el = total_price_el[total_price_el.columns[::-1]]
 
     lb, ub = 2500, 3000
+
     total_price_el_neg = total_price_el.copy().iloc[lb:ub]
     if input_parameter.name[1].split('_')[1]=='ff':
         total_price_el_neg.loc[:, 'tax_levys'] = input_parameter['source_electricity_flex', 'tax_levys']
+        total_price_el_neg.loc[:, 'network_charges'] = 0
     total_price_el_neg.loc[total_price_el['spot price'] > 0] = 0
 
     total_price_el_pos = total_price_el.copy().iloc[lb:ub]
     total_price_el_pos.loc[total_price_el['spot price'] <= 0] = 0
 
-    fig, ax = plt.subplots()
-    stacked_bar_plot(ax, total_price_el.iloc[lb:ub], ['r', 'g', 'b'])
+    fig, ax = plt.subplots(figsize=(8, 6))
+    stacked_bar_plot(ax, total_price_el.iloc[lb:ub], ['#c0504d', '#8064a2', '#4f81bd'])
     ax.set_ylim(-90, 150)
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
     ax.set_title('Electricity price')
     plt.tight_layout()
     plt.savefig(filename)
 
-    fig, ax = plt.subplots()
-    stacked_bar_plot(ax, total_price_el_pos, color=['r', 'g', 'b'])
-    stacked_bar_plot(ax, total_price_el_neg, color=['r', 'g', 'b'])
-    ax.set_ylim(-90, 150)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    stacked_bar_plot(ax, total_price_el_pos, color=['#c0504d', '#8064a2', '#4f81bd'])
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
+    stacked_bar_plot(ax, total_price_el_neg, color=['#c0504d', '#8064a2', '#4f81bd'])
+    ax.set_ylim(-90, 150)
+
     ax.set_title('Electricity price flex')
+    ax.set_ylabel('Electricity price [Eur/MWh]')
+    ax.set_xlabel('Time [h]')
     plt.tight_layout()
     filename = filename.split('.')
     filename.insert(1, '_flex.')
@@ -856,34 +1015,46 @@ def create_plots(config_path, results_dir):
         if not os.path.exists(dir_plot):
             os.makedirs(os.path.join(dir_plot))
 
-        plot_timeseries_price_el(input_parameter,
-                                 price_el,
-                                 os.path.join(dir_plot, 'timeseries_price_el.pdf'))
-
-        plot_heat_demand(demand_heat,
-                         os.path.join(dir_plot, 'demand_heat.pdf'))
-        plot_dispatch(timeseries,
-                      color_dict,
-                      os.path.join(dir_plot, 'dispatch_stack_plot.png'))
-        plot_load_duration_curves(timeseries,
-                                  color_dict,
-                                  os.path.join(dir_plot, 'load_duration_curves.pdf'))
-        plot_storage_level(timeseries,
-                           color_dict,
-                           os.path.join(dir_plot, 'storage_level.pdf'))
-        plot_p_q_diagram(timeseries,
-                         param_chp,
-                         capacity_installed_chp,
-                         color_dict,
-                         os.path.join(dir_plot, 'pq_diagram.png'))
-        plot_heat_feedin_price_el(timeseries,
-                                  price_el,
-                                  color_dict,
-                                  os.path.join(dir_plot, 'heat_feedin_vs_price_el.png'))
-        plot_results_scalar_derived(results_scalar_derived,
-                                    color_dict,
-                                    label_dict,
-                                    os.path.join(dir_plot,'results_scalar_derived.pdf'))
+        # plot_timeseries_price_el(input_parameter,
+        #                          price_el,
+        #                          os.path.join(dir_plot, 'timeseries_price_el.pdf'))
+        #
+        # plot_heat_demand(demand_heat,
+        #                  label,
+        #                  os.path.join(dir_plot, 'demand_heat.pdf'))
+        # plot_dispatch(timeseries,
+        #               color_dict,
+        #               label,
+        #               os.path.join(dir_plot, 'dispatch_stack_plot.png'))
+        # plot_load_duration_curves(timeseries,
+        #                           color_dict,
+        #                           label,
+        #                           os.path.join(dir_plot, 'load_duration_curves.pdf'))
+        # plot_storage_level(timeseries,
+        #                    color_dict,
+        #                    label,
+        #                    os.path.join(dir_plot, 'storage_level.pdf'))
+        # plot_p_q_diagram(timeseries,
+        #                  param_chp,
+        #                  capacity_installed_chp,
+        #                  color_dict,
+        #                  label,
+        #                  os.path.join(dir_plot, 'pq_diagram.png'))
+        plot_demand_heat_vs_price_el(timeseries,
+                                     price_el,
+                                     color_dict,
+                                     label,
+                                     os.path.join(dir_plot, 'plot_demand_heat_vs_price_el.png'))
+        # plot_heat_feedin_price_el(timeseries,
+        #                           price_el,
+        #                           color_dict,
+        #                           label,
+        #                           os.path.join(dir_plot, 'heat_feedin_vs_price_el.png'))
+        # plot_results_scalar_derived(results_scalar_derived,
+        #                             color_dict,
+        #                             label_dict,
+        #                             label,
+        #                             os.path.join(dir_plot,'results_scalar_derived.pdf'))
         plt.close('all')
 
     energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'data_plots/energysystem_graph.pkl'))
@@ -916,14 +1087,22 @@ def create_plots(config_path, results_dir):
     plot_results_scalar_derived_summary(results_scalar_derived_ff,
                                         color_dict,
                                         os.path.join(results_dir, 'plots', 'results_scalar_derived_ff.pdf'))
+    level_scenario = results_scalar_derived_all.index.get_level_values(1)
+    level_scenario = level_scenario.str
+    print(level_scenario)
+    results_scalar_derived_all.sort_index(inplace=True, level=1)
+    print(results_scalar_derived_all)
+    plot_results_scalar_derived_summary(results_scalar_derived_all,
+                                        color_dict,
+                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_all.pdf'))
 
-    parameter_changing = pd.read_csv(os.path.join(results_dir,
-                                                  'data_preprocessed',
-                                                  cfg['data_preprocessed']['scalars']['parameters_changing']),
-                                     index_col=[0, 1, 2], header=[0, 1])
-    scenario_input_overview(parameter_changing,
-                            color_dict,
-                            os.path.join(results_dir, 'plots', 'scenario_input_overview.pdf'))
+    # parameter_changing = pd.read_csv(os.path.join(results_dir,
+    #                                               'data_preprocessed',
+    #                                               cfg['data_preprocessed']['scalars']['parameters_changing']),
+    #                                  index_col=[0, 1, 2], header=[0, 1])
+    # scenario_input_overview(parameter_changing,
+    #                         color_dict,
+    #                         os.path.join(results_dir, 'plots', 'scenario_input_overview.pdf'))
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
