@@ -11,11 +11,12 @@ data_raw:
 # Preprocessed data to use
 data_preprocessed:
   timeseries:
-    demand_heat: 'demand_heat/demand_heat_1998.csv'
+    demand_heat: 'demand_heat/demand_heat_2017.csv'
     price_electricity_spot: 'price_electricity_spot/price_electricity_spot_2017.csv'
   scalars:
     model_runs: 'model_runs.csv'
     parameters_changing: 'parameters_changing.csv'
+    thresholds: 'thresholds.csv'
 
 uncertainty_sampling: False
 
