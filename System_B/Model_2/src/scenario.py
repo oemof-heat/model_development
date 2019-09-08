@@ -116,6 +116,9 @@ def create_list_model_runs(config_path, results_dir):
                                    cfg['data_preprocessed']
                                       ['scalars']
                                       ['model_runs']))
+    model_runs.T.to_csv(os.path.join(results_dir,
+                                     'data_preprocessed',
+                                     'model_runs_t.csv'))
     parameters_changing = model_runs.loc[:, (model_runs != model_runs.iloc[0]).any()]
     parameters_changing.to_csv(os.path.join(results_dir,
                                    'data_preprocessed',
