@@ -1,11 +1,11 @@
-gas: '#cc6600'
-source_gas: '#cc6600'
+gas: '#cccc00'
+source_gas: '#cccc00'
 
 chp: '#660000'
 gas_boiler_central: '#d55e00'
 
-source_electricity: '#cccc00'
-source_electricity_flex: '#ffff00'
+source_electricity: '#99ccff'
+source_electricity_flex: '#99ccff'
 bus_el_import: '#ece133'
 
 pth_resistive_central: '#cc78bc'
