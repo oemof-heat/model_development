@@ -739,7 +739,7 @@ def plot_heat_vs_heat_demand_and_price_el(timeseries, price_el, color_dict, labe
                   'heat_pump': 'Heat pump',
                   'discharge_storage': 'Discharge storage'}
     n = 10
-    ymax = [60000, 20000, 20000, 20000]
+    ymax = [20000, 20000, 20000, 20000]
     for i, ax in enumerate(axs[:, 0]):
         color = color_dict[heat_binned.columns[i]]
         label = label_dict[heat_binned.columns[i]]
@@ -1011,8 +1011,8 @@ def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_di
         ax.set_title(label_dict[group])
         ax.set_xlabel('Scenario')
         ax.set_ylabel(label_dict[group] + f' [{unit}]')
-        ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
-        # ax.get_legend().remove()
+        # ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
+        ax.get_legend().remove()
 
     def horizontal_bar(group, ax):
         data = grouped.get_group(group)['var_value'].unstack(level=1)
@@ -1030,7 +1030,9 @@ def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_di
         ax.get_legend().remove()
 
     ylim = {'emissions_sum': (0, 130000),
-            'number_starts': (0, 600)}
+            'number_starts': (0, 600),
+            'cost_total_system': (0, 4e7)}
+
     for i, var in enumerate(['cost_total_system',
                              'installed_production_capacity',
                              'energy_thermal_produced_sum',
@@ -1199,7 +1201,7 @@ def create_plots(config_path, results_dir):
                       color_dict,
                       label_dict,
                       label,
-                      os.path.join(dir_plot, 'dispatch_stack_plot_summer.png'))
+                      os.path.join(dir_plot, 'dispatch_stack_plot_summer.pdf'))
         plot_load_duration_curves(timeseries,
                                   color_dict,
                                   label,
