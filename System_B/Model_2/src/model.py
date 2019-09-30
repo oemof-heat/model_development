@@ -55,8 +55,8 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     b_th_central = Bus(label='bus_th_central')
     b_gas = Bus(label='bus_gas')
 
-    scaling_factor = input_parameter['source_electricity']['spot_price'] / np.mean(price_electricity)
-    variable_costs_el = scaling_factor * np.nan_to_num(price_electricity)\
+    scaling_factor = input_parameter['source_electricity']['spot_price'] - np.mean(price_electricity)
+    variable_costs_el = scaling_factor + np.nan_to_num(price_electricity)\
                         + input_parameter['source_electricity']['tax_levys']
 
     source_el = Source(label='source_electricity',
@@ -64,12 +64,13 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                                   emission_specific=input_parameter['source_electricity']
                                                                                    ['emission_specific'])})
 
-    variable_costs_el_flex = scaling_factor * np.nan_to_num(price_electricity)
+    variable_costs_el_flex = scaling_factor + np.nan_to_num(price_electricity)
     variable_costs_el_flex += input_parameter['source_electricity_flex']['tax_levys']  # TODO: Check
     price_el_negative = np.nan_to_num(price_electricity) <= 0
 
     source_el_flex = Source(label='source_electricity_flex',
-                            outputs={b_el_import: Flow(actual_value=1e6*price_el_negative.astype(int),
+                            outputs={b_el_import: Flow(nominal_value=1e6,
+                                                       max=price_el_negative.astype(int),
                                                        variable_costs=variable_costs_el_flex,
                                                        emission_specific=input_parameter['source_electricity']
                                                                                         ['emission_specific'])})
@@ -200,7 +201,6 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                                                                ['efficiency_charging'],
                                        outflow_conversion_factor=input_parameter['tes_decentral']
                                                                                 ['efficiency_discharging'])
-
         if not np.isnan(input_parameter['global', 'factor_load_reduction_heat']):
             load_factor = input_parameter['global', 'factor_load_reduction_heat']
         else:
