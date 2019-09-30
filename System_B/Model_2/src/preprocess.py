@@ -1,9 +1,5 @@
 """
-This script creates time series input for
-optimise_district_heating.py
-
-* heat demand time series
-* electricity price time series
+This script performs the preprocessing.
 
 """
 
@@ -17,12 +13,13 @@ import pandas as pd
 from ast import literal_eval
 from workalendar.europe import Germany
 import yaml
+
 import demandlib.bdew as bdew
 import helpers
 
 
 def prepare_timeseries_temperature(input_filename, output_filename):
-    """
+    r"""
     Convert raw temperature data to appropriate format.
     """
     temperature = pd.read_csv(input_filename,
@@ -33,6 +30,7 @@ def prepare_timeseries_temperature(input_filename, output_filename):
     if not os.path.exists(os.path.dirname(output_filename)):
         os.makedirs(os.path.dirname(output_filename))
     temperature.to_csv(output_filename)
+
     return temperature
 
 
@@ -42,15 +40,18 @@ def prepare_timeseries_price_electricity(input_filename, output_filename):
     """
     electricity_spot_price = pd.read_csv(input_filename, sep=';', decimal=',', na_values='-')
     electricity_spot_price = electricity_spot_price['Deutschland/Österreich/Luxemburg[Euro/MWh]'].rename('price_electricity_spot')
+
     if not os.path.exists(os.path.dirname(output_filename)):
         os.makedirs(os.path.dirname(output_filename))
+
     electricity_spot_price.to_csv(output_filename, header=True)
+
     return None
 
 
 def prepare_timeseries_demand_heat(year, parameter_bdew,
                                    temperature, output_filename):
-    """
+    r"""
     Create synthetic heat profiles using the BDEW method.
     """
     # get holidays for germany
@@ -59,6 +60,7 @@ def prepare_timeseries_demand_heat(year, parameter_bdew,
 
     # create a DataFrame to hold the timeseries
     demand = pd.DataFrame(index=temperature.index)
+
     for component, parameter_list in parameter_bdew.items():
         component_demand = pd.DataFrame()
         for item in parameter_list:
@@ -69,9 +71,11 @@ def prepare_timeseries_demand_heat(year, parameter_bdew,
                                                   **item).get_bdew_profile()
             component_demand[item['shlp_type']] = timeseries_demand
         demand[component] = component_demand.sum(axis=1)
+
     if not os.path.exists(os.path.dirname(output_filename)):
         os.makedirs(os.path.dirname(output_filename))
     demand.to_csv(output_filename)
+
     return None
 
 
@@ -121,9 +125,11 @@ def preprocess(config_path, results_dir):
                                        *file[['parameter_name']].values,
                                        f'{"_".join(map(str, file[["parameter_name", "year"]].values))}.csv')
         prepare_timeseries_price_electricity(input_filename, output_filename)
+
     return None
 
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
     preprocess(config_path, results_dir)
+

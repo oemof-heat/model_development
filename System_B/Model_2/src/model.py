@@ -1,3 +1,8 @@
+"""
+This script runs the model.
+
+"""
+
 __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
@@ -32,6 +37,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     Returns
     -------
     energysystem.results : Dict containing results
+
     """
     logger.define_logging()
 
@@ -150,6 +156,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     list_demand_th = []
     regex = re.compile(r"^[^_]*")
     find_subnet = lambda str: re.search(regex, str).group(0)
+
     for column in demand_heat.columns:
         name_subnet = find_subnet(column)
         b_th_decentral = Bus(label=name_subnet+'_bus_th_decentral')
@@ -221,6 +228,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                          inputs={b_th_decentral: Flow(nominal_value=load_factor,
                                               actual_value=demand_heat[column],
                                               fixed=True)})
+
         list_bus_th_decentral.append(b_th_decentral)
         list_bus_th_decentral_behind_storage.append(b_th_decentral_behind_storage)
         list_transformer_bus_th_decentral.append(transformer_b_th_decentral)
@@ -298,9 +306,11 @@ def run_model(config_path, results_dir):
 
     for index, input_parameter in model_runs.iterrows():
         results = model(index, input_parameter, demand_heat, price_electricity, results_dir, solver, debug)
+
     return results
 
 
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
     run_model(config_path, results_dir)
+

@@ -1,22 +1,6 @@
 """
-Determine the following quantities on each technology and save them in a dataframe:
+This script runs the postprocessing.
 
-Variable costs
-Summed operating hours
-Summed Production
-Mean Production during operation hours
-Maximal Production
-Minimal Production
-Full load hours
-Start count
-
-
-The following quantities concern the energy system as a whole:
-
-Coverage through renewables
-Summed Excess, max Excess
-Summed import, max import
-Emissions
 """
 
 __copyright__ = "Reiner Lemoine Institut"
@@ -51,6 +35,7 @@ def get_param_scalar(energysystem):
     param_scalars = pd.DataFrame({'component': component, 'var_name': var_name, 'var_value': var_value})
     param_scalars.set_index(pd.MultiIndex.from_tuples(param_scalars['component']), inplace=True)
     param_scalars = param_scalars.drop(columns='component')
+
     return param_scalars
 
 
@@ -62,6 +47,7 @@ def get_price_electricity(energysystem):
     price_electricity = param_timeseries.loc[:, (['bus_el_export', 'source_electricity', 'source_electricity_flex'],
                                                   slice(None),
                                                   slice(None))]
+
     return price_electricity
 
 
@@ -79,6 +65,7 @@ def get_results_scalar(energysystem):
                 var_name.append(name)
                 var_value.append(value)
     results_scalar = pd.DataFrame({'component': component, 'var_name': var_name, 'var_value': var_value})
+
     return results_scalar
 
 
@@ -87,6 +74,7 @@ def get_results_flows(energysystem):
     results = outputlib.processing.convert_keys_to_strings(results)
     flows = {k: v['sequences'] for k, v in results.items()}
     flows = pd.concat(flows, axis=1)
+
     return flows
 
 
@@ -101,6 +89,7 @@ def get_derived_results_timeseries_emissions(energysystem):
         return x*factor
     timeseries_emission = flows_with_emission_specific.apply(func, axis=0)
     timeseries_emission.columns = timeseries_emission.columns.set_levels(['emission'], level=2)
+
     return timeseries_emission
 
 
@@ -118,6 +107,7 @@ def get_derived_results_timeseries_costs_variable(energysystem):  # TODO: Check
         return x*factor
     timeseries_cost_variable = flows_with_cost_variable.apply(func, axis=0)
     timeseries_cost_variable.columns = timeseries_cost_variable.columns.set_levels(['cost_variable'], level=2)
+
     return timeseries_cost_variable
 
 
@@ -177,6 +167,7 @@ def get_derived_results_scalar(input_parameter,
         data['component'] = data.apply(lambda x: key_mapping[(x['level_0'], x['level_1'])], axis=1)
         data = data.set_index(['component', 'variable_name'])
         data = data.drop(columns=['level_0', 'level_1'])
+
         return data
 
     def format_results(data, var_name, var_unit):
@@ -186,6 +177,7 @@ def get_derived_results_scalar(input_parameter,
         data = pd.DataFrame(data, columns=['var_value'])
         data['var_unit'] = var_unit
         data = map_keys(data)
+
         return data
 
     # Production
@@ -402,13 +394,15 @@ def get_derived_results_scalar(input_parameter,
         return aggregated_results
 
     aggregated_results = aggregate_decentral(derived_results_scalar)
+
     return aggregated_results
 
 
 def postprocess(config_path, results_dir):
-    r'''
+    r"""
     Runs the whole postprocessing pipeline and saves the results.
-    '''
+
+    """
     # open config
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
     with open(config_path, 'r') as ymlfile:
@@ -418,6 +412,7 @@ def postprocess(config_path, results_dir):
     model_runs = helpers.load_model_runs(results_dir, cfg)
     list_results_scalar_derived = []
     collect_price_electricity = {}
+
     for index, input_parameter in model_runs.iterrows():
         label = "_".join(map(str, index))
 

@@ -1,5 +1,5 @@
 """
-This script runs the whole workflow of the analysis
+This script runs the whole analysis pipeline.
 
 """
 
@@ -10,7 +10,6 @@ __author__ = "c-moeller, jnnr"
 import time
 import logging
 import warnings
-import subprocess
 
 from oemof.tools import logger
 from helpers import setup_experiment
@@ -24,6 +23,15 @@ from plot import create_plots
 def main(config_path, results_dir):
     r"""
     This function runs the whole analysis pipeline
+
+    Parameters
+    ----------
+
+    config_path : str
+        path to yaml config file
+
+    results_dir : str
+        path to store results
 
     """
     warnings.filterwarnings("ignore", message="numpy.dtype size changed")
@@ -49,10 +57,6 @@ def main(config_path, results_dir):
     # Plot
     logging.info('Create plots')
     create_plots(config_path, results_dir)
-
-    # Build a report
-    # cmd = ['pdflatex', '-interaction=nonstopmode', '--output-directory={0}/presentation/build'.format(abs_path), '{0}/presentation/report.tex'.format(results_dir)]
-    # process = subprocess.call(cmd) # , stdout=open(os.devnull, 'wb'))
 
     endtime = time.time()
 

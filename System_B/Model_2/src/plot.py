@@ -1,3 +1,8 @@
+"""
+This script produces the plots.
+
+"""
+
 __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
@@ -241,6 +246,7 @@ def plot_dispatch(timeseries, start_1, end_1, start_2, end_2, color_dict, label_
     plt.setp([a.get_yticklabels() for a in [ax1[1], ax2[1]]], visible=False)
 
     fig.savefig(filename, bbox_inches='tight', dpi=500)
+
     return None
 
 
@@ -322,6 +328,7 @@ def plot_load_duration_curves(timeseries, color_dict, label, filename):
 
     # save figure
     fig.savefig(filename, bbox_inches='tight')
+
     return None
 
 
@@ -407,6 +414,7 @@ def plot_storage_level(timeseries, color_dict, label, filename):
     ax[1].legend(loc='lower left', bbox_to_anchor=(1.1, 0.5))  # place legend outside of plot
 
     fig.savefig(filename, bbox_inches='tight')
+
     return None
 
 
@@ -431,6 +439,7 @@ def plot_price_el(price_el, label, filename):
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))  # place legend outside of plot
 
     fig.savefig(filename, bbox_inches='tight')
+
     return None
 
 
@@ -559,6 +568,7 @@ def plot_p_q_diagram(timeseries, param_chp, capacity_installed_chp, color_dict, 
     plt.tight_layout()
     ax_marg_x.set_title('Electricity vs. heat output {}'.format(label))
     fig.savefig(filename, bbox_inches='tight', dpi=500)
+
     return None
 
 
@@ -666,6 +676,7 @@ def plot_demand_heat_vs_price_el(timeseries, price_el, color_dict, label, filena
     ax_joint.set_xlabel('Heat demand [MW]')
 
     fig.savefig(filename, bbox_inches='tight', dpi=500)
+
     return None
 
 
@@ -785,6 +796,7 @@ def plot_heat_vs_heat_demand_and_price_el(timeseries, price_el, color_dict, labe
         ax.label_outer()
     plt.tight_layout()
     plt.savefig(filename, dpi=500)
+
     return None
 
 
@@ -902,6 +914,7 @@ def plot_heat_feedin_price_el(timeseries, price_el, color_dict, label, filename)
 
     axs[0].set_title('Heat output vs. electricity price {}'.format(label))
     fig.savefig(filename, bbox_inches='tight', dpi=500)
+
     return None
 
 
@@ -1059,6 +1072,7 @@ def plot_results_scalar_derived_summary(results_scalar_derived_summary, color_di
         plt.tight_layout()
         f_name = '{0}_{2}.{1}'.format(*filename.split('.', 1) + [var])
         plt.savefig(f_name, dpi=500)
+
     return None
 
 
@@ -1078,6 +1092,7 @@ def scenario_input_overview(parameter_changing, color_dict, filename):
     #ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
     plt.tight_layout()
     plt.savefig(filename, dpi=500)
+
     return None
 
 
@@ -1133,6 +1148,7 @@ def plot_timeseries_price_el(input_parameter, price_el, filename):
     filename.insert(1, '_flex.')
     filename  = ''.join(filename)
     plt.savefig(filename, dpi=500)
+
     return None
 
 
@@ -1286,7 +1302,9 @@ def create_plots(config_path, results_dir):
     #                         color_dict,
     #                         os.path.join(results_dir, 'plots', 'scenario_input_overview.pdf'))
 
+
 if __name__ == '__main__':
     config_path, results_dir = helpers.setup_experiment()
     create_plots(config_path, results_dir)
+
 
