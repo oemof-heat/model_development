@@ -40,7 +40,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
         periods = 20
     else:
         periods = 8760
-    datetimeindex = pd.date_range('1/1/2017', periods=periods, freq='H')
+    datetimeindex = pd.date_range('1/1/2018', periods=periods, freq='H')
 
     # Set up EnergySystem
     logging.info('Initialize the energy system')
