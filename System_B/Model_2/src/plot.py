@@ -28,18 +28,17 @@ register_matplotlib_converters()
 
 
 def plot_heat_demand(demand_heat, label, filename):
-    # Plot demand of building1038:25
     fig, ax = plt.subplots(2, 1)
     demand_heat.iloc[0:1000].sum(axis=1).plot(ax=ax[0],
-                                 linewidth=1,
-                                 c='r')
+                                              linewidth=1,
+                                              c='r')
     ax[0].set_xlabel("Date")
     ax[0].set_ylabel("Heat demand in MW")
     ax[0].set_title('Heat demand {}'.format(label))
-    demand_heat.iloc[0:1000].plot(ax=ax[1],
-                     linewidth=1,
-                     c='r')
+    demand_heat.iloc[0:1000].plot(ax=ax[1], linewidth=1, c='r')
     plt.savefig(filename, bbox_inches='tight')
+
+    return None
 
 
 def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
@@ -73,15 +72,12 @@ def draw_graph(grph, filename, edge_labels=True, node_color='#AFAFAF',
     arrows : boolean
         Draw arrows on directed edges. Works only if an optimization_model has
         been passed.
-    layout : string
-        networkx graph layout, one of: neato, dot, twopi, circo, fdp, sfdp.
     """
     if type(node_color) is dict:
         node_color = [node_color.get(g, '#AFAFAF') for g in grph.nodes()]
 
     # set drawing options
     options = {
-        #'prog': 'dot',
         'with_labels': with_labels,
         'node_color': node_color,
         'edge_color': edge_color,
@@ -144,7 +140,7 @@ def plot_dispatch(timeseries, start_1, end_1, start_2, end_2, color_dict, label_
 
     Parameters
     ----------
-    df: DataFrame
+    timeseries: DataFrame
         Containing flows from and to
         heat bus.
 
@@ -196,7 +192,6 @@ def plot_dispatch(timeseries, start_1, end_1, start_2, end_2, color_dict, label_
     charge_aggregated = charge_aggregated.loc[:, (charge_aggregated != 0).any(axis=0)]
     demand_heat = df_resam[demand_heat].sum(axis=1)
 
-
     # prepare colors
     colors_feedin_heat = [color_dict[label] for label in feedin_aggregated]
     color_storage_heat_charge = [color_dict[label] for label in charge_aggregated]
@@ -217,15 +212,14 @@ def plot_dispatch(timeseries, start_1, end_1, start_2, end_2, color_dict, label_
                          charge_aggregated.loc[limits[0]:limits[1]],
                          color=color_storage_heat_charge)
         ax1[i].plot(demand_heat.loc[limits[0]:limits[1]],
-                linewidth='1.5',
-                color='r')
+                    linewidth='1.5',
+                    color='r')
         ax1[i].set_ylim(-50, 105)
         ax1[i].grid(axis='y')
 
         stacked_bar_plot(ax2[i],
                          df_resam[electricity_sold].loc[limits[0]:limits[1]],
                          color=[color_dict['chp']])
-
 
     ax1[0].set_ylabel('Heat output [MW]')
     ax2[0].set_ylabel('Electrical power \n [MW]')
@@ -238,7 +232,7 @@ def plot_dispatch(timeseries, start_1, end_1, start_2, end_2, color_dict, label_
     # ax1[1].legend(loc='center left', bbox_to_anchor=(1.0, 0.8))  # place legend outside of plot
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0)
-    for i in [0 ,1]:
+    for i in [0, 1]:
         ax2[i].xaxis.set_major_locator(mdates.WeekdayLocator())
         ax2[i].xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
 
@@ -270,29 +264,37 @@ def plot_load_duration_curves(timeseries, color_dict, label, filename):
     storage_heat_charge_central = [component for component in timeseries.columns
                                    if bool(re.search('bus_th_central', component[0]))
                                    and bool(re.search('tes', component[1]))]
+
     feedin_heat_central = [component for component in timeseries.columns
                            if bool(re.search('bus_th_central', component[1]))
                            and not bool(re.search('behind', component[1]))]
+
     feedin_heat_central.append(('tes_central', 'bus_th_central_behind_storage', 'flow'))
+
     storage_heat_charge_decentral = [component for component in timeseries.columns
                                      if bool(re.search('bus_th', component[0]))
                                      and bool(re.search('tes_decentral', component[1]))]
+
     feedin_heat_decentral = [component for component in timeseries.columns
                              if bool(re.search('bus_th_decentral', component[1]))
                              and not bool(re.search('pipe', component[0]))
                              and not bool(re.search('behind', component[1]))]
+
     feedin_heat_decentral.extend([component for component in timeseries.columns
                                   if bool(re.search('tes_decentral', component[0]))
                                   and bool(re.search('bus_th_decentral_behind', component[1]))])
+
     feedin_heat_decentral = sorted(feedin_heat_decentral, key=lambda x: re.sub('subnet-._', '', x[0]))
+
     storage_heat_charge = [*storage_heat_charge_central, *storage_heat_charge_decentral]
+
     feedin_heat = [*feedin_heat_central, *feedin_heat_decentral]
 
     # resample
     df_resam = timeseries.copy()
     # df_resam = df_resam.resample('24H').mean()
 
-    # Sort timeseries
+    # sort timeseries
     sorted_df = pd.DataFrame()
     for column in df_resam.columns:
         sorted_df[column] = sorted(df_resam[column], reverse=True)
@@ -300,7 +302,7 @@ def plot_load_duration_curves(timeseries, color_dict, label, filename):
     # invert heat to storage
     sorted_df[storage_heat_charge] *= -1
 
-    # prepare colors
+    # prepare labels and colors
     labels = [re.sub('subnet-._', '', i[0]) for i in feedin_heat]
     colors_heat_feedin = [color_dict[label] for label in labels]
     colors = colors_heat_feedin + ['k']
@@ -1146,7 +1148,7 @@ def plot_timeseries_price_el(input_parameter, price_el, filename):
     plt.tight_layout()
     filename = filename.split('.')
     filename.insert(1, '_flex.')
-    filename  = ''.join(filename)
+    filename = ''.join(filename)
     plt.savefig(filename, dpi=500)
 
     return None
@@ -1156,7 +1158,6 @@ def create_plots(config_path, results_dir):
     r"""
     Runs the plot production pipeline.
     """
-    # open config
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
     with open(config_path, 'r') as config_file:
@@ -1168,9 +1169,8 @@ def create_plots(config_path, results_dir):
     with open(os.path.join(abs_path, 'experiment_configs/label_dict.yml'), 'r') as label_file:
         label_dict = yaml.load(label_file)
 
-
-    # load model_runs
     model_runs = helpers.load_model_runs(results_dir, cfg)
+
     for index, input_parameter in model_runs.iterrows():
         label = "_".join(map(str, index))
         dir_postproc = os.path.join(results_dir, 'data_postprocessed', label)
@@ -1202,96 +1202,66 @@ def create_plots(config_path, results_dir):
         if not os.path.exists(dir_plot):
             os.makedirs(os.path.join(dir_plot))
 
-        plot_timeseries_price_el(input_parameter,
-                                 price_el,
-                                 os.path.join(dir_plot, 'timeseries_price_el.png'))
+        plot_timeseries_price_el(input_parameter, price_el, os.path.join(dir_plot, 'timeseries_price_el.png'))
 
-        plot_heat_demand(demand_heat,
-                         label,
-                         os.path.join(dir_plot, 'demand_heat.pdf'))
-        plot_dispatch(timeseries,
-                      '2017-12-10',
-                      '2017-12-20',
-                      '2017-06-20',
-                      '2017-06-30',
-                      color_dict,
-                      label_dict,
-                      label,
+        plot_heat_demand(demand_heat, label, os.path.join(dir_plot, 'demand_heat.pdf'))
+
+        plot_dispatch(timeseries, '2017-12-10', '2017-12-20', '2017-06-20', '2017-06-30', color_dict, label_dict, label,
                       os.path.join(dir_plot, 'dispatch_stack_plot_summer.pdf'))
-        plot_load_duration_curves(timeseries,
-                                  color_dict,
-                                  label,
-                                  os.path.join(dir_plot, 'load_duration_curves.pdf'))
-        plot_storage_level(timeseries,
-                           color_dict,
-                           label,
-                           os.path.join(dir_plot, 'storage_level.pdf'))
-        plot_p_q_diagram(timeseries,
-                         param_chp,
-                         capacity_installed_chp,
-                         color_dict,
-                         label,
+
+        plot_load_duration_curves(timeseries, color_dict, label, os.path.join(dir_plot, 'load_duration_curves.pdf'))
+
+        plot_storage_level(timeseries, color_dict, label, os.path.join(dir_plot, 'storage_level.pdf'))
+
+        plot_p_q_diagram(timeseries, param_chp, capacity_installed_chp, color_dict, label,
                          os.path.join(dir_plot, 'pq_diagram.png'))
-        plot_demand_heat_vs_price_el(timeseries,
-                                     price_el,
-                                     color_dict,
-                                     label,
+
+        plot_demand_heat_vs_price_el(timeseries, price_el, color_dict, label,
                                      os.path.join(dir_plot, 'plot_demand_heat_vs_price_el.png'))
-        plot_heat_vs_heat_demand_and_price_el(timeseries,
-                                              price_el,
-                                              color_dict,
-                                              label,
+
+        plot_heat_vs_heat_demand_and_price_el(timeseries, price_el, color_dict, label,
                                               os.path.join(dir_plot, 'plot_heat_vs_demand_heat_and_price_el.png'))
-        plot_heat_feedin_price_el(timeseries,
-                                  price_el,
-                                  color_dict,
-                                  label,
+
+        plot_heat_feedin_price_el(timeseries, price_el, color_dict, label,
                                   os.path.join(dir_plot, 'heat_feedin_vs_price_el.pdf'))
-        plot_results_scalar_derived(results_scalar_derived,
-                                    color_dict,
-                                    label_dict,
-                                    label,
+
+        plot_results_scalar_derived(results_scalar_derived, color_dict, label_dict, label,
                                     os.path.join(dir_plot,'results_scalar_derived.pdf'))
+
         plt.close('all')
 
     energysystem_graph = nx.readwrite.read_gpickle(os.path.join(results_dir, 'data_plots/energysystem_graph.pkl'))
-    draw_graph(energysystem_graph,
-               plot=False,
-               store=True,
-               filename=os.path.join(results_dir, 'plots', 'es_graph.pdf'),
-               node_size=5000, edge_color='k',
-               node_color=color_dict)
 
     results_scalar_derived_all = pd.read_csv(os.path.join(results_dir,
                                                           'data_postprocessed',
                                                           'results_scalar_derived_all.csv'),
                                              header=0, index_col=[0, 1, 2, 3, 4])
-    print(results_scalar_derived_all)
-    results_scalar_derived_sq  = results_scalar_derived_all.loc[(slice(None),
-                                                                ['hp-2018_sq', 'hp-2030_sq', 'hp-2050_sq'],
-                                                                slice(None),
-                                                                slice(None),
-                                                                slice(None)), :]
-    plot_results_scalar_derived_summary(results_scalar_derived_sq,
-                                        color_dict,
-                                        label_dict,
-                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_sq.png'))
 
-    results_scalar_derived_ff  = results_scalar_derived_all.loc[(slice(None),
-                                                                ['hp-2018_ff', 'hp-2030_ff', 'hp-2050_ff'],
-                                                                slice(None),
-                                                                slice(None),
-                                                                slice(None)), :]
-    plot_results_scalar_derived_summary(results_scalar_derived_ff,
-                                        color_dict,
-                                        label_dict,
-                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_ff.png'))
+    results_scalar_derived_sq = results_scalar_derived_all.loc[(slice(None),
+                                                               ['hp-2018_sq', 'hp-2030_sq', 'hp-2050_sq'],
+                                                               slice(None),
+                                                               slice(None),
+                                                               slice(None)), :]
+
+    results_scalar_derived_ff = results_scalar_derived_all.loc[(slice(None),
+                                                               ['hp-2018_ff', 'hp-2030_ff', 'hp-2050_ff'],
+                                                               slice(None),
+                                                               slice(None),
+                                                               slice(None)), :]
 
     results_scalar_derived_all.sort_index(inplace=True, level=1)
-    print(results_scalar_derived_all)
-    plot_results_scalar_derived_summary(results_scalar_derived_all,
-                                        color_dict,
-                                        label_dict,
+
+
+    draw_graph(energysystem_graph, plot=False, store=True, filename=os.path.join(results_dir, 'plots', 'es_graph.pdf'),
+               node_size=5000, edge_color='k', node_color=color_dict)
+
+    plot_results_scalar_derived_summary(results_scalar_derived_sq, color_dict, label_dict,
+                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_sq.png'))
+
+    plot_results_scalar_derived_summary(results_scalar_derived_ff, color_dict, label_dict,
+                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_ff.png'))
+
+    plot_results_scalar_derived_summary(results_scalar_derived_all, color_dict, label_dict,
                                         os.path.join(results_dir, 'plots', 'results_scalar_derived_all.png'))
 
     # parameter_changing = pd.read_csv(os.path.join(results_dir,
