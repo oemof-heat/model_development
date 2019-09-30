@@ -20,6 +20,19 @@ import helpers
 
 
 def get_param_scalar(energysystem):
+    r"""
+    Get all scalar input parameters to the model as DataFrame.
+
+    Parameters
+    ----------
+    energysystem : oemof.solph.EnergySystem
+        EnergySystem as stored after optimization in src/model.py
+
+    Returns
+    -------
+    param_scalars : pd.DataFrame
+        DataFrame containing all scalar input parameters.
+    """
     param = energysystem.results['param']
     param = outputlib.processing.convert_keys_to_strings(param)
     scalars = {k: v['scalars'] for k, v in param.items()}
@@ -40,6 +53,19 @@ def get_param_scalar(energysystem):
 
 
 def get_price_electricity(energysystem):
+    r"""
+    Get input timeseries to the model of electricity prices.
+
+    Parameters
+    ----------
+    energysystem : oemof.solph.EnergySystem
+        EnergySystem as stored after optimization in src/model.py
+
+    Returns
+    -------
+    price_electricity : pd.DataFrame
+        DataFrame containing input timeseries of electricity prices.
+    """
     param = energysystem.results['param']
     param = outputlib.processing.convert_keys_to_strings(param)
     timeseries = {k: v['sequences'].reset_index(drop=True) for k, v in param.items() if not v['sequences'].empty}
@@ -52,6 +78,19 @@ def get_price_electricity(energysystem):
 
 
 def get_results_scalar(energysystem):
+    r"""
+    Get all scalar results of the model as DataFrame.
+
+    Parameters
+    ----------
+    energysystem : oemof.solph.EnergySystem
+        EnergySystem as stored after optimization in src/model.py
+
+    Returns
+    -------
+    results_scalar : pd.DataFrame
+        DataFrame containing all scalar results.
+    """
     results = energysystem.results['main']
     results = outputlib.processing.convert_keys_to_strings(results)
     scalars = {k: v['scalars'] for k, v in results.items()}
@@ -69,24 +108,52 @@ def get_results_scalar(energysystem):
     return results_scalar
 
 
-def get_results_flows(energysystem):
+def get_results_timeseries(energysystem):
+    r"""
+    Get all timeseries results of the model as DataFrame.
+
+    Parameters
+    ----------
+    energysystem : oemof.solph.EnergySystem
+        EnergySystem as stored after optimization in src/model.py
+
+    Returns
+    -------
+    results_scalar : pd.DataFrame
+        DataFrame containing all timeseries results.
+    """
     results = energysystem.results['main']
     results = outputlib.processing.convert_keys_to_strings(results)
-    flows = {k: v['sequences'] for k, v in results.items()}
-    flows = pd.concat(flows, axis=1)
+    timeseries = {k: v['sequences'] for k, v in results.items()}
+    timeseries = pd.concat(timeseries, axis=1)
 
-    return flows
+    return timeseries
 
 
 def get_derived_results_timeseries_emissions(energysystem):
+    r"""
+    Get resulting emission timeseries as DataFrame.
+
+    Parameters
+    ----------
+    energysystem : oemof.solph.EnergySystem
+        EnergySystem as stored after optimization in src/model.py
+
+    Returns
+    -------
+    timeseries_emission : pd.DataFrame
+        DataFrame containing resulting emission timeseries.
+    """
     param_scalar = get_param_scalar(energysystem)
-    flows = get_results_flows(energysystem)
+    timeseries = get_results_timeseries(energysystem)
     emission_specific = param_scalar.loc[param_scalar['var_name']=='emission_specific']
-    flows_with_emission_specific = flows[[(*ll, 'flow') for ll in emission_specific.index]]
+    flows_with_emission_specific = timeseries[[(*ll, 'flow') for ll in emission_specific.index]]
     flows_with_emission_specific.columns = flows_with_emission_specific.columns.remove_unused_levels()
+
     def func(x):
         factor = emission_specific.loc[x.name[:2]]['var_value']
         return x*factor
+
     timeseries_emission = flows_with_emission_specific.apply(func, axis=0)
     timeseries_emission.columns = timeseries_emission.columns.set_levels(['emission'], level=2)
 
@@ -94,17 +161,32 @@ def get_derived_results_timeseries_emissions(energysystem):
 
 
 def get_derived_results_timeseries_costs_variable(energysystem):  # TODO: Check
+    r"""
+    Get resulting emission timeseries as DataFrame.
+
+    Parameters
+    ----------
+    energysystem : oemof.solph.EnergySystem
+        EnergySystem as stored after optimization in src/model.py
+
+    Returns
+    -------
+    timeseries_cost_variable : pd.DataFrame
+        DataFrame containing resulting variable cost timeseries.
+    """
     param_scalar = get_param_scalar(energysystem)
-    flows = get_results_flows(energysystem)
+    timeseries = get_results_timeseries(energysystem)
     cost_variable = param_scalar.loc[(param_scalar['var_name']=='variable_costs')]
     cost_variable.loc[:, 'var_value'] = pd.to_numeric(cost_variable.loc[:, 'var_value'])
     cost_variable = cost_variable.loc[cost_variable['var_value']>0]
     cost_variable.index = cost_variable.index.remove_unused_levels()
-    flows_with_cost_variable = flows[[(*ll, 'flow') for ll in cost_variable.index]]
+    flows_with_cost_variable = timeseries[[(*ll, 'flow') for ll in cost_variable.index]]
     flows_with_cost_variable.columns = flows_with_cost_variable.columns.remove_unused_levels()
+
     def func(x):
         factor = cost_variable.loc[x.name[:2]]['var_value']
         return x*factor
+
     timeseries_cost_variable = flows_with_cost_variable.apply(func, axis=0)
     timeseries_cost_variable.columns = timeseries_cost_variable.columns.set_levels(['cost_variable'], level=2)
 
@@ -428,8 +510,8 @@ def postprocess(config_path, results_dir):
         param_scalar.to_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['scalars']['parameters']))
         results_scalar = get_results_scalar(energysystem)
         results_scalar.to_csv(os.path.join(dir_postproc,  cfg['data_postprocessed']['scalars']['results']))
-        results_timeseries_flows = get_results_flows(energysystem)
-        results_timeseries_flows.to_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['timeseries']['timeseries']))
+        results_timeseries = get_results_timeseries(energysystem)
+        results_timeseries.to_csv(os.path.join(dir_postproc, cfg['data_postprocessed']['timeseries']['timeseries']))
 
         # Calculate derived results
         derived_results_timeseries_emissions = get_derived_results_timeseries_emissions(energysystem)
@@ -441,7 +523,7 @@ def postprocess(config_path, results_dir):
         derived_results_scalar = get_derived_results_scalar(input_parameter,
                                                             param_scalar,
                                                             results_scalar,
-                                                            results_timeseries_flows,
+                                                            results_timeseries,
                                                             derived_results_timeseries_costs_variable,
                                                             derived_results_timeseries_emissions)
         derived_results_scalar = helpers.prepend_index(derived_results_scalar,
