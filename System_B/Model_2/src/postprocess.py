@@ -448,7 +448,7 @@ def get_derived_results_scalar(input_parameter,
         return emissions_sum
 
     def get_emission_specific_heat(emission_sum):
-        # TODO
+        # TODO correct implementation
         consumers_heat = [component for component in results_timeseries.columns
                           if bool(re.search('demand_th', component[1]))]
         energy_thermal_consumed = results_timeseries[consumers_heat].sum()
@@ -462,40 +462,8 @@ def get_derived_results_scalar(input_parameter,
 
         return emission_specific_heat
 
-    def collect_derived_results_scalar(energy_thermal_produced_sum,
-                                       power_thermal_max,
-                                       power_thermal_min,
-                                       power_thermal_during_operation_mean,
-                                       hours_operating_sum,
-                                       number_starts,
-                                       installed_production_capacity,
-                                       hours_full_load,
-                                       energy_consumed_gas_sum,
-                                       energy_consumed_electricity_sum,
-                                       cost_variable_sum,
-                                       cost_fix,
-                                       energy_heat_storage_discharge_sum,
-                                       energy_losses_heat_dhn_sum,
-                                       cost_total_system,
-                                       cost_specific_heat,
-                                       emissions_sum):
-        derived_results_scalar = pd.concat([energy_thermal_produced_sum,
-                                            power_thermal_max,
-                                            power_thermal_min,
-                                            power_thermal_during_operation_mean,
-                                            hours_operating_sum,
-                                            number_starts,
-                                            installed_production_capacity,
-                                            hours_full_load,
-                                            energy_consumed_gas_sum,
-                                            energy_consumed_electricity_sum,
-                                            cost_variable_sum,
-                                            cost_fix,
-                                            energy_heat_storage_discharge_sum,
-                                            energy_losses_heat_dhn_sum,
-                                            cost_total_system,
-                                            cost_specific_heat,
-                                            emissions_sum], sort=True)
+    def collect_derived_results_scalar(*args):
+        derived_results_scalar = pd.concat(args, sort=True)
         derived_results_scalar.index.rename('var_name',
                                             'variable_name',
                                             inplace=True)
@@ -567,19 +535,19 @@ def get_derived_results_scalar(input_parameter,
                                                             power_thermal_max,
                                                             power_thermal_min,
                                                             power_thermal_during_operation_mean,
-                                                           hours_operating_sum,
-                                                           number_starts,
-                                                           installed_production_capacity,
-                                                           hours_full_load,
-                                                           energy_consumed_gas_sum,
-                                                           energy_consumed_electricity_sum,
-                                                           cost_variable_sum,
-                                                           cost_fix,
-                                                           energy_heat_storage_discharge_sum,
-                                                           energy_losses_heat_dhn_sum,
-                                                           cost_total_system,
-                                                           cost_specific_heat,
-                                                           emissions_sum)
+                                                            hours_operating_sum,
+                                                            number_starts,
+                                                            installed_production_capacity,
+                                                            hours_full_load,
+                                                            energy_consumed_gas_sum,
+                                                            energy_consumed_electricity_sum,
+                                                            cost_variable_sum,
+                                                            cost_fix,
+                                                            energy_heat_storage_discharge_sum,
+                                                            energy_losses_heat_dhn_sum,
+                                                            cost_total_system,
+                                                            cost_specific_heat,
+                                                            emissions_sum)
 
     aggregated_results = aggregate_decentral(derived_results_scalar)
 
