@@ -54,6 +54,17 @@ def get_param_scalar(energysystem):
     return param_scalars
 
 
+def get_price_electricity(energysystem):
+    param = energysystem.results['param']
+    param = outputlib.processing.convert_keys_to_strings(param)
+    timeseries = {k: v['sequences'].reset_index(drop=True) for k, v in param.items() if not v['sequences'].empty}
+    param_timeseries = pd.concat(timeseries, axis=1)
+    price_electricity = param_timeseries.loc[:, (['bus_el_export', 'source_electricity', 'source_electricity_flex'],
+                                                  slice(None),
+                                                  slice(None))]
+    return price_electricity
+
+
 def get_results_scalar(energysystem):
     results = energysystem.results['main']
     results = outputlib.processing.convert_keys_to_strings(results)
@@ -406,6 +417,7 @@ def postprocess(config_path, results_dir):
     # load model_runs
     model_runs = helpers.load_model_runs(results_dir, cfg)
     list_results_scalar_derived = []
+    collect_price_electricity = {}
     for index, input_parameter in model_runs.iterrows():
         label = "_".join(map(str, index))
 
@@ -443,7 +455,13 @@ def postprocess(config_path, results_dir):
         derived_results_scalar.to_csv(os.path.join(dir_postproc,
                                                    cfg['data_postprocessed']['scalars']['derived']), header=True)
         list_results_scalar_derived.append(derived_results_scalar)
+        price_electricity = get_price_electricity(energysystem)
+        collect_price_electricity[label] = price_electricity
 
+    price_electricity_all = pd.concat(collect_price_electricity, axis=1)
+    price_electricity_all.to_csv(os.path.join(results_dir,
+                                              'data_postprocessed',
+                                              'price_electricity_all.csv'))
     results_scalar_derived_all = pd.concat(list_results_scalar_derived)
     results_scalar_derived_all.to_csv(os.path.join(results_dir,
                                                    'data_postprocessed',
