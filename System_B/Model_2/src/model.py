@@ -278,7 +278,6 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
         graph_file_name = os.path.join(results_dir, 'data_plots/energysystem_graph.pkl')
         nx.readwrite.write_gpickle(G=energysystem_graph, path=graph_file_name)
 
-
     save_es_graph(energysystem, results_dir)
 
     return energysystem.results
