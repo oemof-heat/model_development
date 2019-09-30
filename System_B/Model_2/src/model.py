@@ -201,10 +201,22 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                                                                ['efficiency_charging'],
                                        outflow_conversion_factor=input_parameter['tes_decentral']
                                                                                 ['efficiency_discharging'])
-        if not np.isnan(input_parameter['global', 'factor_load_reduction_heat']):
-            load_factor = input_parameter['global', 'factor_load_reduction_heat']
-        else:
+
+        if not ('global', 'factor_load_reduction_heat') in input_parameter.index:
             load_factor = 1
+
+        elif input_parameter['global', 'factor_load_reduction_heat'] is None:
+            load_factor = 1
+
+        elif np.isnan(input_parameter['global', 'factor_load_reduction_heat']):
+            load_factor = 1
+
+        else:
+            load_factor = input_parameter['global', 'factor_load_reduction_heat']
+
+        print('load_factor: ', load_factor)
+        load_factor = 1
+
         demand_th = Sink(label=name_subnet+'_demand_th',
                          inputs={b_th_decentral: Flow(nominal_value=load_factor,
                                               actual_value=demand_heat[column],
