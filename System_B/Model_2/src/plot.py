@@ -1202,7 +1202,7 @@ def create_plots(config_path, results_dir):
         if not os.path.exists(dir_plot):
             os.makedirs(os.path.join(dir_plot))
 
-        plot_timeseries_price_el(input_parameter, price_el, os.path.join(dir_plot, 'timeseries_price_el.png'))
+        plot_timeseries_price_el(input_parameter, price_el, os.path.join(dir_plot, 'timeseries_price_el.pdf'))
 
         plot_heat_demand(demand_heat, label, os.path.join(dir_plot, 'demand_heat.pdf'))
 
@@ -1214,13 +1214,13 @@ def create_plots(config_path, results_dir):
         plot_storage_level(timeseries, color_dict, label, os.path.join(dir_plot, 'storage_level.pdf'))
 
         plot_p_q_diagram(timeseries, param_chp, capacity_installed_chp, color_dict, label,
-                         os.path.join(dir_plot, 'pq_diagram.png'))
+                         os.path.join(dir_plot, 'pq_diagram.pdf'))
 
         plot_demand_heat_vs_price_el(timeseries, price_el, color_dict, label,
-                                     os.path.join(dir_plot, 'plot_demand_heat_vs_price_el.png'))
+                                     os.path.join(dir_plot, 'plot_demand_heat_vs_price_el.pdf'))
 
         plot_heat_vs_heat_demand_and_price_el(timeseries, price_el, color_dict, label,
-                                              os.path.join(dir_plot, 'plot_heat_vs_demand_heat_and_price_el.png'))
+                                              os.path.join(dir_plot, 'plot_heat_vs_demand_heat_and_price_el.pdf'))
 
         plot_heat_feedin_price_el(timeseries, price_el, color_dict, label,
                                   os.path.join(dir_plot, 'heat_feedin_vs_price_el.pdf'))
@@ -1256,13 +1256,13 @@ def create_plots(config_path, results_dir):
                node_size=5000, edge_color='k', node_color=color_dict)
 
     plot_results_scalar_derived_summary(results_scalar_derived_sq, color_dict, label_dict,
-                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_sq.png'))
+                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_sq.pdf'))
 
     plot_results_scalar_derived_summary(results_scalar_derived_ff, color_dict, label_dict,
-                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_ff.png'))
+                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_ff.pdf'))
 
     plot_results_scalar_derived_summary(results_scalar_derived_all, color_dict, label_dict,
-                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_all.png'))
+                                        os.path.join(results_dir, 'plots', 'results_scalar_derived_all.pdf'))
 
     # parameter_changing = pd.read_csv(os.path.join(results_dir,
     #                                               'data_preprocessed',
