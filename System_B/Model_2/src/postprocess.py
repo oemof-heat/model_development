@@ -280,6 +280,16 @@ def get_derived_results_scalar(input_parameter,
 
         return energy_thermal_produced_sum
 
+    def get_energy_electricity_produced_sum(results_timeseries):
+        producers_electricity = [component for component in results_timeseries.columns
+                                 if bool(re.search('bus_el_export', component[1]))]
+        energy_electricity_produced_sum = results_timeseries[producers_electricity].sum()
+        energy_electricity_produced_sum = format_results(energy_electricity_produced_sum,
+                                                        'energy_electricity_produced_sum',
+                                                        'MWh')
+
+        return energy_electricity_produced_sum
+
     def get_power_thermal_max_min(results_timeseries):
         producers_heat = get_producers_heat(results_timeseries)
         power_thermal_max = results_timeseries[producers_heat].max()
@@ -499,6 +509,8 @@ def get_derived_results_scalar(input_parameter,
 
     energy_thermal_produced_sum = get_energy_thermal_produced_sum(results_timeseries)
 
+    energy_electricity_produced_sum = get_energy_electricity_produced_sum(results_timeseries)
+
     power_thermal_max, power_thermal_min = get_power_thermal_max_min(results_timeseries)
 
     operating = get_operating(results_timeseries)
@@ -532,6 +544,7 @@ def get_derived_results_scalar(input_parameter,
     emissions_sum = get_emissions_sum(derived_results_timeseries_emissions)
 
     derived_results_scalar = collect_derived_results_scalar(energy_thermal_produced_sum,
+                                                            energy_electricity_produced_sum,
                                                             power_thermal_max,
                                                             power_thermal_min,
                                                             power_thermal_during_operation_mean,
