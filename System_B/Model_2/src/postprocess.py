@@ -458,9 +458,6 @@ def get_derived_results_scalar(input_parameter,
         return emissions_sum
 
     def get_emissions_specific_heat(emissions_sum):
-        # TODO: Format results
-        # Divide by energy_thermal_consumed_sum
-
         emissions_heat_sum = emissions_sum.copy()
         emissions_heat_sum.loc[('chp', 'emissions_sum'), 'var_value'] = allocate_emissions(
             emissions_heat_sum.loc[('chp', 'emissions_sum'), 'var_value'],
@@ -480,21 +477,6 @@ def get_derived_results_scalar(input_parameter,
         emissions_specific_heat['var_unit'] = 'tCO2/MW_th'
 
         return emissions_specific_heat
-
-    def get_emission_specific_heat(emission_sum):
-        # TODO correct implementation
-        consumers_heat = [component for component in results_timeseries.columns
-                          if bool(re.search('demand_th', component[1]))]
-        energy_thermal_consumed = results_timeseries[consumers_heat].sum()
-
-        emission_specific_heat = emission_sum / energy_thermal_consumed.sum()
-
-        emission_specific_heat = helpers.prepend_index(pd.DataFrame(cost_specific_heat).T,
-                                                       ['demand_th', 'emission_specific_heat'],
-                                                       ['component', 'var_name'])
-        emission_specific_heat['var_unit'] = 'tCO2/MWh'
-
-        return emission_specific_heat
 
     def collect_derived_results_scalar(*args):
         derived_results_scalar = pd.concat(args, sort=True)
