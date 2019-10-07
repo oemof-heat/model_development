@@ -457,6 +457,30 @@ def get_derived_results_scalar(input_parameter,
                                        'tCO2')
         return emissions_sum
 
+    def get_emissions_specific_heat(emissions_sum):
+        # TODO: Format results
+        # Divide by energy_thermal_consumed_sum
+
+        emissions_heat_sum = emissions_sum.copy()
+        emissions_heat_sum.loc[('chp', 'emissions_sum'), 'var_value'] = allocate_emissions(
+            emissions_heat_sum.loc[('chp', 'emissions_sum'), 'var_value'],
+            eta_el=0.3,
+            eta_th=0.5,
+            method='iea')[1]
+
+        consumers_heat = [component for component in results_timeseries.columns
+                          if bool(re.search('demand_th', component[1]))]
+
+        energy_thermal_consumed = results_timeseries[consumers_heat].sum()
+
+        emissions_specific_heat = emissions_heat_sum.copy()
+        emissions_specific_heat['var_value'] = emissions_specific_heat['var_value'] * 1/energy_thermal_consumed.sum()
+
+        emissions_specific_heat.index.set_levels(['emissions_specific_heat'], level='variable_name', inplace=True)
+        emissions_specific_heat['var_unit'] = 'tCO2/MW_th'
+
+        return emissions_specific_heat
+
     def get_emission_specific_heat(emission_sum):
         # TODO correct implementation
         consumers_heat = [component for component in results_timeseries.columns
@@ -543,6 +567,8 @@ def get_derived_results_scalar(input_parameter,
 
     emissions_sum = get_emissions_sum(derived_results_timeseries_emissions)
 
+    emissions_specific_heat = get_emissions_specific_heat(emissions_sum)
+
     derived_results_scalar = collect_derived_results_scalar(energy_thermal_produced_sum,
                                                             energy_electricity_produced_sum,
                                                             power_thermal_max,
@@ -560,7 +586,8 @@ def get_derived_results_scalar(input_parameter,
                                                             energy_losses_heat_dhn_sum,
                                                             cost_total_system,
                                                             cost_specific_heat,
-                                                            emissions_sum)
+                                                            emissions_sum,
+                                                            emissions_specific_heat)
 
     aggregated_results = aggregate_decentral(derived_results_scalar)
 
