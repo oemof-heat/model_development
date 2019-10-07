@@ -86,9 +86,7 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     variable_costs_gas += input_parameter['source_gas']['co2_fee']  # TODO: Check
 
     source_gas = Source(label='source_gas',
-                        outputs={b_gas: Flow(variable_costs=variable_costs_gas,
-                                             emission_specific=input_parameter['source_gas']
-                                                                              ['emission_specific'])})
+                        outputs={b_gas: Flow(variable_costs=variable_costs_gas)})
 
     revenue_sold_el = -1 * np.nan_to_num(price_electricity)
     revenue_sold_el -= input_parameter['chp', 'chp_surcharges']  # TODO: Check
@@ -97,7 +95,9 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
     nominal_value_gas = input_parameter['chp', 'capacity_installed'] * 1/input_parameter['chp', 'efficiency_th']
     chp = ExtractionTurbineCHP(label='chp',
                                inputs={b_gas: Flow(nominal_value=nominal_value_gas,
-                                                   variable_costs=input_parameter['chp', 'network_charges_WP'])},
+                                                   variable_costs=input_parameter['chp', 'network_charges_WP'],
+                                                   emission_specific=input_parameter['source_gas']['emission_specific'])
+                                       },
                                outputs={b_th_central: Flow(nominal_value=input_parameter['chp',
                                                                                          'capacity_installed'],
                                                            variable_costs=input_parameter['chp', 'vom']),
@@ -111,7 +111,9 @@ def model(index, input_parameter, demand_heat, price_electricity, results_dir, s
                                      inputs={b_gas: Flow(variable_costs=input_parameter['gas_boiler_central']
                                                                                        ['energy_tax']
                                                                       + input_parameter['gas_boiler_central']
-                                                                                       ['network_charges_WP'])},
+                                                                                       ['network_charges_WP'],
+                                                   emission_specific=input_parameter['source_gas']['emission_specific'])
+                                             },
                                      outputs={b_th_central: Flow(nominal_value=input_parameter['gas_boiler_central']
                                                                                               ['capacity_installed'],
                                                                  variable_costs=input_parameter['gas_boiler_central']
