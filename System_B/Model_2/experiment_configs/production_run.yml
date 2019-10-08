@@ -6,7 +6,7 @@ data_raw:
   timeseries: 'data/timeseries.csv'
   scalars:
     parameters: 'data/parameter_v0-7.csv'
-  scenarios: 'data/scenarios_all.csv'
+  scenarios: 'data/scenarios.csv'
 
 # Preprocessed data to use
 data_preprocessed:
