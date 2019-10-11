@@ -18,6 +18,8 @@ import oemof.outputlib as outputlib
 from oemof.tools import economics
 import helpers
 
+idx = pd.IndexSlice
+
 
 def get_param_scalar(energysystem):
     r"""
@@ -174,20 +176,27 @@ def get_derived_results_timeseries_costs_variable(energysystem):  # TODO: Check
     timeseries_cost_variable : pd.DataFrame
         DataFrame containing resulting variable cost timeseries.
     """
-    param_scalar = get_param_scalar(energysystem)
+    param = energysystem.results['param']
+    param = outputlib.processing.convert_keys_to_strings(param)
+
     timeseries = get_results_timeseries(energysystem)
-    cost_variable = param_scalar.loc[(param_scalar['var_name']=='variable_costs')]
-    cost_variable.loc[:, 'var_value'] = pd.to_numeric(cost_variable.loc[:, 'var_value'])
-    cost_variable = cost_variable.loc[cost_variable['var_value']>0]
-    cost_variable.index = cost_variable.index.remove_unused_levels()
-    flows_with_cost_variable = timeseries[[(*ll, 'flow') for ll in cost_variable.index]]
-    flows_with_cost_variable.columns = flows_with_cost_variable.columns.remove_unused_levels()
 
-    def func(x):
-        factor = cost_variable.loc[x.name[:2]]['var_value']
-        return x*factor
+    variable_costs = {key: value[k]['variable_costs']
+                      for key, value in param.items()
+                      for k in ['scalars', 'sequences']
+                      if 'variable_costs' in value[k]}
 
-    timeseries_cost_variable = flows_with_cost_variable.apply(func, axis=0)
+    flows_with_variable_costs = timeseries[[(*ll, 'flow') for ll in variable_costs.keys()]]
+    flows_with_variable_costs.columns = flows_with_variable_costs.columns.remove_unused_levels()
+
+    timeseries_cost_variable = flows_with_variable_costs.copy()
+
+    for column in flows_with_variable_costs.columns:
+        var_cost = variable_costs[column[:2]]
+        if type(var_cost) == pd.Series:
+            var_cost = var_cost.values
+        timeseries_cost_variable.loc[:, column] *= var_cost
+
     timeseries_cost_variable.columns = timeseries_cost_variable.columns.set_levels(['cost_variable'], level=2)
 
     return timeseries_cost_variable
@@ -401,6 +410,7 @@ def get_derived_results_scalar(input_parameter,
         cost_variable_sum = format_results(cost_variable_sum,
                                            'cost_variable_sum',
                                            'Eur')
+
         return cost_variable_sum
 
     def get_cost_fix(input_parameter):
