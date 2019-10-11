@@ -451,12 +451,11 @@ def get_derived_results_scalar(input_parameter,
                           if bool(re.search('demand_th', component[1]))]
         energy_thermal_consumed = results_timeseries[consumers_heat].sum()
 
-        cost_specific_heat = cost_total_system.sum() / energy_thermal_consumed.sum()
+        cost_specific_heat = cost_total_system.copy() / energy_thermal_consumed.sum()
 
-        cost_specific_heat = helpers.prepend_index(pd.DataFrame(cost_specific_heat).T,
-                                                   ['demand_th', 'cost_specific_heat'],
-                                                   ['component', 'var_name'])
         cost_specific_heat['var_unit'] = 'Eur/MWh'
+
+        cost_specific_heat.index.set_levels(['cost_specific_heat'], level='var_name', inplace=True)
 
         return cost_specific_heat
 
