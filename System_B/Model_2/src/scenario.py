@@ -76,9 +76,9 @@ def get_deterministic_run(scenario, input_parameters):
         print([key for key in df.index[df.index.duplicated()]])
         raise ValueError('Duplicated entries in {} and 1_basic'.format(scenario))
 
-    df = df['var_value'].unstack(level=[1, 2])
+    df = df.unstack(level=[1, 2])
     df = df.reset_index(drop=True)
-    df.columns.names = ([None, None])
+    df.columns.names = ([None, None, None])
     df.index = pd.MultiIndex.from_tuples([(0, scenario, 0)],
                                          names=['run_id', 'scenario', 'uncert_sample_id'])
     return df

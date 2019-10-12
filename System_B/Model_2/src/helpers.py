@@ -69,7 +69,7 @@ def load_model_runs(results_dir, cfg):
     model_runs = pd.read_csv(os.path.join(results_dir,
                              'data_preprocessed',
                              cfg['data_preprocessed']['scalars']['model_runs']),
-                             index_col=[0, 1, 2], header=[0, 1])
+                             index_col=[0, 1, 2], header=[0, 1, 2])
     return model_runs
 
 
