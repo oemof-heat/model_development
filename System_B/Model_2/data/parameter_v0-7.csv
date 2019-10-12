@@ -69,15 +69,15 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2018_ff;reference;gas_boiler_central;energy_tax;0;Eur/MWh;paragraph 2 EnergieStG;
 ;2018_ff;reference;pth_heat_pump_decentral;network_charges_GP;6500;Eur/a;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_ff;reference;pth_heat_pump_decentral;network_charges_KP;0;Eur/MW*a;ConsentecGmbH2018;S. 104, low voltage , < 2500 h/a
-;2018_ff;reference;pth_heat_pump_decentral;network_charges_PP;0;Eur/a;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
+;2018_ff;reference;pth_heat_pump_decentral;network_charges_PP;0;Eur/(MW*a);ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_ff;reference;pth_heat_pump_decentral;network_charges_WP;18;Eur/MWh;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_ff;reference;pth_resistive_central;network_charges_GP;8160;Eur/a;ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
 ;2018_ff;reference;pth_resistive_central;network_charges_KP;11910;Eur/MW*a;ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
-;2018_ff;reference;pth_resistive_central;network_charges_PP;0;Eur/a;ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
+;2018_ff;reference;pth_resistive_central;network_charges_PP;0;Eur/(MW*a);ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
 ;2018_ff;reference;pth_resistive_central;network_charges_WP;7;Eur/MWh;ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
 ;2018_ff;reference;pth_resistive_decentral;network_charges_GP;6500;Eur/a;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_ff;reference;pth_resistive_decentral;network_charges_KP;0;Eur/MW*a;ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
-;2018_ff;reference;pth_resistive_decentral;network_charges_PP;0;Eur/a;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
+;2018_ff;reference;pth_resistive_decentral;network_charges_PP;0;Eur/(MW*a);ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_ff;reference;pth_resistive_decentral;network_charges_WP;18;Eur/MWh;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_ff;reference;source_electricity;emission_specific;0.503;tCO2/MWh;;Pfluger2017a
 ;2018_ff;reference;source_electricity;spot_price;41;Eur/MWh;AgoraEnergiewende2018;average Day-Ahead Spot price
@@ -92,15 +92,15 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2018_sq;reference;gas_boiler_central;energy_tax;5.5;Eur/MWh;paragraph 2 EnergieStG;
 ;2018_sq;reference;pth_heat_pump_decentral;network_charges_GP;0;Eur/a;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_sq;reference;pth_heat_pump_decentral;network_charges_KP;0;Eur/MW*a;ConsentecGmbH2018;S. 104, low voltage , < 2500 h/a
-;2018_sq;reference;pth_heat_pump_decentral;network_charges_PP;22010;Eur/MW*a;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
+;2018_sq;reference;pth_heat_pump_decentral;network_charges_PP;22010;Eur/(MW*a);ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_sq;reference;pth_heat_pump_decentral;network_charges_WP;51.9;Eur/MWh;ConsentecGmbH2018;S. 105, low voltage RLM
 ;2018_sq;reference;pth_resistive_central;network_charges_GP;0;Eur/a;ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
 ;2018_sq;reference;pth_resistive_central;network_charges_KP;0;Eur/MW*a;ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
-;2018_sq;reference;pth_resistive_central;network_charges_PP;16250;Eur/MW*a;ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
+;2018_sq;reference;pth_resistive_central;network_charges_PP;16250;Eur/(MW*a);ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
 ;2018_sq;reference;pth_resistive_central;network_charges_WP;37.9;Eur/MWh;ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
 ;2018_sq;reference;pth_resistive_decentral;network_charges_GP;0;Eur/a;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_sq;reference;pth_resistive_decentral;network_charges_KP;0;Eur/MW*a;ConsentecGmbH2018;S. 104, medium voltage , < 2500 h/a
-;2018_sq;reference;pth_resistive_decentral;network_charges_PP;22010;Eur/MW*a;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
+;2018_sq;reference;pth_resistive_decentral;network_charges_PP;22010;Eur/(MW*a);ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_sq;reference;pth_resistive_decentral;network_charges_WP;51.9;Eur/MWh;ConsentecGmbH2018;S. 105, low voltage RLM, < 2500 h/a
 ;2018_sq;reference;source_electricity;emission_specific;0.503;tCO2/MWh;;Pfluger2017a
 ;2018_sq;reference;source_electricity;spot_price;41;Eur/MWh;AgoraEnergiewende2018;average Day-Ahead Spot price
@@ -146,15 +146,15 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2030_ff;reference;gas_boiler_central;energy_tax;0;Eur/MWh;paragraph 2 EnergieStG;
 ;2030_ff;reference;pth_heat_pump_decentral;network_charges_GP;7172.1;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_ff;reference;pth_heat_pump_decentral;network_charges_KP;0;Eur/MW*a;Pfluger2017a;low voltage , < 2500 h/a
-;2030_ff;reference;pth_heat_pump_decentral;network_charges_PP;0;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
+;2030_ff;reference;pth_heat_pump_decentral;network_charges_PP;0;Eur/(MW*a);Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_ff;reference;pth_heat_pump_decentral;network_charges_WP;19.86;Eur/MWh;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_ff;reference;pth_resistive_central;network_charges_GP;9003.74;Eur/a;Pfluger2017a;medium voltage , < 2500 h/a
 ;2030_ff;reference;pth_resistive_central;network_charges_KP;13141.49;Eur/MW*a;Pfluger2017a;medium voltage , < 2500 h/a
-;2030_ff;reference;pth_resistive_central;network_charges_PP;0;Eur/a;Pfluger2017a;medium voltage , < 2500 h/a
+;2030_ff;reference;pth_resistive_central;network_charges_PP;0;Eur/(MW*a);Pfluger2017a;medium voltage , < 2500 h/a
 ;2030_ff;reference;pth_resistive_central;network_charges_WP;7.72;Eur/MWh;Pfluger2017a;medium voltage , < 2500 h/a
 ;2030_ff;reference;pth_resistive_decentral;network_charges_GP;7172.1;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_ff;reference;pth_resistive_decentral;network_charges_KP;0;Eur/MW*a;Pfluger2017a;medium voltage , < 2500 h/a
-;2030_ff;reference;pth_resistive_decentral;network_charges_PP;0;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
+;2030_ff;reference;pth_resistive_decentral;network_charges_PP;0;Eur/(MW*a);Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_ff;reference;pth_resistive_decentral;network_charges_WP;19.86;Eur/MWh;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_ff;reference;source_electricity;emission_specific;0.254;tCO2/MWh;;Pfluger2017a
 ;2030_ff;reference;source_electricity;spot_price;57;Eur/MWh;AgoraEnergiewende2018;average Day-Ahead Spot price
@@ -176,15 +176,15 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2030_sq;reference;gas_boiler_central;energy_tax;5.5;Eur/MWh;paragraph 2 EnergieStG;
 ;2030_sq;reference;pth_heat_pump_decentral;network_charges_GP;0;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_sq;reference;pth_heat_pump_decentral;network_charges_KP;0;Eur/MW*a;Pfluger2017a;low voltage , < 2500 h/a
-;2030_sq;reference;pth_heat_pump_decentral;network_charges_PP;24285.83;Eur/MW*a;Pfluger2017a;low voltage RLM, < 2500 h/a
+;2030_sq;reference;pth_heat_pump_decentral;network_charges_PP;24285.83;Eur/(MW*a);Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_sq;reference;pth_heat_pump_decentral;network_charges_WP;57.27;Eur/MWh;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_sq;reference;pth_resistive_central;network_charges_GP;0;Eur/a;Pfluger2017a;medium voltage , < 2500 h/a
 ;2030_sq;reference;pth_resistive_central;network_charges_KP;0;Eur/MW*a;Pfluger2017a;medium voltage , < 2500 h/a
-;2030_sq;reference;pth_resistive_central;network_charges_PP;17930.25;Eur/MW*a;Pfluger2017a;medium voltage , < 2500 h/a
+;2030_sq;reference;pth_resistive_central;network_charges_PP;17930.25;Eur/(MW*a);Pfluger2017a;medium voltage , < 2500 h/a
 ;2030_sq;reference;pth_resistive_central;network_charges_WP;41.82;Eur/MWh;Pfluger2017a;medium voltage , < 2500 h/a
 ;2030_sq;reference;pth_resistive_decentral;network_charges_GP;0;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_sq;reference;pth_resistive_decentral;network_charges_KP;0;Eur/MW*a;Pfluger2017a;medium voltage , < 2500 h/a
-;2030_sq;reference;pth_resistive_decentral;network_charges_PP;24285.83;Eur/MW*a;Pfluger2017a;low voltage RLM, < 2500 h/a
+;2030_sq;reference;pth_resistive_decentral;network_charges_PP;24285.83;Eur/(MW*a);Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_sq;reference;pth_resistive_decentral;network_charges_WP;57.27;Eur/MWh;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2030_sq;reference;source_electricity;emission_specific;0.254;tCO2/MWh;;Pfluger2017a
 ;2030_sq;reference;source_electricity;spot_price;57;Eur/MWh;AgoraEnergiewende2018;average Day-Ahead Spot price
@@ -206,15 +206,15 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2050_ff;reference;gas_boiler_central;energy_tax;0;Eur/MWh;paragraph 2 EnergieStG;
 ;2050_ff;reference;pth_heat_pump_decentral;network_charges_GP;8248.5;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_ff;reference;pth_heat_pump_decentral;network_charges_KP;0;Eur/MW*a;Pfluger2017a;low voltage , < 2500 h/a
-;2050_ff;reference;pth_heat_pump_decentral;network_charges_PP;0;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
+;2050_ff;reference;pth_heat_pump_decentral;network_charges_PP;0;Eur/(MW*a);Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_ff;reference;pth_heat_pump_decentral;network_charges_WP;22.84;Eur/MWh;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_ff;reference;pth_resistive_central;network_charges_GP;10355.04;Eur/a;Pfluger2017a;medium voltage , < 2500 h/a
 ;2050_ff;reference;pth_resistive_central;network_charges_KP;15113.79;Eur/MW*a;Pfluger2017a;medium voltage , < 2500 h/a
-;2050_ff;reference;pth_resistive_central;network_charges_PP;0;Eur/a;Pfluger2017a;medium voltage , < 2500 h/a
+;2050_ff;reference;pth_resistive_central;network_charges_PP;0;Eur/(MW*a);Pfluger2017a;medium voltage , < 2500 h/a
 ;2050_ff;reference;pth_resistive_central;network_charges_WP;8.88;Eur/MWh;Pfluger2017a;medium voltage , < 2500 h/a
 ;2050_ff;reference;pth_resistive_decentral;network_charges_GP;8248.5;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_ff;reference;pth_resistive_decentral;network_charges_KP;0;Eur/MW*a;Pfluger2017a;medium voltage , < 2500 h/a
-;2050_ff;reference;pth_resistive_decentral;network_charges_PP;0;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
+;2050_ff;reference;pth_resistive_decentral;network_charges_PP;0;Eur/(MW*a);Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_ff;reference;pth_resistive_decentral;network_charges_WP;22.84;Eur/MWh;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_ff;reference;source_electricity;emission_specific;0.067;tCO2/MWh;;Pfluger2017a
 ;2050_ff;reference;source_electricity;spot_price;83.67;Eur/MWh;extrapolation of 2018 to 2030;average Day-Ahead Spot price
@@ -236,15 +236,15 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2050_sq;reference;gas_boiler_central;energy_tax;5.5;Eur/MWh;paragraph 2 EnergieStG;
 ;2050_sq;reference;pth_heat_pump_decentral;network_charges_GP;0;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_sq;reference;pth_heat_pump_decentral;network_charges_KP;0;Eur/MW*a;Pfluger2017a;low voltage , < 2500 h/a
-;2050_sq;reference;pth_heat_pump_decentral;network_charges_PP;27930.69;Eur/MW*a;Pfluger2017a;low voltage RLM, < 2500 h/a
+;2050_sq;reference;pth_heat_pump_decentral;network_charges_PP;27930.69;Eur/(MW*a);Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_sq;reference;pth_heat_pump_decentral;network_charges_WP;65.86;Eur/MWh;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_sq;reference;pth_resistive_central;network_charges_GP;0;Eur/a;Pfluger2017a;medium voltage , < 2500 h/a
 ;2050_sq;reference;pth_resistive_central;network_charges_KP;0;Eur/MW*a;Pfluger2017a;medium voltage , < 2500 h/a
-;2050_sq;reference;pth_resistive_central;network_charges_PP;20621.25;Eur/MW*a;Pfluger2017a;medium voltage , < 2500 h/a
+;2050_sq;reference;pth_resistive_central;network_charges_PP;20621.25;Eur/(MW*a);Pfluger2017a;medium voltage , < 2500 h/a
 ;2050_sq;reference;pth_resistive_central;network_charges_WP;48.1;Eur/MWh;Pfluger2017a;medium voltage , < 2500 h/a
 ;2050_sq;reference;pth_resistive_decentral;network_charges_GP;0;Eur/a;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_sq;reference;pth_resistive_decentral;network_charges_KP;0;Eur/MW*a;Pfluger2017a;medium voltage , < 2500 h/a
-;2050_sq;reference;pth_resistive_decentral;network_charges_PP;27930.69;Eur/MW*a;Pfluger2017a;low voltage RLM, < 2500 h/a
+;2050_sq;reference;pth_resistive_decentral;network_charges_PP;27930.69;Eur/(MW*a);Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_sq;reference;pth_resistive_decentral;network_charges_WP;65.86;Eur/MWh;Pfluger2017a;low voltage RLM, < 2500 h/a
 ;2050_sq;reference;source_electricity;emission_specific;0.067;tCO2/MWh;;Pfluger2017a
 ;2050_sq;reference;source_electricity;spot_price;83.67;Eur/MWh;extrapolation of 2018 to 2030;average Day-Ahead Spot price
