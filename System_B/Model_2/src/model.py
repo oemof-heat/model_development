@@ -322,6 +322,7 @@ def run_model(config_path, results_dir):
         cfg = yaml.load(ymlfile)
 
     model_runs = helpers.load_model_runs(results_dir, cfg)
+    model_runs = model_runs.loc[:, 'var_value']
 
     # load timeseries
     file_timeseries_demand_heat = os.path.join(results_dir,
