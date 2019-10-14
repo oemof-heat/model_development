@@ -8,7 +8,7 @@ __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
 
-def setup_experiment():
+def setup_experiment(config_path=None):
     r"""
 
     Returns
@@ -24,11 +24,12 @@ def setup_experiment():
     abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
     # take command line arguments
-    try:
-        config_path = sys.argv[1]
-    except:
-        print('Please specify which experiment config to run as a command line argument.')
-        sys.exit(1)
+    if config_path is None:
+        try:
+            config_path = sys.argv[1]
+        except:
+            print('Please specify which experiment config to run as a command line argument.')
+            sys.exit(1)
 
     # Get absolute path of config file.
     config_path = os.path.abspath(config_path)
