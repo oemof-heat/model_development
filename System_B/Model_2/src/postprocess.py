@@ -186,13 +186,39 @@ def get_derived_results_timeseries_costs_variable(energysystem):  # TODO: Check
                       for k in ['scalars', 'sequences']
                       if 'variable_costs' in value[k]}
 
-    flows_with_variable_costs = timeseries[[(*ll, 'flow') for ll in variable_costs.keys()]]
+    def reallocate_variable_costs(variable_costs, flows, bus):
+        costs_bus_inflow = {key: value for key, value in variable_costs.items() if key[1] == bus}
+
+        bus_inflows_with_costs = flows[[(*ll, 'flow') for ll in costs_bus_inflow.keys()]]
+
+        bus_outflows = flows[[key for key in flows.keys() if key[0] == bus]]
+
+        # calculate average cost at the bus
+        cost_bus = pd.DataFrame()
+        for column in bus_inflows_with_costs.columns:
+            var_cost = variable_costs[column[:2]]
+            if type(var_cost) == pd.Series:
+                var_cost = var_cost.values
+            cost_bus[column[:2]] = bus_inflows_with_costs.loc[:, column] * var_cost
+        cost_bus = cost_bus.sum(axis=1) / bus_inflows_with_costs.sum(axis=1)
+        cost_bus = cost_bus.fillna(0)
+
+        variable_costs_reallocated = {k: v for k, v in variable_costs.items() if k not in costs_bus_inflow.keys()}
+        for column in bus_outflows.columns:
+            variable_costs_reallocated[column[:2]] += cost_bus
+
+        return variable_costs_reallocated
+
+    variable_costs_reallocated = reallocate_variable_costs(variable_costs, timeseries, 'bus_el_import')
+    variable_costs_reallocated = reallocate_variable_costs(variable_costs_reallocated, timeseries, 'bus_gas')
+
+    flows_with_variable_costs = timeseries[[(*ll, 'flow') for ll in variable_costs_reallocated.keys()]]
     flows_with_variable_costs.columns = flows_with_variable_costs.columns.remove_unused_levels()
 
     timeseries_cost_variable = flows_with_variable_costs.copy()
 
     for column in flows_with_variable_costs.columns:
-        var_cost = variable_costs[column[:2]]
+        var_cost = variable_costs_reallocated[column[:2]]
         if type(var_cost) == pd.Series:
             var_cost = var_cost.values
         timeseries_cost_variable.loc[:, column] *= var_cost
