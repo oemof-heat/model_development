@@ -63,7 +63,7 @@ def get_deterministic_run(scenario, input_parameters):
                 df_additional = input_parameters.xs([key, 'reference'])
                 logging.info('New data for scenario specification {} for these components:'.format(key))
                 for component in df_additional.index.get_level_values(0):
-                    print('\t', component)
+                    logging.info('\t', component)
                 df = pd.merge(df_additional,
                               df,
                               how='outer',
