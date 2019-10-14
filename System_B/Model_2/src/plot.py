@@ -1170,6 +1170,7 @@ def create_plots(config_path, results_dir):
         label_dict = yaml.load(label_file)
 
     model_runs = helpers.load_model_runs(results_dir, cfg)
+    model_runs = model_runs.loc[:, 'var_value']
 
     for index, input_parameter in model_runs.iterrows():
         label = "_".join(map(str, index))
