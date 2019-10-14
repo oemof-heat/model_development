@@ -184,7 +184,8 @@ def get_derived_results_timeseries_costs_variable(energysystem):  # TODO: Check
     variable_costs = {key: value[k]['variable_costs']
                       for key, value in param.items()
                       for k in ['scalars', 'sequences']
-                      if 'variable_costs' in value[k]}
+                      if 'variable_costs' in value[k]
+                      and np.sum(value[k]['variable_costs'])!=0}
 
     def reallocate_variable_costs(variable_costs, flows, bus):
         costs_bus_inflow = {key: value for key, value in variable_costs.items() if key[1] == bus}
@@ -211,7 +212,6 @@ def get_derived_results_timeseries_costs_variable(energysystem):  # TODO: Check
 
     variable_costs_reallocated = reallocate_variable_costs(variable_costs, timeseries, 'bus_el_import')
     variable_costs_reallocated = reallocate_variable_costs(variable_costs_reallocated, timeseries, 'bus_gas')
-
     flows_with_variable_costs = timeseries[[(*ll, 'flow') for ll in variable_costs_reallocated.keys()]]
     flows_with_variable_costs.columns = flows_with_variable_costs.columns.remove_unused_levels()
 
