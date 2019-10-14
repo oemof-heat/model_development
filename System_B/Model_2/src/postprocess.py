@@ -436,6 +436,8 @@ def get_derived_results_scalar(input_parameter,
         cost_variable_sum = format_results(cost_variable_sum,
                                            'cost_variable_sum',
                                            'Eur')
+        cost_variable_sum = cost_variable_sum.groupby(level=[0, 1]).aggregate({'var_value': np.sum,
+                                                                               'var_unit': 'first'})
 
         return cost_variable_sum
 
