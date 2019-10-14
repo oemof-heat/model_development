@@ -660,6 +660,7 @@ def postprocess(config_path, results_dir):
 
     # load model_runs
     model_runs = helpers.load_model_runs(results_dir, cfg)
+    model_runs = model_runs.loc[:, 'var_value']
     list_results_scalar_derived = []
     collect_price_electricity = {}
 
