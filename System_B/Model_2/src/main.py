@@ -7,6 +7,7 @@ __copyright__ = "Reiner Lemoine Institut"
 __license__ = "GPLv3"
 __author__ = "c-moeller, jnnr"
 
+import os
 import time
 import logging
 import warnings
@@ -39,7 +40,8 @@ def main(config_path, results_dir):
 
     starttime = time.time()
 
-    logger.define_logging(logpath=results_dir + '/optimisation_results')
+    log_filename = os.path.split(config_path)[1][:-4] + '.log'
+    logger.define_logging(logpath=results_dir + '/optimisation_results', logfile=log_filename)
 
     # Preprocess
     logging.info('Preprocess data')
