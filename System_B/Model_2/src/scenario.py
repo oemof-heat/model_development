@@ -1,8 +1,11 @@
 import pandas as pd
 import os
 import yaml
+import logging
 import numpy as np
+
 from SALib.sample import latin
+
 import helpers
 
 
@@ -50,7 +53,7 @@ def get_samples(scenario, certain_parameters, uncertain_parameters, n_samples):
 
 def get_deterministic_run(scenario, input_parameters):
     df = input_parameters.xs(['1_basic', 'reference'])
-    print('#', scenario)
+    logging.info(f'Create model run for scenario {scenario}')
     for key_orthogonal in scenario.split('-'):
         accumulate_key = []
         for key_overwrite in key_orthogonal.split('_'):
@@ -58,7 +61,7 @@ def get_deterministic_run(scenario, input_parameters):
             key = '_'.join(accumulate_key)
             if key in input_parameters.index.get_level_values(0):
                 df_additional = input_parameters.xs([key, 'reference'])
-                print('New data for scenario specification {} for these components:'.format(key))
+                logging.info('New data for scenario specification {} for these components:'.format(key))
                 for component in df_additional.index.get_level_values(0):
                     print('\t', component)
                 df = pd.merge(df_additional,
@@ -68,7 +71,7 @@ def get_deterministic_run(scenario, input_parameters):
                               left_index=True,
                               right_index=True)
             else:
-                print('No additional data for scenario specification {}'.format(key))
+                logging.info('No additional data for scenario specification {}'.format(key))
 
     df = helpers.prepend_index(df, [scenario], ['scenario'])
 
