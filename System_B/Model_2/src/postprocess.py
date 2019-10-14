@@ -714,5 +714,10 @@ def postprocess(config_path, results_dir):
 
 
 if __name__ == '__main__':
-    config_path, results_dir = helpers.setup_experiment()
+    config_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        'experiment_configs/production_run.yml')
+    config_path = os.path.abspath(config_path)
+
+    config_path, results_dir = helpers.setup_experiment(config_path=config_path)
     postprocess(config_path, results_dir)
