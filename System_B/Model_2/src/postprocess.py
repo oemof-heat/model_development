@@ -467,7 +467,9 @@ def get_derived_results_scalar(input_parameter,
         return cost_fix
 
     def get_cost_total_system(cost_variable_sum, cost_fix):
-        cost_total_system = pd.concat([cost_variable_sum, cost_fix], axis=0).groupby('component').agg(sum)
+        cost_total_system = pd.concat([cost_variable_sum, cost_fix], axis=0)  \
+            .groupby('component').agg({'var_value': sum,
+                                       'var_unit': 'first'})
         cost_total_system = cost_total_system.reset_index()
         cost_total_system['var_name'] = 'cost_total_system'
         cost_total_system = cost_total_system.set_index(['component', 'var_name'])
@@ -479,7 +481,8 @@ def get_derived_results_scalar(input_parameter,
                           if bool(re.search('demand_th', component[1]))]
         energy_thermal_consumed = results_timeseries[consumers_heat].sum()
 
-        cost_specific_heat = cost_total_system.copy() / energy_thermal_consumed.sum()
+        cost_specific_heat = cost_total_system.copy()
+        cost_specific_heat['var_value'] *= 1 / energy_thermal_consumed.sum()
 
         cost_specific_heat['var_unit'] = 'Eur/MWh'
 
