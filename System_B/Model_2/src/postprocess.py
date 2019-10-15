@@ -543,7 +543,8 @@ def get_derived_results_scalar(input_parameter,
             else:
                 return np.mean(x)
 
-        aggregated_decentral = results_decentral.groupby(['component', 'var_name']).agg(func)
+        aggregated_decentral = results_decentral.groupby(['component', 'var_name']).agg({'var_value': func,
+                                                                                         'var_unit': 'first'})
         results_central = derived_results_scalar.drop(keys_decentral, level=0)
         aggregated_results = pd.concat([aggregated_decentral,
                                         results_central],
