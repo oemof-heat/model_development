@@ -438,6 +438,10 @@ def get_derived_results_scalar(input_parameter,
                                            'Eur')
         cost_variable_sum = cost_variable_sum.groupby(level=[0, 1]).aggregate({'var_value': np.sum,
                                                                                'var_unit': 'first'})
+        cost_variable_sum.loc['chp', 'var_value'] = \
+            (cost_variable_sum.loc['chp', 'var_value']
+            + cost_variable_sum.loc['sold_el', 'var_value'])['cost_variable_sum']
+        cost_variable_sum.drop('sold_el', inplace=True)
 
         return cost_variable_sum
 
