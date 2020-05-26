@@ -7,6 +7,7 @@ gas_boiler_central: '#d55e00'
 source_electricity: '#99ccff'
 source_electricity_flex: '#99ccff'
 bus_el_import: '#ece133'
+sold_el: '#000000'
 
 pth_resistive_central: '#cc78bc'
 pth_resistive_decentral: '#fbafe4'

@@ -1,0 +1,35 @@
+debug: False
+solver: 'cbc'
+
+# sources for raw data
+data_raw:
+  timeseries: 'data/timeseries.csv'
+  scalars:
+    parameters: 'data/parameter_v0-7.csv'
+  scenarios: 'data/scenarios_all.csv'
+
+# Preprocessed data to use
+data_preprocessed:
+  timeseries:
+    demand_heat: 'demand_heat/demand_heat_2017.csv'
+    price_electricity_spot: 'price_electricity_spot/price_electricity_spot_2017.csv'
+  scalars:
+    model_runs: 'model_runs.csv'
+    parameters_changing: 'parameters_changing.csv'
+    thresholds: 'thresholds.csv'
+
+uncertainty_sampling: False
+
+# Postprocessed data
+data_postprocessed:
+  timeseries:
+    timeseries: 'timeseries/results_timeseries.csv'
+    cost_variable: 'timeseries/results_timeseries_costs_variable.csv'
+    emissions: 'timeseries/results_timeseries_emissions_variable.csv'
+  scalars:
+    costs: 'cost_data.csv'
+    parameters: 'parameters_scalar.csv'
+    results: 'results_scalar.csv'
+    derived: 'results_scalar_derived.csv'
+
+# TODO: Plots
