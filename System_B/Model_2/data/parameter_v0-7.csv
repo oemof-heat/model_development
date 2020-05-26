@@ -51,7 +51,7 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;1_basic;reference;tes_central;capacity_installed;420;;calculated;see TES Sheet
 ;1_basic;reference;tes_central;efficiency_charging;0.98;;DanishEnergyAgency2018a ;S. 57
 ;1_basic;reference;tes_central;efficiency_discharging;0.98;;DanishEnergyAgency2018a ;S. 57
-;1_basic;reference;tes_central;fom;8.6;share of overnight cost/a;DanishEnergyAgency2018a ;S. 57
+;1_basic;reference;tes_central;fom;0.002866667;share of overnight cost/a;DanishEnergyAgency2018a ;S. 57
 ;1_basic;reference;tes_central;lifetime;40;a;DanishEnergyAgency2018a ;S. 57
 ;1_basic;reference;tes_central;overnight_cost;2864;Eur/MWh;DanishEnergyAgency2018a, Christidis2018a;S. 57, S. 36, see TES Sheet
 ;1_basic;reference;tes_central;power_charging;60;MW_th;;
@@ -61,7 +61,7 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;1_basic;reference;tes_decentral;capacity_installed;14;MWh_th;calculated;see TES Sheet
 ;1_basic;reference;tes_decentral;efficiency_charging;0.95;;DanishEnergyAgency2018a ;S. 57
 ;1_basic;reference;tes_decentral;efficiency_discharging;0.95;;DanishEnergyAgency2018a ;S. 57
-;1_basic;reference;tes_decentral;fom;8.6;share of overnight cost/a;DanishEnergyAgency2018a ;S. 57
+;1_basic;reference;tes_decentral;fom;0.002866667;share of overnight cost/a;DanishEnergyAgency2018a ;S. 57
 ;1_basic;reference;tes_decentral;lifetime;40;a;DanishEnergyAgency2018a ;S. 57
 ;1_basic;reference;tes_decentral;overnight_cost;14320;Eur/MWh_th;DanishEnergyAgency2018a, Christidis2018a;S. 57, S. 36, see TES Sheet
 ;1_basic;reference;tes_decentral;rate_loss;0.001;;DanishEnergyAgency2018a ;S. 57
@@ -221,7 +221,7 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;2050_ff;reference;source_electricity;tax_levys;21.58;Eur/MWh;s. Doku;eeg-levy connectet to uncertainty of spot price
 ;2050_ff;reference;source_electricity_flex;tax_levys;13.2;Eur/MWh;s. Doku;only concessions fees
 ;2050_ff;reference;source_gas;carrier_price;46;Eur/MWh;Pfluger2017a;S. 23
-;2050_ff;reference;source_gas;co2_ets;10.1;Eur/MWh;Pfluger2017a;(own assumtion based on Ref- and Basis-Scenario of the source)
+;2050_ff;reference;source_gas;co2_ets;20.2;Eur/MWh;Pfluger2017a;(own assumtion based on Ref- and Basis-Scenario of the source)
 ;2050_ff;reference;source_gas;co2_fee;25.25;Eur/MWh;Graichen2020;125 Eur/tCO2
 ;2050_ff_lessload;high;global;factor_load_reduction_heat;0.5507;;Pfluger2017a, Loga2015;calculation in Doku
 ;2050_ff_lessload;low;global;factor_load_reduction_heat;0.7811;;Pfluger2017a, Loga2015;calculation in Doku
