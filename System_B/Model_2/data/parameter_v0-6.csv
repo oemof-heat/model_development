@@ -49,8 +49,8 @@ id;scenario;uncertainty;component;var_name;var_value;var_unit;source;comment
 ;1_basic;reference;tes_central;power_charging;5;;;Dummy
 ;1_basic;reference;tes_central;power_discharging;5;;;Dummy
 ;1_basic;reference;tes_central;rate_loss;0.001;;;Dummy
-;1_basic;reference;tes_decentral;efficiency_charging;0.95;;;Dummy
-;1_basic;reference;tes_decentral;efficiency_discharging;0.95;;;
+;1_basic;reference;tes_decentral;efficiency_charging;1;;;Dummy
+;1_basic;reference;tes_decentral;efficiency_discharging;1;;;
 ;1_basic;reference;tes_decentral;power_charging;2;;;Dummy
 ;1_basic;reference;tes_decentral;power_discharging;2;;;Dummy
 ;1_basic;reference;tes_decentral;rate_loss;0.001;;;Dummy
