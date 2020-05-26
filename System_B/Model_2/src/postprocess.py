@@ -462,7 +462,7 @@ def get_derived_results_scalar(input_parameter,
         wacc = input_parameter.loc['global', 'wacc']
         cost_fix['annuity'] = cost_fix.apply(lambda x: economics.annuity(x['overnight_cost'], x['lifetime'], wacc), axis=1)
         cost_fix['capex'] = cost_fix.apply(lambda x: x['capacity_installed'] * x['annuity'],axis=1)
-        cost_fix['fom_abs'] = cost_fix.apply(lambda x: x['capacity_installed'] * x['fom'],axis=1)
+        cost_fix['fom_abs'] = cost_fix.apply(lambda x: x['capacity_installed'] * x['overnight_cost'] * x['fom'],axis=1)
         cost_fix = cost_fix.loc[:, ['capex','fom_abs'] ].stack()
         cost_fix = pd.DataFrame(cost_fix, columns=['var_value'])
         cost_fix.index.names = ['component', 'variable_name']
