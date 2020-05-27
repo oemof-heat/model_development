@@ -1,0 +1,2 @@
+name;type;carrier;tech;capacity;electricity_bus;heat_bus;fuel_bus;electric_efficiency;thermal_efficiency;output_parameters;input_parameters;carrier_cost;marginal_cost
+gas-chp;backpressure;gas;chp;60;electricity;heat_central;gas;0.4;0.4;"{""min"": 0}";{};30;electricity-selling

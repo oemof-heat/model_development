@@ -1,0 +1,3 @@
+name;type;carrier;tech;bus;capacity;storage_capacity;efficiency;loss_rate
+heat_central-tes;storage;heat;tes;heat_central;5;30;1;0.001
+heat_decentral-tes;storage;heat;tes;heat_decentral;3;30;1;0.001
