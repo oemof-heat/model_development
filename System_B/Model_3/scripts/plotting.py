@@ -36,13 +36,23 @@ def plot_dispatch(bus, destination):
     end = '2017-03-01'
 
     bus = bus[start:end]
+
     demand = bus['heat-demand']
+
     bus_wo_demand = bus.drop('heat-demand', axis=1)
+    bus_wo_demand_pos = bus_wo_demand.copy()
+    bus_wo_demand_pos.loc[bus_wo_demand_pos['heat_decentral-tes'] < 0, 'heat_decentral-tes'] = 0
+    bus_wo_demand_neg = bus_wo_demand.copy()
+    bus_wo_demand_neg.loc[bus_wo_demand['heat_decentral-tes'] >= 0, 'heat_decentral-tes'] = 0
+    print(bus_wo_demand_neg)
 
     fig, ax = plt.subplots(figsize=(12, 5))
-    bus_wo_demand.plot.area(ax=ax)
+    bus_wo_demand_pos.plot.area(ax=ax)
+    bus_wo_demand_neg.plot.area(ax=ax)
     demand.plot.line(c='r', linewidth=2)
     ax.set_title('Dispatch')
+    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
+    plt.tight_layout()
     plt.savefig(destination)
 
 
