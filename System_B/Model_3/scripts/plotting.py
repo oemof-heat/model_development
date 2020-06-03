@@ -57,7 +57,7 @@ def plot_dispatch(bus, destination):
 
 
 def plot_yearly_production(bus, destination):
-    yearly_sum = bus.sum().drop('heat-demand')
+    yearly_sum = bus.sum()
 
     print('\n######### yearly_sum #########')
     print(yearly_sum)
@@ -76,19 +76,23 @@ def main():
         index_col=[0,1,2,3,4]
     )
 
-    heat_bus = pd.read_csv(
+    heat_central = pd.read_csv(
+        os.path.join(dirs['postprocessed'], 'heat_central.csv'),
+        index_col=0
+    )
+
+    heat_decentral = pd.read_csv(
         os.path.join(dirs['postprocessed'], 'heat_decentral.csv'),
         index_col=0
     )
 
-
-
-
     plot_capacities(capacities, os.path.join(dirs['plots'], 'capacities.svg'))
 
-    plot_dispatch(heat_bus, os.path.join(dirs['plots'], 'heat_bus.svg'))
+    plot_dispatch(heat_decentral, os.path.join(dirs['plots'], 'heat_bus.svg'))
 
-    plot_yearly_production(heat_bus, os.path.join(dirs['plots'], 'yearly_heat_production.svg'))
+    plot_yearly_production(heat_central, os.path.join(dirs['plots'], 'yearly_central_heat_production.svg'))
+
+    plot_yearly_production(heat_decentral, os.path.join(dirs['plots'], 'yearly_decentral_heat_production.svg'))
 
 
 if __name__ == '__main__':
