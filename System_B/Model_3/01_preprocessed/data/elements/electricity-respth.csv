@@ -1,2 +1,2 @@
-name;type;carrier;tech;from_bus;to_bus;capacity;efficiency;carrier_cost;marginal_cost
-electricity-respth;conversion;electricity;respth;electricity;heat_decentral;0;1;electricity-buying;0
+name;type;carrier;tech;from_bus;to_bus;capacity;expandable;capacity_cost;efficiency;carrier_cost;marginal_cost
+electricity-respth;conversion;electricity;respth;electricity;heat_decentral;0;TRUE;100;1;electricity-buying;0

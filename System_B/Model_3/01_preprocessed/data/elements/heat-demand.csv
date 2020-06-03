@@ -1,2 +1,2 @@
 name;type;carrier;tech;bus;amount;profile
-heat-demand;load;heat;demand;heat_decentral;10000;heat-demand-01
+heat-demand;load;heat;demand;heat_decentral;1;heat-demand-01

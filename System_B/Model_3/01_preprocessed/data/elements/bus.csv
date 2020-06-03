@@ -1,5 +1,5 @@
 name;type;balanced
-gas;bus;true
-electricity;bus;true
+gas;bus;false
+electricity;bus;false
 heat_central;bus;true
 heat_decentral;bus;true
