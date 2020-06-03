@@ -20,6 +20,7 @@ def infer_metadata(name, preprocessed):
             'bus': [
                 'heat-demand',
                 'heat-storage',
+                'heat-shortage',
             ],
             'profile': [
                 'heat-demand',
