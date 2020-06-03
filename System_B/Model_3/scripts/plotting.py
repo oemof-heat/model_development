@@ -10,6 +10,9 @@ def bar_plot():
     pass
 
 def plot_capacities(capacities, destination):
+    print('######### capacities #########')
+    print(capacities)
+
     idx = pd.IndexSlice
 
     cap_heat_dec = capacities.loc[idx[:, 'heat_decentral', :], :]
@@ -19,12 +22,11 @@ def plot_capacities(capacities, destination):
     for cap in [cap_heat_dec, cap_heat_cen, cap_electricty]:
         cap.index = cap.index.droplevel(['to', 'tech', 'carrier'])
 
-    print(cap_heat_dec)
     fig, axs = plt.subplots(2, 1)
     cap_heat_cen.plot.bar(ax=axs[0])
     cap_heat_dec.plot.bar(ax=axs[1])
 
-    plt.tight_layout()
+    # plt.tight_layout()
 
     plt.savefig(destination)
 
@@ -47,6 +49,9 @@ def plot_dispatch(bus, destination):
 def plot_yearly_production(bus, destination):
     yearly_sum = bus.sum().drop('heat-demand')
 
+    print('\n######### yearly_sum #########')
+    print(yearly_sum)
+
     fig, ax = plt.subplots()
     yearly_sum.plot.bar(ax=ax)
     ax.set_title('Yearly production')
@@ -65,6 +70,9 @@ def main():
         os.path.join(dirs['postprocessed'], 'heat_decentral.csv'),
         index_col=0
     )
+
+
+
 
     plot_capacities(capacities, os.path.join(dirs['plots'], 'capacities.svg'))
 
