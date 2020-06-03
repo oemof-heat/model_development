@@ -67,6 +67,7 @@ def infer_metadata(name, preprocessed):
                 'gas-hob',
                 'electricity-hp',
                 'electricity-respth',
+                'heat-distribution',
             ],
             'chp': [
                 'gas-chp',

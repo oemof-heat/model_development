@@ -1,0 +1,2 @@
+name;type;carrier;tech;from_bus;to_bus;capacity;marginal_cost;efficiency
+heat-distribution;conversion;heat;distribution;heat_central;heat_decentral;10000;0;1
