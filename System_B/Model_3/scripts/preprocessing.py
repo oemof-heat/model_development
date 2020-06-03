@@ -25,9 +25,6 @@ def infer_metadata(name, preprocessed):
             'profile': [
                 'heat-demand',
             ],
-            'efficiency': [
-                'electricity-hp',
-            ],
             'carrier_cost': [
                 'electricity-hp',
                 'electricity-respth',
