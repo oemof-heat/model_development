@@ -18,13 +18,16 @@ def prepare_electricity_price_profiles(raw_price, destination):
 
     raw_price = pd.read_csv(raw_price, index_col=0)
 
-    marginal_cost_profile = raw_price['price_electricity_spot']
-    marginal_cost_profile.index = TIMEINDEX
-    marginal_cost_profile.index.name = 'timeindex'
+    base_cost_profile = raw_price['price_electricity_spot']
+    base_cost_profile.index = TIMEINDEX
+    base_cost_profile.index.name = 'timeindex'
+
+    marginal_cost_profile = base_cost_profile.copy()
+    marginal_cost_profile *= -1
     marginal_cost_profile.name = 'electricity-selling'
     save(marginal_cost_profile, 'marginal_cost_profile.csv')
 
-    carrier_cost_profile = marginal_cost_profile.copy()
+    carrier_cost_profile = base_cost_profile.copy()
     carrier_cost_profile.name = 'electricity-buying'
     save(carrier_cost_profile, 'carrier_cost_profile.csv')
 
