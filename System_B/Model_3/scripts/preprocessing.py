@@ -5,11 +5,21 @@ import pandas as pd
 
 from oemof.tools.logger import define_logging
 from oemof.tabular.datapackage import building
+from oemof.tools.economics import annuity
 
 from helper import get_experiment_dirs
 
 
 TIMEINDEX = pd.date_range('1/1/2017', periods=8760, freq='H')
+
+
+def prepare_investment_cost(fix_costs_raw_file):
+    wacc = 0.052
+    fix_cost = pd.read_csv(fix_costs_raw_file)
+    fix_cost['eq_cost'] = \
+        fix_cost['overnight_cost'] * 0.01 * fix_cost['fixom']\
+        + fix_cost.apply(lambda x: annuity(x['overnight_cost'], x['lifetime'], wacc), axis=1)
+
 
 
 def prepare_electricity_price_profiles(raw_price, destination):
@@ -27,7 +37,10 @@ def prepare_electricity_price_profiles(raw_price, destination):
     marginal_cost_profile.name = 'electricity-selling'
     save(marginal_cost_profile, 'marginal_cost_profile.csv')
 
+    tax_levies = 50
+
     carrier_cost_profile = base_cost_profile.copy()
+    carrier_cost_profile += tax_levies
     carrier_cost_profile.name = 'electricity-buying'
     save(carrier_cost_profile, 'carrier_cost_profile.csv')
 
@@ -84,6 +97,10 @@ def main():
     print('Preprocessing')
 
     dirs = get_experiment_dirs()
+
+    prepare_investment_cost(
+        os.path.join(dirs['raw'], 'fix_cost_assumptions.csv')
+    )
 
     prepare_heat_demand_profile(
         os.path.join(dirs['raw'], 'demand_heat_2017.csv'),
