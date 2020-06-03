@@ -2,7 +2,10 @@ import os
 import yaml
 
 
-def read_config(config_path):
+def get_experiment_dirs():
+    abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    config_path = os.path.join(abspath, 'config.yml')
+
     with open(config_path) as c:
         config = yaml.safe_load(c)
     abspath = os.path.split(config_path)[0]

@@ -4,7 +4,7 @@ import os
 from oemof.tools.logger import define_logging
 from oemof.tabular.datapackage import building
 
-from helper import read_config
+from helper import get_experiment_dirs
 
 
 def preprocess_data():
@@ -50,10 +50,7 @@ def infer_metadata(name, preprocessed):
 def main():
     print('Preprocessing')
 
-    abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    config_path = os.path.join(abspath, 'config.yml')
-
-    dirs = read_config(config_path)
+    dirs = get_experiment_dirs()
 
     preprocess_data()
     infer_metadata('name', dirs['preprocessed'])
