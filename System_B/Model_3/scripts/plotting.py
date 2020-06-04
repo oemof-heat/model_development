@@ -10,7 +10,7 @@ def bar_plot():
     pass
 
 def plot_capacities(capacities, destination):
-    print('######### capacities #########')
+    print('######### plotting capacities #########')
     print(capacities)
 
     idx = pd.IndexSlice
@@ -48,7 +48,7 @@ def plot_dispatch(bus, destination):
     bus_wo_demand_neg.loc[bus_wo_demand['heat_decentral-tes'] >= 0, 'heat_decentral-tes'] = 0
 
     fig, ax = plt.subplots(figsize=(12, 5))
-    bus_wo_demand_pos.plot.area(ax=ax)
+    # bus_wo_demand_pos.plot.area(ax=ax)
     # bus_wo_demand_neg.plot.area(ax=ax)
     demand.plot.line(c='r', linewidth=2)
     ax.set_title('Dispatch')
@@ -57,10 +57,8 @@ def plot_dispatch(bus, destination):
     plt.savefig(destination)
 
 
-def plot_yearly_production(bus, destination):
-    yearly_sum = bus.sum()
-
-    print('\n######### yearly_sum #########')
+def plot_yearly_production(yearly_sum, destination):
+    print('\n######### plotting yearly_sum #########')
     print(yearly_sum)
 
     fig, ax = plt.subplots()
@@ -87,13 +85,16 @@ def main():
         index_col=0
     )
 
+    yearly_heat_sum = pd.read_csv(
+        os.path.join(dirs['postprocessed'], 'heat_yearly_sum.csv'),
+        index_col=0
+    )
+
     plot_capacities(capacities, os.path.join(dirs['plots'], 'capacities.svg'))
 
     plot_dispatch(pd.concat([heat_central, heat_decentral], 1), os.path.join(dirs['plots'], 'heat_bus.svg'))
 
-    plot_yearly_production(heat_central, os.path.join(dirs['plots'], 'yearly_central_heat_production.svg'))
-
-    plot_yearly_production(heat_decentral, os.path.join(dirs['plots'], 'yearly_decentral_heat_production.svg'))
+    plot_yearly_production(yearly_heat_sum, os.path.join(dirs['plots'], 'heat_yearly_production.svg'))
 
 
 if __name__ == '__main__':
