@@ -124,7 +124,7 @@ def main():
     print('Preprocessing')
 
     gas_price = 35
-    charges_tax_levies_el = 93
+    charges_tax_levies_el = 120
     chp_surcharge = 0
 
     dirs = get_experiment_dirs()
