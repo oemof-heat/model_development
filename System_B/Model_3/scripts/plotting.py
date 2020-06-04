@@ -38,17 +38,18 @@ def plot_dispatch(bus, destination):
     bus = bus[start:end]
 
     demand = bus['heat-demand']
-
+    bus = bus.drop('heat-distribution', axis=1)
     bus_wo_demand = bus.drop('heat-demand', axis=1)
     bus_wo_demand_pos = bus_wo_demand.copy()
+    bus_wo_demand_pos.loc[bus_wo_demand_pos['heat_central-tes'] < 0, 'heat_central-tes'] = 0
     bus_wo_demand_pos.loc[bus_wo_demand_pos['heat_decentral-tes'] < 0, 'heat_decentral-tes'] = 0
-    bus_wo_demand_neg = bus_wo_demand.copy()
+    bus_wo_demand_neg = bus_wo_demand.copy()[['heat_central-tes', 'heat_decentral-tes']]
+    bus_wo_demand_neg.loc[bus_wo_demand['heat_central-tes'] >= 0, 'heat_central-tes'] = 0
     bus_wo_demand_neg.loc[bus_wo_demand['heat_decentral-tes'] >= 0, 'heat_decentral-tes'] = 0
-    print(bus_wo_demand_neg)
 
     fig, ax = plt.subplots(figsize=(12, 5))
     bus_wo_demand_pos.plot.area(ax=ax)
-    bus_wo_demand_neg.plot.area(ax=ax)
+    # bus_wo_demand_neg.plot.area(ax=ax)
     demand.plot.line(c='r', linewidth=2)
     ax.set_title('Dispatch')
     ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
@@ -88,7 +89,7 @@ def main():
 
     plot_capacities(capacities, os.path.join(dirs['plots'], 'capacities.svg'))
 
-    plot_dispatch(heat_decentral, os.path.join(dirs['plots'], 'heat_bus.svg'))
+    plot_dispatch(pd.concat([heat_central, heat_decentral], 1), os.path.join(dirs['plots'], 'heat_bus.svg'))
 
     plot_yearly_production(heat_central, os.path.join(dirs['plots'], 'yearly_central_heat_production.svg'))
 
