@@ -57,12 +57,12 @@ def plot_dispatch(bus, destination):
     plt.savefig(destination)
 
 
-def plot_yearly_production(yearly_sum, destination):
-    print('\n######### plotting yearly_sum #########')
-    print(yearly_sum)
+def plot_yearly_production(yearly_production, destination):
+    print('\n######### plotting yearly_production #########')
+    print(yearly_production)
 
     fig, ax = plt.subplots()
-    yearly_sum.plot.bar(ax=ax)
+    yearly_production.plot.bar(ax=ax)
     ax.set_title('Yearly production')
     plt.tight_layout()
     plt.savefig(destination)
@@ -94,7 +94,8 @@ def main():
 
     plot_dispatch(pd.concat([heat_central, heat_decentral], 1), os.path.join(dirs['plots'], 'heat_bus.svg'))
 
-    plot_yearly_production(yearly_heat_sum, os.path.join(dirs['plots'], 'heat_yearly_production.svg'))
+    yearly_production= yearly_heat_sum.drop('heat-demand')
+    plot_yearly_production(yearly_production, os.path.join(dirs['plots'], 'heat_yearly_production.svg'))
 
 
 if __name__ == '__main__':
