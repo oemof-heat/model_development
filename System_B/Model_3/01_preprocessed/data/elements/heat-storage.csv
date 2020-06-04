@@ -1,3 +1,3 @@
-name,type,carrier,tech,bus,capacity,storage_capacity,expandable,capacity_cost,storage_capacity_cost,efficiency,loss_rate
-heat_central-tes,storage,heat,tes,heat_central,30,500,FALSE,0,1,1,0.001
-heat_decentral-tes,storage,heat,tes,heat_decentral,0,0,false,0,1,1,0.001
+name;type;carrier;tech;bus;capacity;storage_capacity;expandable;capacity_cost;storage_capacity_cost;efficiency;loss_rate
+heat_central-tes;storage;heat;tes;heat_central;30;500;FALSE;0;1;1;0.001
+heat_decentral-tes;storage;heat;tes;heat_decentral;0;0;false;0;1;1;0.001
