@@ -26,6 +26,9 @@ def prepare_electricity_price_profiles(raw_price, destination):
     def save(df, name):
         df.to_csv(os.path.join(destination, name))
 
+    charges_tax_levies_el = 93
+    chp_surcharge = 0
+
     raw_price = pd.read_csv(raw_price, index_col=0)
 
     base_cost_profile = raw_price['price_electricity_spot']
@@ -33,14 +36,13 @@ def prepare_electricity_price_profiles(raw_price, destination):
     base_cost_profile.index.name = 'timeindex'
 
     marginal_cost_profile = base_cost_profile.copy()
+    marginal_cost_profile += chp_surcharge
     marginal_cost_profile *= -1
     marginal_cost_profile.name = 'electricity-selling'
     save(marginal_cost_profile, 'marginal_cost_profile.csv')
 
-    tax_levies = 50
-
     carrier_cost_profile = base_cost_profile.copy()
-    carrier_cost_profile += tax_levies
+    carrier_cost_profile += charges_tax_levies_el
     carrier_cost_profile.name = 'electricity-buying'
     save(carrier_cost_profile, 'carrier_cost_profile.csv')
 
