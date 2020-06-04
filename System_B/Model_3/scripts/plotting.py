@@ -22,11 +22,14 @@ def plot_capacities(capacities, destination):
     for cap in [cap_heat_dec, cap_heat_cen, cap_electricty]:
         cap.index = cap.index.droplevel(['to', 'tech', 'carrier'])
 
-    fig, axs = plt.subplots(2, 1)
+    cap_heat_cen = cap_heat_cen.unstack()
+    cap_heat_dec = cap_heat_dec.unstack()
+
+    fig, axs = plt.subplots(2, 1, figsize=(5, 8))
     cap_heat_cen.plot.bar(ax=axs[0])
     cap_heat_dec.plot.bar(ax=axs[1])
 
-    # plt.tight_layout()
+    plt.tight_layout()
 
     plt.savefig(destination)
 
@@ -90,6 +93,7 @@ def main():
         index_col=0
     )
 
+    capacities = capacities.drop('heat-distribution')
     plot_capacities(capacities, os.path.join(dirs['plots'], 'capacities.svg'))
 
     plot_dispatch(pd.concat([heat_central, heat_decentral], 1), os.path.join(dirs['plots'], 'heat_bus.svg'))
