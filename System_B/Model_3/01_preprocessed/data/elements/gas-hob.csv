@@ -1,2 +1,2 @@
 name;type;carrier;tech;capacity;from_bus;to_bus;carrier_cost;efficiency
-gas-hob;conversion;gas;hob;60;gas;heat_central;30;0.98
+gas-hob;conversion;gas;hob;60;gas;heat_central;35;0.98
