@@ -19,6 +19,7 @@ def prepare_investment_cost(fix_costs_raw_file):
     fix_cost['eq_cost'] = \
         fix_cost['overnight_cost'] * 0.01 * fix_cost['fixom']\
         + fix_cost.apply(lambda x: annuity(x['overnight_cost'], x['lifetime'], wacc), axis=1)
+    # units are Eur/kW or Eur/kWh
 
 
 def get_elements(dir):
