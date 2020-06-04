@@ -124,6 +124,22 @@ def write_results(
         save(filling_levels, "filling_levels")
 
 
+def save_yearly_sum(postprocessed_dir):
+    heat_central = pd.read_csv(
+        os.path.join(postprocessed_dir, 'heat_central.csv'),
+        index_col=0
+    )
+    heat_decentral = pd.read_csv(
+        os.path.join(postprocessed_dir, 'heat_decentral.csv'),
+        index_col=0
+    )
+
+    yearly_sum = pd.concat([heat_central, heat_decentral], 1).sum()
+    yearly_sum = yearly_sum.drop('heat-distribution')
+
+    yearly_sum.to_csv(os.path.join(postprocessed_dir, 'heat_yearly_sum.csv'))
+
+
 def main():
     print('Postprocessing')
     dirs = get_experiment_dirs()
@@ -133,6 +149,8 @@ def main():
     es.restore(dirs['optimised'])
 
     write_results(es, dirs['postprocessed'])
+
+    save_yearly_sum(dirs['postprocessed'])
 
     print(es)
 
