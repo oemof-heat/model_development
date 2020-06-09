@@ -3,6 +3,7 @@ import os
 import yaml
 
 from oemof.solph import EnergySystem, Model
+from oemof import outputlib
 
 # DONT REMOVE THIS LINE!
 from oemof.tabular import datapackage  # noqa
@@ -42,6 +43,7 @@ def optimize(input_data_dir, results_data_dir, solver='cbc', save_lp=False):
 
     # get the results from the the solved model(still oemof.solph)
     es.results = m.results()
+    es.params = outputlib.processing.parameter_as_dict(es)
 
     # now we use the write results method to write the results in oemof-tabular
     # format

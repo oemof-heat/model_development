@@ -124,20 +124,32 @@ def write_results(
         save(filling_levels, "filling_levels")
 
 
-def save_yearly_sum(postprocessed_dir):
+def write_yearly_sum(output_path):
     heat_central = pd.read_csv(
-        os.path.join(postprocessed_dir, 'heat_central.csv'),
+        os.path.join(output_path, 'heat_central.csv'),
         index_col=0
     )
     heat_decentral = pd.read_csv(
-        os.path.join(postprocessed_dir, 'heat_decentral.csv'),
+        os.path.join(output_path, 'heat_decentral.csv'),
         index_col=0
     )
 
     yearly_sum = pd.concat([heat_central, heat_decentral], 1).sum()
     yearly_sum = yearly_sum.drop('heat-distribution')
 
-    yearly_sum.to_csv(os.path.join(postprocessed_dir, 'heat_yearly_sum.csv'))
+    yearly_sum.to_csv(os.path.join(output_path, 'heat_yearly_sum.csv'))
+
+
+def write_capacity_cost(output_path):
+    pass
+
+
+def write_carrier_cost(output_path):
+    pass
+
+
+def write_varom_cost(output_path):
+    pass
 
 
 def main():
@@ -150,9 +162,11 @@ def main():
 
     write_results(es, dirs['postprocessed'])
 
-    save_yearly_sum(dirs['postprocessed'])
+    write_capacity_cost(dirs['postprocessed'])
 
-    print(es)
+    write_carrier_cost(dirs['postprocessed'])
+
+    write_yearly_sum(dirs['postprocessed'])
 
 
 if __name__ == '__main__':
