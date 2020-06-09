@@ -1,3 +1,4 @@
+import copy
 import os
 
 import numpy as np
@@ -5,7 +6,7 @@ import pandas as pd
 
 from oemof.solph import EnergySystem, Bus, Sink
 from oemof.solph.components import GenericStorage
-from oemof.outputlib import views
+from oemof.outputlib import views, processing
 
 from oemof.tabular import facades
 from oemof.tabular.tools.postprocessing import component_results, supply_results,\
@@ -140,16 +141,77 @@ def write_yearly_sum(output_path):
     yearly_sum.to_csv(os.path.join(output_path, 'heat_yearly_sum.csv'))
 
 
-def write_capacity_cost(output_path):
-    pass
+def get_flow_by_oemof_tuple(oemof_tuple):
+    if isinstance(oemof_tuple[0], Bus):
+        component = oemof_tuple[1]
+        bus = oemof_tuple[0]
+
+    elif isinstance(oemof_tuple[1], Bus):
+        component = oemof_tuple[0]
+        bus = oemof_tuple[1]
+
+    else:
+        return None
+
+    flow = component.outputs[bus]
+
+    return flow
 
 
-def write_carrier_cost(output_path):
-    pass
+def select_from_dict(dict, name):
+    def has_var_name(v, name):
+        return (name in v['scalars'].index) or (name in v['sequences'].columns)
+
+    def get_var_value(v, name):
+        if name in v['scalars'].index:
+            return v['scalars'][name]
+        elif name in v['sequences'].columns:
+            return v['sequences'][name]
+
+    selected_param_dict = copy.deepcopy({k: get_var_value(v, name) for k, v in dict.items() if has_var_name(v, name)})
+
+    return selected_param_dict
 
 
-def write_varom_cost(output_path):
-    pass
+def multiply_param_with_variable(params, results, param_name, var_name):
+    def get_label(k):
+        if isinstance(k, tuple):
+            return tuple(map(str, k))
+        return str(k)
+
+    parameter = select_from_dict(params, param_name)
+
+    variable = select_from_dict(results, var_name)
+
+    intersection = processing.convert_keys_to_strings(parameter).keys()\
+                   & processing.convert_keys_to_strings(variable).keys()
+
+    product = {k: var * processing.convert_keys_to_strings(parameter)[get_label(k)] for k, var in variable.items() if get_label(k) in intersection}
+
+    return product
+
+
+def write_capacity_cost(es, output_path):
+    capacity_cost = multiply_param_with_variable(es.params, es.results, 'investment_ep_costs', 'invest')
+    capacity_cost = pd.Series(capacity_cost)
+
+    capacity_cost.to_csv(os.path.join(output_path, 'capacity_cost.csv'))
+
+
+def write_carrier_cost(es, output_path):
+    variable_costs = multiply_param_with_variable(es.params, es.results, 'variable_costs', 'flow')
+    carrier_cost = {k: v.sum() for k, v in variable_costs.items() if isinstance(k[0], Bus)}
+    carrier_cost = pd.Series(carrier_cost)
+
+    carrier_cost.to_csv(os.path.join(output_path, 'carrier_cost.csv'))
+
+
+def write_marginal_cost(es, output_path):
+    variable_costs = multiply_param_with_variable(es.params, es.results, 'variable_costs', 'flow')
+    marginal_cost = {k: v.sum() for k, v in variable_costs.items() if isinstance(k[1], Bus)}
+    marginal_cost = pd.Series(marginal_cost)
+
+    marginal_cost.to_csv(os.path.join(output_path, 'marginal_cost.csv'))
 
 
 def main():
@@ -162,9 +224,11 @@ def main():
 
     write_results(es, dirs['postprocessed'])
 
-    write_capacity_cost(dirs['postprocessed'])
+    write_capacity_cost(es, dirs['postprocessed'])
 
-    write_carrier_cost(dirs['postprocessed'])
+    write_carrier_cost(es, dirs['postprocessed'])
+
+    write_marginal_cost(es, dirs['postprocessed'])
 
     write_yearly_sum(dirs['postprocessed'])
 
