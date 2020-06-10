@@ -186,7 +186,16 @@ def multiply_param_with_variable(params, results, param_name, var_name):
     intersection = processing.convert_keys_to_strings(parameter).keys()\
                    & processing.convert_keys_to_strings(variable).keys()
 
-    product = {k: var * processing.convert_keys_to_strings(parameter)[get_label(k)] for k, var in variable.items() if get_label(k) in intersection}
+    product = {}
+    for k, var in variable.items():
+        if get_label(k) in intersection:
+            par = processing.convert_keys_to_strings(parameter)[get_label(k)]
+
+            if isinstance(par, pd.Series):
+                par.index = var.index
+
+            prod = var * par
+            product.update({k: prod})
 
     return product
 
