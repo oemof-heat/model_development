@@ -12,7 +12,7 @@ from oemof.tabular import facades
 from oemof.tabular.tools.postprocessing import component_results, supply_results,\
     demand_results, bus_results
 
-from helper import get_experiment_dirs
+from helper import get_experiment_dirs, get_scenario_assumptions
 
 
 def write_results(
@@ -242,9 +242,9 @@ def write_total_cost(output_path):
     total_cost.to_csv(os.path.join(output_path, 'total_cost.csv'))
 
 
-def main():
+def main(**scenario_assumptions):
     print('Postprocessing')
-    dirs = get_experiment_dirs()
+    dirs = get_experiment_dirs(scenario_assumptions['name'])
 
     # restore EnergySystem with results
     es = EnergySystem()
@@ -264,4 +264,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    scenario_assumptions = get_scenario_assumptions().loc[0]
+    main(**scenario_assumptions)

@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from helper import get_experiment_dirs
+from helper import get_experiment_dirs, get_scenario_assumptions
 
 
 def bar_plot():
@@ -70,8 +70,8 @@ def plot_yearly_production(yearly_production, destination):
     plt.tight_layout()
     plt.savefig(destination)
 
-def main():
-    dirs = get_experiment_dirs()
+def main(**scenario_assumptions):
+    dirs = get_experiment_dirs(scenario_assumptions['name'])
 
     capacities = pd.read_csv(
         os.path.join(dirs['postprocessed'], 'capacities.csv'),
@@ -103,4 +103,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    scenario_assumptions = get_scenario_assumptions().loc[0]
+    main(**scenario_assumptions)
