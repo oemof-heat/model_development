@@ -5,7 +5,7 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 
 
-def get_experiment_dirs():
+def get_experiment_dirs(name=None):
     abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     config_path = os.path.join(abspath, 'config.yml')
 
@@ -13,9 +13,27 @@ def get_experiment_dirs():
         config = yaml.safe_load(c)
     abspath = os.path.split(config_path)[0]
 
+    if name:
+        dirs = {}
+        for k, v in config.items():
+            if k == 'raw':
+                dirs.update({k: os.path.join(abspath, v)})
+            else:
+                dirs.update({k: os.path.join(abspath, v, name)})
+
+        return dirs
+
     dirs = {k: os.path.join(abspath, v) for k, v in config.items()}
 
     return dirs
+
+
+def get_scenario_assumptions():
+    abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    scenario_path = os.path.join(abspath, 'scenarios.csv')
+    scenario_assumptions = pd.read_csv(scenario_path, index_col=0, delimiter=';')
+
+    return scenario_assumptions
 
 
 def get_all_file_paths(dir):
