@@ -79,12 +79,12 @@ def main(**scenario_assumptions):
     )
 
     heat_central = pd.read_csv(
-        os.path.join(dirs['postprocessed'], 'heat_central.csv'),
+        os.path.join(dirs['postprocessed'], 'sequences', 'heat_central.csv'),
         index_col=0
     )
 
     heat_decentral = pd.read_csv(
-        os.path.join(dirs['postprocessed'], 'heat_decentral.csv'),
+        os.path.join(dirs['postprocessed'], 'sequences', 'heat_decentral.csv'),
         index_col=0
     )
 

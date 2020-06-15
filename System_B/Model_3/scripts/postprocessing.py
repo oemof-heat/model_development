@@ -68,24 +68,61 @@ def write_results(
                 _excess = excess.loc[:, (es.groups[b], slice(None), "flow")]
                 _excess.columns = _excess.columns.droplevel([0, 2])
                 supply = pd.concat([supply, _excess], axis=1)
-        save(supply, b)
+        save(supply, os.path.join('sequences', b))
         # save(excess, "excess")
         save(imports, "import")
 
+    bresults = bus_results(es, es.results, concat=True)
+    # check if storages exist in energy system nodes
+    if [n for n in es.nodes if isinstance(n, GenericStorage)]:
+        filling_levels = views.node_weight_by_type(es.results, GenericStorage)
+        filling_levels.columns = filling_levels.columns.droplevel(1)
+        save(filling_levels, os.path.join('sequences', 'filling_levels'))
+
+
+def get_capacities(es):
+    r"""
+    Calculates the capacities of all components.
+
+    Adapted from oemof.tabular.tools.postprocessing.write_results()
+
+    Parameters
+    ----------
+    es : oemof.solph.EnergySystem
+        EnergySystem containing the results.
+
+    Returns
+    -------
+    capacities : pd.DataFrame
+        DataFrame containing the capacities.
+    """
     try:
         all = bus_results(es, es.results, select="scalars", concat=True)
-        all.name = "value"
+
+        all.name = "var_value"
+
         endogenous = all.reset_index()
-        endogenous["tech"] = [
-            getattr(t, "tech", np.nan) for t in all.index.get_level_values(0)
+
+        endogenous.drop(['from', 'to'], axis=1, inplace=True)
+
+        endogenous["name"] = [
+            getattr(t, "label", np.nan) for t in all.index.get_level_values(0)
+        ]
+        endogenous["type"] = [
+            getattr(t, "type", np.nan) for t in all.index.get_level_values(0)
         ]
         endogenous["carrier"] = [
             getattr(t, "carrier", np.nan)
             for t in all.index.get_level_values(0)
         ]
+        endogenous["tech"] = [
+            getattr(t, "tech", np.nan) for t in all.index.get_level_values(0)
+        ]
+        endogenous["var_name"] = "invest"
         endogenous.set_index(
-            ["from", "to", "type", "tech", "carrier"], inplace=True
+            ["name", "type", "carrier", "tech", "var_name"], inplace=True
         )
+
     except ValueError:
         endogenous = pd.DataFrame()
 
@@ -97,48 +134,44 @@ def write_results(
                     pass
                 else:
                     key = (
-                        node,
-                        [n for n in node.outputs.keys()][0],
-                        "capacity",
-                        node.tech,  # tech & carrier are oemof-tabular specific
+                        node.label,
+                        # [n for n in node.outputs.keys()][0],
+                        node.type,
                         node.carrier,
+                        node.tech,  # tech & carrier are oemof-tabular specific
+                        'capacity'
                     )  # for oemof logic
-                    d[key] = {"value": node.capacity}
+                    d[key] = {'var_value': node.capacity}
     exogenous = pd.DataFrame.from_dict(d).T  # .dropna()
 
     if not exogenous.empty:
         exogenous.index = exogenous.index.set_names(
-            ["from", "to", "type", "tech", "carrier"]
+            ['name', 'type', 'carrier', 'tech', 'var_name']
         )
 
-    capacities = pd.concat([endogenous, exogenous])
+    storage_capacity =
 
     capacities = pd.concat([endogenous, exogenous])
 
-    save(capacities, "capacities")
+    capacities = capacities.groupby(level=[0, 1, 2, 3, 4]).sum()
 
-    bresults = bus_results(es, es.results, concat=True)
-    # check if storages exist in energy system nodes
-    if [n for n in es.nodes if isinstance(n, GenericStorage)]:
-        filling_levels = views.node_weight_by_type(es.results, GenericStorage)
-        filling_levels.columns = filling_levels.columns.droplevel(1)
-        save(filling_levels, "filling_levels")
+    return capacities
 
 
-def write_yearly_sum(output_path):
+def get_yearly_sum(output_path):
     heat_central = pd.read_csv(
-        os.path.join(output_path, 'heat_central.csv'),
+        os.path.join(output_path, 'sequences', 'heat_central.csv'),
         index_col=0
     )
     heat_decentral = pd.read_csv(
-        os.path.join(output_path, 'heat_decentral.csv'),
+        os.path.join(output_path, 'sequences', 'heat_decentral.csv'),
         index_col=0
     )
 
     yearly_sum = pd.concat([heat_central, heat_decentral], 1).sum()
     yearly_sum = yearly_sum.drop('heat-distribution')
 
-    yearly_sum.to_csv(os.path.join(output_path, 'heat_yearly_sum.csv'))
+    return yearly_sum
 
 
 def get_flow_by_oemof_tuple(oemof_tuple):
@@ -200,27 +233,27 @@ def multiply_param_with_variable(params, results, param_name, var_name):
     return product
 
 
-def write_capacity_cost(es, output_path):
+def get_capacity_cost(es):
     capacity_cost = multiply_param_with_variable(es.params, es.results, 'investment_ep_costs', 'invest')
     capacity_cost = pd.Series(capacity_cost)
 
-    capacity_cost.to_csv(os.path.join(output_path, 'capacity_cost.csv'))
+    return capacity_cost
 
 
-def write_carrier_cost(es, output_path):
+def get_carrier_cost(es):
     variable_costs = multiply_param_with_variable(es.params, es.results, 'variable_costs', 'flow')
     carrier_cost = {k: v.sum() for k, v in variable_costs.items() if isinstance(k[0], Bus)}
     carrier_cost = pd.Series(carrier_cost)
 
-    carrier_cost.to_csv(os.path.join(output_path, 'carrier_cost.csv'))
+    return carrier_cost
 
 
-def write_marginal_cost(es, output_path):
+def get_marginal_cost(es):
     variable_costs = multiply_param_with_variable(es.params, es.results, 'variable_costs', 'flow')
     marginal_cost = {k: v.sum() for k, v in variable_costs.items() if isinstance(k[1], Bus)}
     marginal_cost = pd.Series(marginal_cost)
 
-    marginal_cost.to_csv(os.path.join(output_path, 'marginal_cost.csv'))
+    return marginal_cost
 
 
 def write_total_cost(output_path):
@@ -246,21 +279,32 @@ def main(**scenario_assumptions):
     print('Postprocessing')
     dirs = get_experiment_dirs(scenario_assumptions['name'])
 
+    subdir = os.path.join(dirs['postprocessed'], 'sequences')
+    if not os.path.exists(subdir):
+        os.mkdir(subdir)
+
     # restore EnergySystem with results
     es = EnergySystem()
     es.restore(dirs['optimised'])
 
     write_results(es, dirs['postprocessed'])
 
-    write_capacity_cost(es, dirs['postprocessed'])
+    capacities = get_capacities(es)
+    capacities.to_csv(os.path.join(dirs['postprocessed'], 'capacities.csv'))
 
-    write_carrier_cost(es, dirs['postprocessed'])
 
-    write_marginal_cost(es, dirs['postprocessed'])
+    capacity_cost = get_capacity_cost(es)
+    capacity_cost.to_csv(os.path.join(dirs['postprocessed'], 'capacity_cost.csv'))
 
-    write_total_cost(dirs['postprocessed'])
+    carrier_cost = get_carrier_cost(es)
+    carrier_cost.to_csv(os.path.join(dirs['postprocessed'], 'carrier_cost.csv'))
 
-    write_yearly_sum(dirs['postprocessed'])
+    marginal_cost = get_marginal_cost(es)
+    marginal_cost.to_csv(os.path.join(dirs['postprocessed'], 'marginal_cost.csv'))
+
+    yearly_sum = get_yearly_sum(dirs['postprocessed'])
+    yearly_sum.to_csv(os.path.join(dirs['postprocessed'], 'heat_yearly_sum.csv'))
+
 
 
 if __name__ == '__main__':
