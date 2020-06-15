@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 
 import pandas as pd
 
@@ -7,10 +8,17 @@ from oemof.tools.logger import define_logging
 from oemof.tabular.datapackage import building
 from oemof.tools.economics import annuity
 
-from helper import get_experiment_dirs
+from helper import get_experiment_dirs, get_scenario_assumptions
 
 
 TIMEINDEX = pd.date_range('1/1/2017', periods=8760, freq='H')
+
+
+def copy_base_scenario(source, destination):
+    if os.path.exists(destination):
+        shutil.rmtree(destination)
+
+    shutil.copytree(source, destination)
 
 
 def prepare_investment_cost(fix_costs_raw_file):
@@ -51,7 +59,14 @@ def set_gas_price(gas_price, elements_dir):
     save_elements(elements, elements_dir)
 
 
-def prepare_electricity_price_profiles(charges_tax_levies_el, chp_surcharge, raw_price, destination):
+def prepare_electricity_price_profiles(
+        market_price_el,
+        charges_tax_levies_el,
+        variance_el,
+        chp_surcharge,
+        raw_price,
+        destination
+):
     def save(df, name):
         df.to_csv(os.path.join(destination, name))
 
@@ -84,6 +99,10 @@ def prepare_heat_demand_profile(heat_demand_profile, destination):
     heat_demand_profile.name = 'heat-demand-01'
 
     save(heat_demand_profile, 'heat-demand_profile.csv')
+
+
+def prepare_heat_pump_elements(overnight_cost_heat_pump, cop_heat_pump):
+    pass
 
 
 def infer_metadata(name, preprocessed):
@@ -121,20 +140,23 @@ def infer_metadata(name, preprocessed):
     )
 
 
-def main():
+def main(**scenario_assumptions):
     print('Preprocessing')
 
-    gas_price = 35
-    charges_tax_levies_el = 120
-    chp_surcharge = 0
+    dirs = get_experiment_dirs(scenario_assumptions['name'])
+    elements_dir = os.path.join(dirs['preprocessed'], 'data', 'elements')
 
-    dirs = get_experiment_dirs()
+    copy_base_scenario(
+        os.path.join(dirs['raw'], 'base_scenario'),
+        os.path.join(dirs['preprocessed'])
+    )
 
     prepare_investment_cost(
         os.path.join(dirs['raw'], 'fix_cost_assumptions.csv')
     )
 
-    elements_dir = os.path.join(dirs['preprocessed'], 'data', 'elements')
+    gas_price = scenario_assumptions['market_price_gas']\
+                + scenario_assumptions['charges_tax_levies_gas']
 
     set_gas_price(gas_price, elements_dir)
 
@@ -144,14 +166,22 @@ def main():
     )
 
     prepare_electricity_price_profiles(
-        charges_tax_levies_el,
-        chp_surcharge,
+        scenario_assumptions['market_price_el'],
+        scenario_assumptions['charges_tax_levies_el'],
+        scenario_assumptions['variance_el'],
+        scenario_assumptions['chp_surcharge'],
         os.path.join(dirs['raw'], 'price_electricity_spot_2017.csv'),
         os.path.join(dirs['preprocessed'], 'data', 'sequences')
+    )
+
+    prepare_heat_pump_elements(
+        scenario_assumptions['overnight_cost_heat_pump'],
+        scenario_assumptions['cop_heat_pump']
     )
 
     infer_metadata('name', dirs['preprocessed'])
 
 
 if __name__ == '__main__':
-    main()
+    scenario_assumptions = get_scenario_assumptions().loc[0]
+    main(**scenario_assumptions)
