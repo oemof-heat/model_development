@@ -20,10 +20,12 @@ def get_experiment_dirs(name=None):
                 dirs.update({k: os.path.join(abspath, v)})
             else:
                 dirs.update({k: os.path.join(abspath, v, name)})
+    else:
+        dirs = {k: os.path.join(abspath, v) for k, v in config.items()}
 
-        return dirs
-
-    dirs = {k: os.path.join(abspath, v) for k, v in config.items()}
+    for k, dir in dirs.items():
+        if not os.path.exists(dir):
+            os.makedirs(dir)
 
     return dirs
 
