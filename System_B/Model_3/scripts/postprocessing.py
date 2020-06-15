@@ -223,6 +223,25 @@ def write_marginal_cost(es, output_path):
     marginal_cost.to_csv(os.path.join(output_path, 'marginal_cost.csv'))
 
 
+def write_total_cost(output_path):
+
+    def add_index(x, name, value):
+        x[name] = value
+        x.set_index(name, append=True, inplace=True)
+        return x
+
+    capacity_cost = pd.read_csv(os.path.join(output_path, 'capacity_cost.csv'), index_col=[0,1])
+    marginal_cost = pd.read_csv(os.path.join(output_path, 'marginal_cost.csv'), index_col=[0,1])
+    carrier_cost = pd.read_csv(os.path.join(output_path, 'carrier_cost.csv'), index_col=[0,1])
+
+    capacity_cost = add_index(capacity_cost, 'var_name', 'capacity_cost')
+    marginal_cost = add_index(marginal_cost, 'var_name', 'marginal_cost')
+    carrier_cost = add_index(carrier_cost, 'var_name', 'carrier_cost')
+    total_cost = pd.concat([capacity_cost, carrier_cost, marginal_cost], 0)
+
+    total_cost.to_csv(os.path.join(output_path, 'total_cost.csv'))
+
+
 def main():
     print('Postprocessing')
     dirs = get_experiment_dirs()
@@ -238,6 +257,8 @@ def main():
     write_carrier_cost(es, dirs['postprocessed'])
 
     write_marginal_cost(es, dirs['postprocessed'])
+
+    write_total_cost(dirs['postprocessed'])
 
     write_yearly_sum(dirs['postprocessed'])
 
