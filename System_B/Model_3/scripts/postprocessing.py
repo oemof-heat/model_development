@@ -70,7 +70,7 @@ def write_results(
                 supply = pd.concat([supply, _excess], axis=1)
         save(supply, os.path.join('sequences', b))
         # save(excess, "excess")
-        save(imports, "import")
+        # save(imports, "import")
 
     bresults = bus_results(es, es.results, concat=True)
     # check if storages exist in energy system nodes
@@ -186,22 +186,6 @@ def get_capacities(es):
     return capacities
 
 
-def get_yearly_sum(output_path):
-    heat_central = pd.read_csv(
-        os.path.join(output_path, 'sequences', 'heat_central.csv'),
-        index_col=0
-    )
-    heat_decentral = pd.read_csv(
-        os.path.join(output_path, 'sequences', 'heat_decentral.csv'),
-        index_col=0
-    )
-
-    yearly_sum = pd.concat([heat_central, heat_decentral], 1).sum()
-    yearly_sum = yearly_sum.drop('heat-distribution')
-
-    return yearly_sum
-
-
 def get_flow_by_oemof_tuple(oemof_tuple):
     if isinstance(oemof_tuple[0], Bus):
         component = oemof_tuple[1]
@@ -261,9 +245,60 @@ def multiply_param_with_variable(params, results, param_name, var_name):
     return product
 
 
+def index_tuple_to_pp_format(input_df, var_name):
+    input_df.name = 'var_value'
+    df = input_df.reset_index()
+
+    def is_bus(index):
+        return index.map(lambda x: isinstance(x, Bus))
+
+    df['name'] = np.nan
+
+    df['name'].loc[is_bus(input_df.index.get_level_values(0))] = df['level_1']
+
+    df['name'].loc[is_bus(input_df.index.get_level_values(1))] = df['level_0']
+
+    df['name'].loc[input_df.index.get_level_values(1).isna()] = df['level_0']
+
+    df['type'] = [
+        getattr(t, "type", np.nan) for t in df['name']
+    ]
+    df['carrier'] = [
+        getattr(t, "carrier", np.nan) for t in df['name']
+    ]
+    df['tech'] = [
+        getattr(t, "tech", np.nan) for t in df['name']
+    ]
+    df['var_name'] = var_name
+
+    df = df[['name', 'type', 'carrier', 'tech', 'var_name', 'var_value']]
+
+    df.set_index(['name', 'type', 'carrier', 'tech', 'var_name'], inplace=True)
+
+    return df
+
+
+def get_yearly_sum(output_path):
+    heat_central = pd.read_csv(
+        os.path.join(output_path, 'sequences', 'heat_central.csv'),
+        index_col=0
+    )
+    heat_decentral = pd.read_csv(
+        os.path.join(output_path, 'sequences', 'heat_decentral.csv'),
+        index_col=0
+    )
+
+    yearly_sum = pd.concat([heat_central, heat_decentral], 1).sum()
+    yearly_sum = yearly_sum.drop('heat-distribution')
+
+    return yearly_sum
+
+
 def get_capacity_cost(es):
     capacity_cost = multiply_param_with_variable(es.params, es.results, 'investment_ep_costs', 'invest')
     capacity_cost = pd.Series(capacity_cost)
+
+    capacity_cost = index_tuple_to_pp_format(capacity_cost, 'capacity_cost')
 
     return capacity_cost
 
@@ -273,6 +308,8 @@ def get_carrier_cost(es):
     carrier_cost = {k: v.sum() for k, v in variable_costs.items() if isinstance(k[0], Bus)}
     carrier_cost = pd.Series(carrier_cost)
 
+    carrier_cost = index_tuple_to_pp_format(carrier_cost, 'carrier_cost')
+
     return carrier_cost
 
 
@@ -280,6 +317,9 @@ def get_marginal_cost(es):
     variable_costs = multiply_param_with_variable(es.params, es.results, 'variable_costs', 'flow')
     marginal_cost = {k: v.sum() for k, v in variable_costs.items() if isinstance(k[1], Bus)}
     marginal_cost = pd.Series(marginal_cost)
+
+    marginal_cost = index_tuple_to_pp_format(marginal_cost, 'marginal_cost')
+
 
     return marginal_cost
 
@@ -329,6 +369,9 @@ def main(**scenario_assumptions):
 
     marginal_cost = get_marginal_cost(es)
     marginal_cost.to_csv(os.path.join(dirs['postprocessed'], 'marginal_cost.csv'))
+
+    total_cost = pd.concat([capacity_cost, carrier_cost, marginal_cost], 0)
+    total_cost.to_csv(os.path.join(dirs['postprocessed'], 'total_cost.csv'))
 
     yearly_sum = get_yearly_sum(dirs['postprocessed'])
     yearly_sum.to_csv(os.path.join(dirs['postprocessed'], 'heat_yearly_sum.csv'))
