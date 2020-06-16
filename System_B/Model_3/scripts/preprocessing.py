@@ -22,15 +22,6 @@ def copy_base_scenario(source, destination):
     shutil.copytree(source, destination)
 
 
-def prepare_investment_cost(fix_costs_raw_file):
-    wacc = 0.052
-    fix_cost = pd.read_csv(fix_costs_raw_file)
-    fix_cost['eq_cost'] = \
-        fix_cost['overnight_cost'] * 0.01 * fix_cost['fixom']\
-        + fix_cost.apply(lambda x: annuity(x['overnight_cost'], x['lifetime'], wacc), axis=1)
-    # units are Eur/kW or Eur/kWh
-
-
 def get_elements(dir):
     elements = {}
 
@@ -50,12 +41,34 @@ def save_elements(elements, dir):
         value.to_csv(filename, sep=';')
 
 
+def get_constants(raw_dir):
+    constants = pd.read_csv(os.path.join(raw_dir, 'constants.csv'), index_col=[0, 1])['var_value']
+
+    return constants
+
+
 def set_gas_price(gas_price, elements_dir):
     elements = get_elements(elements_dir)
 
     elements['gas-chp']['carrier_cost'] = gas_price
 
     elements['gas-hob']['carrier_cost'] = gas_price
+
+    save_elements(elements, elements_dir)
+
+
+def set_heat_pump_capacity_cost(overnight_cost_heat_pump, cop_heat_pump, constants, elements_dir):
+    elements = get_elements(elements_dir)
+
+    wacc = constants['all', 'wacc']
+    lifetime = constants['electricity-hp', 'lifetime']
+    fix_om = constants['electricity-hp', 'fix_om']
+
+    ep_cost = annuity(overnight_cost_heat_pump, lifetime, wacc) \
+              + overnight_cost_heat_pump * fix_om
+
+    elements['electricity-hp']['capacity_cost'] = ep_cost
+    elements['electricity-hp']['efficiency'] = cop_heat_pump
 
     save_elements(elements, elements_dir)
 
@@ -125,10 +138,6 @@ def prepare_heat_demand_profile(heat_demand_profile, destination, timeindex=TIME
     save(heat_demand_profile, 'heat-demand_profile.csv')
 
 
-def prepare_heat_pump_elements(overnight_cost_heat_pump, cop_heat_pump):
-    pass
-
-
 def infer_metadata(name, preprocessed):
     r"""Infer the metadata of the datapackage"""
     logging.info("Inferring the metadata of the datapackage")
@@ -179,14 +188,19 @@ def main(**scenario_assumptions):
         os.path.join(dirs['preprocessed'])
     )
 
-    prepare_investment_cost(
-        os.path.join(dirs['raw'], 'fix_cost_assumptions.csv')
-    )
-
     gas_price = scenario_assumptions['market_price_gas']\
                 + scenario_assumptions['charges_tax_levies_gas']
 
     set_gas_price(gas_price, elements_dir)
+
+    constants = get_constants(dirs['raw'])
+
+    set_heat_pump_capacity_cost(
+        scenario_assumptions['overnight_cost_heat_pump'],
+        scenario_assumptions['cop_heat_pump'],
+        constants,
+        elements_dir
+    )
 
     prepare_heat_demand_profile(
         os.path.join(dirs['raw'], 'demand_heat_2017.csv'),
@@ -202,11 +216,6 @@ def main(**scenario_assumptions):
         os.path.join(dirs['raw'], 'price_electricity_spot_2017.csv'),
         os.path.join(dirs['preprocessed'], 'data', 'sequences'),
         timeindex=timeindex
-    )
-
-    prepare_heat_pump_elements(
-        scenario_assumptions['overnight_cost_heat_pump'],
-        scenario_assumptions['cop_heat_pump']
     )
 
     infer_metadata('name', dirs['preprocessed'])
