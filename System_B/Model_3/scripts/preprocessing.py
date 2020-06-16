@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 
+import numpy as np
 import pandas as pd
 
 from oemof.tools.logger import define_logging
@@ -59,10 +60,24 @@ def set_gas_price(gas_price, elements_dir):
     save_elements(elements, elements_dir)
 
 
+def adapt_mean_and_variance(timeseries, mean, standard_deviation):
+    adapted_ts = timeseries.copy()
+
+    adapted_ts -= np.mean(adapted_ts)
+
+    adapted_ts *= 1/np.std(adapted_ts)
+
+    adapted_ts *= standard_deviation
+
+    adapted_ts += mean
+
+    return adapted_ts
+
+
 def prepare_electricity_price_profiles(
     market_price_el,
     charges_tax_levies_el,
-    variance_el,
+    standard_dev_el,
     chp_surcharge,
     raw_price,
     destination,
@@ -77,6 +92,12 @@ def prepare_electricity_price_profiles(
     base_cost_profile = base_cost_profile.iloc[:len(timeindex)]
     base_cost_profile.index = timeindex
     base_cost_profile.index.name = 'timeindex'
+
+    base_cost_profile = adapt_mean_and_variance(
+        base_cost_profile,
+        market_price_el,
+        standard_dev_el,
+    )
 
     marginal_cost_profile = base_cost_profile.copy()
     marginal_cost_profile += chp_surcharge
@@ -176,7 +197,7 @@ def main(**scenario_assumptions):
     prepare_electricity_price_profiles(
         scenario_assumptions['market_price_el'],
         scenario_assumptions['charges_tax_levies_el'],
-        scenario_assumptions['variance_el'],
+        scenario_assumptions['standard_dev_el'],
         scenario_assumptions['chp_surcharge'],
         os.path.join(dirs['raw'], 'price_electricity_spot_2017.csv'),
         os.path.join(dirs['preprocessed'], 'data', 'sequences'),
