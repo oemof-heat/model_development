@@ -60,12 +60,13 @@ def set_gas_price(gas_price, elements_dir):
 
 
 def prepare_electricity_price_profiles(
-        market_price_el,
-        charges_tax_levies_el,
-        variance_el,
-        chp_surcharge,
-        raw_price,
-        destination
+    market_price_el,
+    charges_tax_levies_el,
+    variance_el,
+    chp_surcharge,
+    raw_price,
+    destination,
+    timeindex=TIMEINDEX
 ):
     def save(df, name):
         df.to_csv(os.path.join(destination, name))
@@ -73,7 +74,8 @@ def prepare_electricity_price_profiles(
     raw_price = pd.read_csv(raw_price, index_col=0)
 
     base_cost_profile = raw_price['price_electricity_spot']
-    base_cost_profile.index = TIMEINDEX
+    base_cost_profile = base_cost_profile.iloc[:len(timeindex)]
+    base_cost_profile.index = timeindex
     base_cost_profile.index.name = 'timeindex'
 
     marginal_cost_profile = base_cost_profile.copy()
@@ -88,13 +90,14 @@ def prepare_electricity_price_profiles(
     save(carrier_cost_profile, 'carrier_cost_profile.csv')
 
 
-def prepare_heat_demand_profile(heat_demand_profile, destination):
+def prepare_heat_demand_profile(heat_demand_profile, destination, timeindex=TIMEINDEX):
     def save(df, name):
         df.to_csv(os.path.join(destination, name))
 
     heat_demand_profile = pd.read_csv(heat_demand_profile, index_col='timestamp')
     heat_demand_profile = heat_demand_profile.sum(axis=1)
-    heat_demand_profile.index = TIMEINDEX
+    heat_demand_profile = heat_demand_profile.iloc[:len(timeindex)]
+    heat_demand_profile.index = timeindex
     heat_demand_profile.index.name = 'timeindex'
     heat_demand_profile.name = 'heat-demand-01'
 
@@ -143,6 +146,10 @@ def infer_metadata(name, preprocessed):
 def main(**scenario_assumptions):
     print('Preprocessing')
 
+    timeindex = TIMEINDEX
+    if scenario_assumptions['debug']:
+        timeindex = timeindex[:3]
+
     dirs = get_experiment_dirs(scenario_assumptions['name'])
     elements_dir = os.path.join(dirs['preprocessed'], 'data', 'elements')
 
@@ -162,7 +169,8 @@ def main(**scenario_assumptions):
 
     prepare_heat_demand_profile(
         os.path.join(dirs['raw'], 'demand_heat_2017.csv'),
-        os.path.join(dirs['preprocessed'], 'data', 'sequences')
+        os.path.join(dirs['preprocessed'], 'data', 'sequences'),
+        timeindex=timeindex
     )
 
     prepare_electricity_price_profiles(
@@ -171,7 +179,8 @@ def main(**scenario_assumptions):
         scenario_assumptions['variance_el'],
         scenario_assumptions['chp_surcharge'],
         os.path.join(dirs['raw'], 'price_electricity_spot_2017.csv'),
-        os.path.join(dirs['preprocessed'], 'data', 'sequences')
+        os.path.join(dirs['preprocessed'], 'data', 'sequences'),
+        timeindex=timeindex
     )
 
     prepare_heat_pump_elements(

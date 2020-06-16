@@ -12,7 +12,7 @@ from oemof.tabular.facades import TYPEMAP
 from helper import get_experiment_dirs, get_scenario_assumptions
 
 
-def optimize(input_data_dir, results_data_dir, solver='cbc', save_lp=False):
+def optimize(input_data_dir, results_data_dir, solver='cbc', debug=False):
     r"""
     Takes the specified datapackage, creates an energysystem and solves the
     optimization problem.
@@ -32,7 +32,7 @@ def optimize(input_data_dir, results_data_dir, solver='cbc', save_lp=False):
     # m.receive_duals()
 
     # save lp file together with optimization results
-    if save_lp:
+    if debug:
         lp_file_dir = os.path.join(results_data_dir, 'model.lp')
         logging.info(f"Saving the lp-file to {lp_file_dir}")
         m.write(lp_file_dir, io_options={'symbolic_solver_labels': True})
@@ -56,7 +56,7 @@ def main(**scenario_assumptions):
 
     dirs = get_experiment_dirs(scenario_assumptions['name'])
 
-    optimize(dirs['preprocessed'], dirs['optimised'])
+    optimize(dirs['preprocessed'], dirs['optimised'], debug=scenario_assumptions['debug'])
 
 
 if __name__ == '__main__':
