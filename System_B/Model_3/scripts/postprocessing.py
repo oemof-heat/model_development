@@ -319,6 +319,8 @@ def get_capacity_cost(es):
 
     capacity_cost = index_tuple_to_pp_format(capacity_cost, 'capacity_cost')
 
+    capacity_cost = capacity_cost.groupby(level=[0,1,2,3,4]).sum()
+
     return capacity_cost
 
 
