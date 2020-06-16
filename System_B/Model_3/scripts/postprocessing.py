@@ -26,11 +26,14 @@ def write_results(
         """
         df.to_csv(os.path.join(path, name + ".csv"))
 
+    sequences = {}
+
     buses = [b.label for b in es.nodes if isinstance(b, Bus)]
 
     link_results = component_results(es, es.results).get("link")
     if link_results is not None and raw:
-        save(link_results, "links-oemof")
+        save(link_results, "links")
+        sequences.update({'links': link_results})
 
     imports = pd.DataFrame()
     for b in buses:
@@ -69,6 +72,7 @@ def write_results(
                 _excess.columns = _excess.columns.droplevel([0, 2])
                 supply = pd.concat([supply, _excess], axis=1)
         save(supply, os.path.join('sequences', b))
+        sequences.update({str(b): supply})
         # save(excess, "excess")
         # save(imports, "import")
 
@@ -78,6 +82,9 @@ def write_results(
         filling_levels = views.node_weight_by_type(es.results, GenericStorage)
         filling_levels.columns = filling_levels.columns.droplevel(1)
         save(filling_levels, os.path.join('sequences', 'filling_levels'))
+        sequences.update({'filling_levels': filling_levels})
+
+    return sequences
 
 
 def get_capacities(es):
@@ -278,18 +285,30 @@ def index_tuple_to_pp_format(input_df, var_name):
     return df
 
 
-def get_yearly_sum(output_path):
-    heat_central = pd.read_csv(
-        os.path.join(output_path, 'sequences', 'heat_central.csv'),
-        index_col=0
-    )
-    heat_decentral = pd.read_csv(
-        os.path.join(output_path, 'sequences', 'heat_decentral.csv'),
-        index_col=0
-    )
+def get_yearly_sum(heat_sequences):
 
-    yearly_sum = pd.concat([heat_central, heat_decentral], 1).sum()
-    yearly_sum = yearly_sum.drop('heat-distribution')
+    yearly_sum = heat_sequences.sum()
+
+    yearly_sum.name = 'var_value'
+
+    yearly_sum.index.name = 'name'
+
+    yearly_sum = yearly_sum.reset_index()
+
+    yearly_sum['type'] = [
+        getattr(t, "type", np.nan) for t in yearly_sum['name']
+    ]
+    yearly_sum['carrier'] = [
+        getattr(t, "carrier", np.nan) for t in yearly_sum['name']
+    ]
+    yearly_sum['tech'] = [
+        getattr(t, "tech", np.nan) for t in yearly_sum['name']
+    ]
+    yearly_sum['var_name'] = 'yearly_heat'
+
+    yearly_sum = yearly_sum[['name', 'type', 'carrier', 'tech', 'var_name', 'var_value']]
+
+    yearly_sum.set_index(['name', 'type', 'carrier', 'tech', 'var_name'], inplace=True)
 
     return yearly_sum
 
@@ -355,27 +374,21 @@ def main(**scenario_assumptions):
     es = EnergySystem()
     es.restore(dirs['optimised'])
 
-    write_results(es, dirs['postprocessed'])
+    sequences = write_results(es, dirs['postprocessed'])
 
     capacities = get_capacities(es)
-    capacities.to_csv(os.path.join(dirs['postprocessed'], 'capacities.csv'))
-
 
     capacity_cost = get_capacity_cost(es)
-    capacity_cost.to_csv(os.path.join(dirs['postprocessed'], 'capacity_cost.csv'))
 
     carrier_cost = get_carrier_cost(es)
-    carrier_cost.to_csv(os.path.join(dirs['postprocessed'], 'carrier_cost.csv'))
 
     marginal_cost = get_marginal_cost(es)
-    marginal_cost.to_csv(os.path.join(dirs['postprocessed'], 'marginal_cost.csv'))
 
-    total_cost = pd.concat([capacity_cost, carrier_cost, marginal_cost], 0)
-    total_cost.to_csv(os.path.join(dirs['postprocessed'], 'total_cost.csv'))
+    heat_sequences = pd.concat([sequences['heat_central'], sequences['heat_decentral']], 1)
+    yearly_sum = get_yearly_sum(heat_sequences)
 
-    yearly_sum = get_yearly_sum(dirs['postprocessed'])
-    yearly_sum.to_csv(os.path.join(dirs['postprocessed'], 'heat_yearly_sum.csv'))
-
+    scalars = pd.concat([capacities, yearly_sum, capacity_cost, carrier_cost, marginal_cost], 0)
+    scalars.to_csv(os.path.join(dirs['postprocessed'], 'scalars.csv'))
 
 
 if __name__ == '__main__':
