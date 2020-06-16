@@ -105,6 +105,8 @@ def main(scenario_assumptions):
         'status_quo',
         'flexfriendly',
         'flexfriendly_taxlevies=80',
+        'flexfriendly_taxlevies=77.5',
+        'flexfriendly_taxlevies=75',
         'flexfriendly_taxlevies=70',
         'flexfriendly_taxlevies=60',
     ]
