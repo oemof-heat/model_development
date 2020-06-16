@@ -52,23 +52,27 @@ def combine_scalars(scenario_dfs):
 
 def plot_stacked_bar(df, slicing, scenario_order, title=None):
     select = df.loc[slicing, :]
+    select.index = select.index.droplevel([2, 3, 4])
 
-    select = select.unstack(level=[1,2,3,4,5])
+    select = select.unstack(level=[1, 2])
 
     select = select.loc[scenario_order]
 
     fig, ax = plt.subplots()
-    select.plot.bar(ax=ax, stacked=True)
+    barplot = select.plot.bar(ax=ax, stacked=True)
     ax.set_title(title)
-    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
+    ax.legend(
+        labels=select.columns.get_level_values(1),
+        loc='center left',
+        bbox_to_anchor=(1.0, 0.5)
+    )
     plt.tight_layout()
-    plt.show()
 
 
 def main(scenario_assumptions):
     print("Combining scenario results")
 
-    combined_results_dir = get_experiment_dirs('all_scenarios')['postprocessed']
+    dirs = get_experiment_dirs('all_scenarios')
 
     scenario_paths = get_scenario_paths(scenario_assumptions)
 
@@ -76,7 +80,7 @@ def main(scenario_assumptions):
 
     all_scalars = combine_scalars(scenario_dfs)
 
-    file_path = os.path.join(combined_results_dir, 'scalars.csv')
+    file_path = os.path.join(dirs['postprocessed'], 'scalars.csv')
     all_scalars.to_csv(file_path)
     print(f"Saved scenario results to {file_path}")
 
@@ -93,14 +97,17 @@ def main(scenario_assumptions):
     ]
 
     idx = pd.IndexSlice
-    slicing = idx[scenario_paths.keys(), :, :, 'heat', :, ['capacity', 'invest']]
+    slicing = idx[scenario_paths.keys(), :, :, :, :, ['capacity', 'invest']]
     plot_stacked_bar(all_scalars, slicing, scenario_order, 'Existing and newly built capacity')
+    plt.savefig(os.path.join(dirs['plots'], 'capacities.pdf'))
 
     slicing = idx[scenario_paths.keys(), :, :, :, :, 'yearly_heat']
     plot_stacked_bar(all_scalars, slicing, scenario_order, 'Yearly heat')
+    plt.savefig(os.path.join(dirs['plots'], 'yearly_heat.pdf'))
 
-    slicing = idx[scenario_paths.keys(), :, :, 'heat', :, ['capacity_cost', 'carrier_cost']]
+    slicing = idx[scenario_paths.keys(), :, :, :, :, ['capacity_cost', 'carrier_cost']]
     plot_stacked_bar(all_scalars, slicing, scenario_order, 'Costs')
+    plt.savefig(os.path.join(dirs['plots'], 'costs.pdf'))
 
 
 if __name__ == '__main__':
