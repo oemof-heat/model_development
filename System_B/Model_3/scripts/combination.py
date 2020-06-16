@@ -1,9 +1,19 @@
 import os
+import yaml
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from helper import get_experiment_dirs, get_scenario_assumptions
+
+
+def get_color_dict():
+    abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    config_path = os.path.join(abspath, 'colors.yml')
+    with open(config_path) as c:
+        COLOR_DICT = yaml.safe_load(c)
+
+    return COLOR_DICT
 
 
 def add_index(x, name, value):
@@ -58,8 +68,11 @@ def plot_stacked_bar(df, slicing, scenario_order, title=None):
 
     select = select.loc[scenario_order]
 
+    COLOR_DICT = get_color_dict()
+    colors = [COLOR_DICT[i] for i in select.columns.get_level_values('name')]
+
     fig, ax = plt.subplots()
-    barplot = select.plot.bar(ax=ax, stacked=True)
+    select.plot.bar(ax=ax, color=colors, stacked=True)
     ax.set_title(title)
     ax.legend(
         labels=select.columns.get_level_values(1),
