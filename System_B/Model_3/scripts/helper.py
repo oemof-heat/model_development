@@ -5,13 +5,20 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 
 
-def get_experiment_dirs(name=None):
+def get_config_file(name):
     abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    config_path = os.path.join(abspath, 'config.yml')
+    config_path = os.path.join(abspath, name)
 
     with open(config_path) as c:
         config = yaml.safe_load(c)
-    abspath = os.path.split(config_path)[0]
+
+    return config
+
+
+def get_experiment_dirs(name=None):
+    config = get_config_file('config.yml')
+
+    abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
     if name:
         dirs = {}
@@ -28,6 +35,12 @@ def get_experiment_dirs(name=None):
             os.makedirs(dir)
 
     return dirs
+
+
+def get_colors():
+    colors = get_config_file('colors.yml')
+
+    return colors
 
 
 def get_scenario_assumptions():
