@@ -1,5 +1,6 @@
 gas: '#cccc00'
 electricity: '#99ccff'
+electricity-buying: '#99ccff'
 heat_central: '#FF0000'
 heat_decentral: '#FF5300'
 heat_decentral-shortage: '#FF5300'

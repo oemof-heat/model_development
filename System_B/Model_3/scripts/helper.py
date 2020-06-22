@@ -37,12 +37,6 @@ def get_experiment_dirs(name=None):
     return dirs
 
 
-def get_colors():
-    colors = get_config_file('colors.yml')
-
-    return colors
-
-
 def get_scenario_assumptions():
     abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     scenario_path = os.path.join(abspath, 'scenarios.csv')

@@ -3,59 +3,91 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from helper import get_experiment_dirs, get_scenario_assumptions
+from helper import get_experiment_dirs, get_scenario_assumptions, get_config_file
+
+
+idx = pd.IndexSlice
+
+COLORS = get_config_file('colors.yml')
+
+LABELS = get_config_file('labels.yml')
+
+
+def c_list(data):
+    if isinstance(data, pd.Series):
+        return COLORS[data.name]
+
+    if isinstance(data, pd.DataFrame):
+        return [COLORS[k] for k in data.columns]
+
+
+def map_label_list():
+    current_axis = plt.gca()
+    handles, labels = current_axis.get_legend_handles_labels()
+
+    labels = [LABELS[k] for k in labels]
+
+    return labels
 
 
 def bar_plot():
     pass
 
-def plot_capacities(capacities, destination):
-    print('######### plotting capacities #########')
-    print(capacities)
 
-    idx = pd.IndexSlice
+def plot_dispatch(timeseries, demand, destination):
+    fig, ax = plt.subplots(figsize=(12, 5))
 
-    cap_heat_dec = capacities.loc[idx[:, 'heat_decentral', :], :]
-    cap_heat_cen = capacities.loc[idx[:, 'heat_central', :], :]
-    cap_electricty = capacities.loc[idx[:, 'electricity', :], :]
+    timeseries_pos = timeseries.copy()
+    timeseries_pos[timeseries_pos < 0] = 0
+    timeseries_pos = timeseries_pos.loc[:, (timeseries_pos != 0).any(axis=0)]
 
-    for cap in [cap_heat_dec, cap_heat_cen, cap_electricty]:
-        cap.index = cap.index.droplevel(['to', 'tech', 'carrier'])
+    timeseries_neg = timeseries.copy()
+    timeseries_neg[timeseries_neg >= 0] = 0
+    timeseries_neg = timeseries_neg.loc[:, (timeseries_neg != 0).any(axis=0)]
 
-    cap_heat_cen = cap_heat_cen.unstack()
-    cap_heat_dec = cap_heat_dec.unstack()
+    timeseries_pos.plot.area(ax=ax, color=c_list(timeseries_pos))
+    timeseries_neg.plot.area(ax=ax, color=c_list(timeseries_neg))
 
-    fig, axs = plt.subplots(2, 1, figsize=(5, 8))
-    cap_heat_cen.plot.bar(ax=axs[0])
-    cap_heat_dec.plot.bar(ax=axs[1])
+    demand.plot.line(ax=ax, c='r', linewidth=2)
+
+    ax.set_ylim(-60, 125)
+    ax.set_title('Dispatch')
+
+    ax.legend(
+        labels=map_label_list(),
+        loc='center left',
+        bbox_to_anchor=(1.0, 0.5))
+
+    current_handles, current_labels = plt.gca().get_legend_handles_labels()
 
     plt.tight_layout()
-
     plt.savefig(destination)
 
 
-def plot_dispatch(bus, destination):
-    start = '2017-02-01'
-    end = '2017-03-01'
-
-    bus = bus[start:end]
-
-    demand = bus['heat-demand']
-    bus = bus.drop('heat-distribution', axis=1)
-    bus_wo_demand = bus.drop('heat-demand', axis=1)
-    bus_wo_demand_pos = bus_wo_demand.copy()
-    bus_wo_demand_pos.loc[bus_wo_demand_pos['heat_central-tes'] < 0, 'heat_central-tes'] = 0
-    bus_wo_demand_pos.loc[bus_wo_demand_pos['heat_decentral-tes'] < 0, 'heat_decentral-tes'] = 0
-    bus_wo_demand_neg = bus_wo_demand.copy()[['heat_central-tes', 'heat_decentral-tes']]
-    bus_wo_demand_neg.loc[bus_wo_demand['heat_central-tes'] >= 0, 'heat_central-tes'] = 0
-    bus_wo_demand_neg.loc[bus_wo_demand['heat_decentral-tes'] >= 0, 'heat_decentral-tes'] = 0
-
+def plot_load_duration(timeseries, destination, plot_original=False):
     fig, ax = plt.subplots(figsize=(12, 5))
-    # bus_wo_demand_pos.plot.area(ax=ax)
-    # bus_wo_demand_neg.plot.area(ax=ax)
-    demand.plot.line(c='r', linewidth=2)
-    ax.set_title('Dispatch')
-    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
+
+    if plot_original:
+        timeseries.plot.line(ax=ax, color=c_list(timeseries))
+
+    # sort timeseries
+    if isinstance(timeseries, pd.DataFrame):
+        sorted_ts = pd.DataFrame()
+        for column in timeseries.columns:
+            sorted_ts[column] = sorted(timeseries[column], reverse=True)
+
+    elif isinstance(timeseries, pd.Series):
+        sorted_ts = timeseries.sort_values(ascending=False)
+
+    sorted_ts.plot.line(ax=ax, color=c_list(sorted_ts), linewidth=2)
+
+    ax.set_title('Load duration')
+    ax.legend(
+        labels=map_label_list(),
+        loc='center left',
+        bbox_to_anchor=(1.0, 0.5)
+    )
+
     plt.tight_layout()
     plt.savefig(destination)
 
@@ -70,12 +102,13 @@ def plot_yearly_production(yearly_production, destination):
     plt.tight_layout()
     plt.savefig(destination)
 
+
 def main(**scenario_assumptions):
     dirs = get_experiment_dirs(scenario_assumptions['name'])
 
-    capacities = pd.read_csv(
-        os.path.join(dirs['postprocessed'], 'capacities.csv'),
-        index_col=[0,1,2,3,4]
+    price_el = pd.read_csv(
+        os.path.join(dirs['preprocessed'], 'data', 'sequences', 'carrier_cost_profile.csv'),
+        index_col=0
     )
 
     heat_central = pd.read_csv(
@@ -88,18 +121,32 @@ def main(**scenario_assumptions):
         index_col=0
     )
 
-    yearly_heat_sum = pd.read_csv(
-        os.path.join(dirs['postprocessed'], 'heat_yearly_sum.csv'),
-        index_col=0
+    timeseries = pd.concat([heat_central, heat_decentral], 1)
+
+    timeseries = timeseries.drop('heat-distribution', axis=1)
+
+    timeseries = timeseries.drop('heat_decentral-shortage', axis=1)
+
+    supply = timeseries.drop('heat-demand', axis=1)
+
+    demand = timeseries['heat-demand']
+
+    plot_load_duration(price_el, os.path.join(dirs['plots'], 'price_el.pdf'), plot_original=True)
+
+    plot_load_duration(demand, os.path.join(dirs['plots'], 'heat_demand.pdf'), plot_original=True)
+
+    plot_load_duration(supply, os.path.join(dirs['plots'], 'heat_supply.pdf'))
+
+    start = '2017-02-01'
+    end = '2017-03-01'
+
+    plot_dispatch(
+        supply[start:end], demand[start:end],
+        os.path.join(dirs['plots'], 'heat_dispatch.pdf')
     )
 
-    capacities = capacities.drop('heat-distribution')
-    plot_capacities(capacities, os.path.join(dirs['plots'], 'capacities.svg'))
-
-    plot_dispatch(pd.concat([heat_central, heat_decentral], 1), os.path.join(dirs['plots'], 'heat_bus.svg'))
-
-    yearly_production= yearly_heat_sum.drop('heat-demand')
-    plot_yearly_production(yearly_production, os.path.join(dirs['plots'], 'heat_yearly_production.svg'))
+    # yearly_production= yearly_heat_sum.drop('heat-demand')
+    # plot_yearly_production(yearly_production, os.path.join(dirs['plots'], 'heat_yearly_production.svg'))
 
 
 if __name__ == '__main__':
