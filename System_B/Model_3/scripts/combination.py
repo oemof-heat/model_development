@@ -8,6 +8,11 @@ from helper import get_experiment_dirs, get_scenario_assumptions, get_config_fil
 from plotting import map_label_list
 
 
+idx = pd.IndexSlice
+
+COLOR_DICT = get_config_file('colors.yml')
+
+
 def add_index(x, name, value):
     x[name] = value
     x.set_index(name, append=True, inplace=True)
@@ -60,7 +65,6 @@ def plot_stacked_bar(df, slicing, scenario_order, title=None):
 
     select = select.loc[scenario_order]
 
-    COLOR_DICT = get_config_file('colors.yml')
     colors = [COLOR_DICT[i] for i in select.columns.get_level_values('name')]
 
     fig, ax = plt.subplots()
@@ -74,6 +78,43 @@ def plot_stacked_bar(df, slicing, scenario_order, title=None):
     ax.legend(
         handles=handles,
         labels=labels,
+        loc='center left',
+        bbox_to_anchor=(1.0, 0.5)
+    )
+    plt.tight_layout()
+
+
+def plot_var_cost_assumptions(df, scenarios, title=None):
+    # colors = [COLOR_DICT[i] for i in df.columns.get_level_values('name')]
+
+    def get_multi(c):
+        carrier = str(c).split('_')[-1]
+        var_name = '_'.join(str(c).split('_')[:-1])
+
+        return (carrier, var_name)
+
+    select = df.copy()
+
+    select.index = select['name']
+
+    select = select.loc[select['name'].isin(scenarios)]
+
+    select = select[
+        ['charges_tax_levies_gas', 'market_price_gas', 'charges_tax_levies_el', 'market_price_el']
+    ]
+
+    select.columns = pd.MultiIndex.from_tuples([get_multi(c) for c in select.columns])
+
+    select = select.stack(0)
+
+    select = select[select.columns[::-1]]
+
+    fig, ax = plt.subplots()
+
+    select.plot.bar(ax=ax, stacked=True)
+    ax.set_title(title)
+
+    ax.legend(
         loc='center left',
         bbox_to_anchor=(1.0, 0.5)
     )
@@ -110,7 +151,6 @@ def main(scenario_assumptions):
         'flexfriendly_taxlevies=60',
     ]
 
-    idx = pd.IndexSlice
     slicing = idx[scenario_paths.keys(), :, :, :, :, ['capacity', 'invest']]
     plot_stacked_bar(all_scalars, slicing, scenario_order, 'Existing and newly built capacity')
     plt.savefig(os.path.join(dirs['plots'], 'capacities.pdf'))
@@ -122,6 +162,9 @@ def main(scenario_assumptions):
     slicing = idx[scenario_paths.keys(), :, :, :, :, ['capacity_cost', 'carrier_cost']]
     plot_stacked_bar(all_scalars, slicing, scenario_order, 'Costs')
     plt.savefig(os.path.join(dirs['plots'], 'costs.pdf'))
+
+    plot_var_cost_assumptions(scenario_assumptions, scenario_order)
+    plt.savefig(os.path.join(dirs['plots'], 'cost_assumptions.pdf'))
 
 
 if __name__ == '__main__':
