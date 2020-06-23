@@ -103,8 +103,7 @@ def multiplot_dispatch(ts_upper, ts_lower, destination):
     plt.setp([a.get_yticklabels() for a in [ax_upper[1], ax_lower[1]]], visible=False)
 
     fig.savefig(destination, bbox_inches='tight', dpi=500)
-
-    return None
+    plt.close(fig)
 
 
 def stack_plot_with_negative_values(timeseries, ax):
@@ -144,13 +143,14 @@ def plot_dispatch(timeseries, demand, destination):
 
     plt.tight_layout()
     plt.savefig(destination)
+    plt.close(fig)
 
 
-def plot_load_duration(timeseries, destination, plot_original=False):
+def plot_load_duration(timeseries, destination, plot_original=False, **kwargs):
     fig, ax = plt.subplots(figsize=(12, 5))
 
     if plot_original:
-        timeseries.plot.line(ax=ax, color=c_list(timeseries))
+        timeseries.plot.line(ax=ax, color=c_list(timeseries), **kwargs)
 
     # sort timeseries
     if isinstance(timeseries, pd.DataFrame):
@@ -161,7 +161,7 @@ def plot_load_duration(timeseries, destination, plot_original=False):
     elif isinstance(timeseries, pd.Series):
         sorted_ts = timeseries.sort_values(ascending=False)
 
-    sorted_ts.plot.line(ax=ax, color=c_list(sorted_ts), linewidth=2)
+    sorted_ts.plot.line(ax=ax, color=c_list(sorted_ts), **kwargs)
 
     handles, labels = map_label_list()
     ax.set_title('Load duration')
@@ -174,6 +174,7 @@ def plot_load_duration(timeseries, destination, plot_original=False):
 
     plt.tight_layout()
     plt.savefig(destination)
+    plt.close(fig)
 
 
 def plot_yearly_production(yearly_production, destination):
@@ -185,6 +186,7 @@ def plot_yearly_production(yearly_production, destination):
     ax.set_title('Yearly production')
     plt.tight_layout()
     plt.savefig(destination)
+    plt.close(fig)
 
 
 def main(**scenario_assumptions):
@@ -220,11 +222,23 @@ def main(**scenario_assumptions):
 
     demand = timeseries['heat-demand']
 
-    plot_load_duration(price_el, os.path.join(dirs['plots'], 'price_el.pdf'), plot_original=True)
+    plot_load_duration(
+        price_el,
+        os.path.join(dirs['plots'], 'price_el.pdf'),
+        plot_original=True,
+    )
 
-    plot_load_duration(demand, os.path.join(dirs['plots'], 'heat_demand.pdf'), plot_original=True)
+    plot_load_duration(
+        demand,
+        os.path.join(dirs['plots'], 'heat_demand.pdf'),
+        plot_original=True
+    )
 
-    plot_load_duration(supply, os.path.join(dirs['plots'], 'heat_supply.pdf'))
+    plot_load_duration(
+        supply,
+        os.path.join(dirs['plots'], 'heat_supply.pdf'),
+        linewidth=10,
+    )
 
     start = '2017-02-01'
     end = '2017-02-14'
