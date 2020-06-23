@@ -4,16 +4,8 @@ import yaml
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from helper import get_experiment_dirs, get_scenario_assumptions
-
-
-def get_color_dict():
-    abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    config_path = os.path.join(abspath, 'colors.yml')
-    with open(config_path) as c:
-        COLOR_DICT = yaml.safe_load(c)
-
-    return COLOR_DICT
+from helper import get_experiment_dirs, get_scenario_assumptions, get_config_file
+from plotting import map_label_list
 
 
 def add_index(x, name, value):
@@ -68,14 +60,20 @@ def plot_stacked_bar(df, slicing, scenario_order, title=None):
 
     select = select.loc[scenario_order]
 
-    COLOR_DICT = get_color_dict()
+    COLOR_DICT = get_config_file('colors.yml')
     colors = [COLOR_DICT[i] for i in select.columns.get_level_values('name')]
 
     fig, ax = plt.subplots()
     select.plot.bar(ax=ax, color=colors, stacked=True)
     ax.set_title(title)
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+
+    handles, labels = map_label_list(handles, select.columns.get_level_values('name'))
+
     ax.legend(
-        labels=select.columns.get_level_values(1),
+        handles=handles,
+        labels=labels,
         loc='center left',
         bbox_to_anchor=(1.0, 0.5)
     )
@@ -99,6 +97,7 @@ def main(scenario_assumptions):
 
     all_scalars.drop('heat-distribution', level='name', inplace=True)
     all_scalars.drop('heat-demand', level='name', inplace=True)
+    all_scalars.drop('heat_decentral-shortage', level='name', inplace=True)
 
     # define the order of scenarios
     scenario_order = [
