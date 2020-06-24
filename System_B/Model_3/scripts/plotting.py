@@ -3,6 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib.dates as mdates
+from matplotlib import rcParams
 
 from helper import get_experiment_dirs, get_scenario_assumptions, get_config_file
 
@@ -13,10 +14,12 @@ COLORS = get_config_file('colors.yml')
 
 LABELS = get_config_file('labels.yml')
 
+rcParams['font.size'] = 12
+
 
 def c_list(data):
     if isinstance(data, pd.Series):
-        return COLORS[data.name]
+        return [COLORS[data.name]]
 
     if isinstance(data, pd.DataFrame):
         return [COLORS[k] for k in data.columns]
@@ -36,8 +39,18 @@ def map_label_list(handles=None, labels=None):
     return l_h.values(), l_h.keys()
 
 
-def bar_plot():
-    pass
+def darken_color(color, amount=0.5):
+    import matplotlib.colors as mc
+    import colorsys
+    if isinstance(color, list):
+        return [darken_color(c) for c in color]
+    try:
+        c = mc.cnames[color]
+    except:
+        c = color
+    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+
+    return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
 
 
 def multiplot_dispatch(ts_upper, ts_lower, destination):
@@ -146,11 +159,11 @@ def plot_dispatch(timeseries, demand, destination):
     plt.close(fig)
 
 
-def plot_load_duration(timeseries, destination, plot_original=False, **kwargs):
-    fig, ax = plt.subplots(figsize=(12, 5))
+def plot_load_duration(timeseries, legend=True, plot_original=False, ylabel=None, **kwargs):
+    fig, ax = plt.subplots(figsize=(5, 5))
 
     if plot_original:
-        timeseries.plot.line(ax=ax, color=c_list(timeseries), **kwargs)
+        timeseries.plot.line(ax=ax, color=c_list(timeseries), use_index=False, **kwargs)
 
     # sort timeseries
     if isinstance(timeseries, pd.DataFrame):
@@ -159,22 +172,32 @@ def plot_load_duration(timeseries, destination, plot_original=False, **kwargs):
             sorted_ts[column] = sorted(timeseries[column], reverse=True)
 
     elif isinstance(timeseries, pd.Series):
-        sorted_ts = timeseries.sort_values(ascending=False)
+        sorted_ts = pd.DataFrame({timeseries.name: sorted(timeseries, reverse=True)})
 
-    sorted_ts.plot.line(ax=ax, color=c_list(sorted_ts), **kwargs)
+    # keep only nonzero
+    sorted_ts = sorted_ts.loc[:, (sorted_ts != 0).any(axis=0)]
 
-    handles, labels = map_label_list()
+    colors = c_list(sorted_ts)
+    if plot_original:
+        colors = darken_color(colors)
+
+    sorted_ts.plot.line(ax=ax, color=colors, **kwargs)
+
+    ax.set_ylabel(ylabel)
     ax.set_title('Load duration')
-    ax.legend(
-        handles=handles,
-        labels=labels,
-        loc='center left',
-        bbox_to_anchor=(1.0, 0.5)
-    )
+
+    if legend:
+        handles, labels = map_label_list()
+        ax.legend(
+            handles=handles,
+            labels=labels,
+            loc='center left',
+            bbox_to_anchor=(1.0, 0.5)
+        )
+    else:
+        plt.legend().remove()
 
     plt.tight_layout()
-    plt.savefig(destination)
-    plt.close(fig)
 
 
 def plot_yearly_production(yearly_production, destination):
@@ -224,21 +247,26 @@ def main(**scenario_assumptions):
 
     plot_load_duration(
         price_el,
-        os.path.join(dirs['plots'], 'price_el.pdf'),
+        legend=False,
         plot_original=True,
     )
+    plt.savefig(os.path.join(dirs['plots'], 'price_el.pdf'))
+    plt.close()
 
     plot_load_duration(
         demand,
-        os.path.join(dirs['plots'], 'heat_demand.pdf'),
+        legend=False,
         plot_original=True
     )
+    plt.savefig(os.path.join(dirs['plots'], 'heat_demand.pdf'))
+    plt.close()
 
     plot_load_duration(
         supply,
-        os.path.join(dirs['plots'], 'heat_supply.pdf'),
         linewidth=10,
     )
+    plt.savefig(os.path.join(dirs['plots'], 'heat_supply.pdf'))
+    plt.close()
 
     start = '2017-02-01'
     end = '2017-02-14'
@@ -247,6 +275,7 @@ def main(**scenario_assumptions):
         supply[start:end], demand[start:end],
         os.path.join(dirs['plots'], 'heat_dispatch.pdf')
     )
+
 
     winter_a = '2017-02-01'
     winter_b = '2017-02-14'
