@@ -44,6 +44,8 @@ def save_elements(elements, dir):
 def get_constants(raw_dir):
     constants = pd.read_csv(os.path.join(raw_dir, 'constants.csv'), index_col=[0, 1])['var_value']
 
+    constants.name = 'var_value'
+
     return constants
 
 
@@ -57,15 +59,32 @@ def set_gas_price(gas_price, elements_dir):
     save_elements(elements, elements_dir)
 
 
-def set_heat_pump_capacity_cost(overnight_cost_heat_pump, cop_heat_pump, constants, elements_dir):
-    elements = get_elements(elements_dir)
+def calculate_fix_cost(constants):
+
+    def get_ep_cost(df):
+        overnight_cost = df['overnight_cost']
+        lifetime = df['lifetime']
+        wacc = df['wacc']
+        fix_om = df['fix_om']
+
+        ep_cost = annuity(overnight_cost, lifetime, wacc) \
+                  + overnight_cost * fix_om
+
+        return ep_cost
 
     wacc = constants['all', 'wacc']
-    lifetime = constants['electricity-hp', 'lifetime']
-    fix_om = constants['electricity-hp', 'fix_om']
 
-    ep_cost = annuity(overnight_cost_heat_pump, lifetime, wacc) \
-              + overnight_cost_heat_pump * fix_om
+    fix_cost_data = constants.drop(('all', 'wacc')).unstack(1)
+
+    fix_cost_data['wacc'] = wacc
+
+    fix_cost_data['ep_cost'] = fix_cost_data.apply(get_ep_cost, 1)
+
+    return fix_cost_data
+
+
+def set_heat_pump_params(ep_cost, cop_heat_pump, elements_dir):
+    elements = get_elements(elements_dir)
 
     elements['electricity-hp']['capacity_cost'] = ep_cost
     elements['electricity-hp']['efficiency'] = cop_heat_pump
@@ -195,10 +214,11 @@ def main(**scenario_assumptions):
 
     constants = get_constants(dirs['raw'])
 
-    set_heat_pump_capacity_cost(
-        scenario_assumptions['overnight_cost_heat_pump'],
+    fix_cost_data = calculate_fix_cost(constants)
+
+    set_heat_pump_params(
+        fix_cost_data.loc['electricity-hp', 'ep_cost'],
         scenario_assumptions['cop_heat_pump'],
-        constants,
         elements_dir
     )
 
