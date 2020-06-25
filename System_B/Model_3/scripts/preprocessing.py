@@ -214,7 +214,11 @@ def main(**scenario_assumptions):
 
     constants = get_constants(dirs['raw'])
 
-    fix_cost_data = calculate_fix_cost(constants)
+    params = constants.copy()
+
+    params.loc['electricity-hp', 'overnight_cost'] = scenario_assumptions['overnight_cost_heat_pump']
+
+    fix_cost_data = calculate_fix_cost(params)
 
     set_element_params(
         elements_dir,
