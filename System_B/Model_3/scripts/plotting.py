@@ -159,7 +159,7 @@ def plot_dispatch(timeseries, demand, destination):
     plt.close(fig)
 
 
-def plot_load_duration(timeseries, legend=True, plot_original=False, ylabel=None, **kwargs):
+def plot_load_duration(timeseries, legend=True, plot_original=False, title=None, ylabel=None, **kwargs):
     fig, ax = plt.subplots(figsize=(5, 5))
 
     if plot_original:
@@ -184,7 +184,7 @@ def plot_load_duration(timeseries, legend=True, plot_original=False, ylabel=None
     sorted_ts.plot.line(ax=ax, color=colors, **kwargs)
 
     ax.set_ylabel(ylabel)
-    ax.set_title('Load duration')
+    ax.set_title(title)
 
     if legend:
         handles, labels = map_label_list()
@@ -249,6 +249,8 @@ def main(**scenario_assumptions):
         price_el,
         legend=False,
         plot_original=True,
+        title='Electricity prices (buying)',
+        ylabel='Hourly price [Eur/MWh]',
     )
     plt.savefig(os.path.join(dirs['plots'], 'price_el.pdf'))
     plt.close()
@@ -256,7 +258,9 @@ def main(**scenario_assumptions):
     plot_load_duration(
         demand,
         legend=False,
-        plot_original=True
+        plot_original=True,
+        title = 'Heat demand',
+        ylabel = 'Hourly heat demand [MWh]',
     )
     plt.savefig(os.path.join(dirs['plots'], 'heat_demand.pdf'))
     plt.close()
