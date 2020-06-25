@@ -2,15 +2,22 @@ import os
 import yaml
 
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 import pandas as pd
 
 from helper import get_experiment_dirs, get_scenario_assumptions, get_config_file
-from plotting import map_label_list
+from plotting import map_handles_labels, map_names_to_labels
 
 
 idx = pd.IndexSlice
 
 COLOR_DICT = get_config_file('colors.yml')
+
+LABELS = get_config_file('labels.yml')
+
+COLORS_BY_LABEL = {LABELS[key]: value for key, value in COLOR_DICT.items()}
+
+rcParams['font.size'] = 16
 
 
 def add_index(x, name, value):
@@ -57,7 +64,7 @@ def combine_scalars(scenario_dfs):
     return all_scalars
 
 
-def plot_stacked_bar(df, slicing, scenario_order, title=None):
+def plot_stacked_bar(df, slicing, scenario_order, title=None, ylabel=None):
     select = df.loc[slicing, :]
     select.index = select.index.droplevel([2, 3, 4])
 
@@ -65,19 +72,28 @@ def plot_stacked_bar(df, slicing, scenario_order, title=None):
 
     select = select.loc[scenario_order]
 
-    colors = [COLOR_DICT[i] for i in select.columns.get_level_values('name')]
+    # exclude values that are close to zero
+    select = select.loc[:, (abs(select) > 1e-9).any(axis=0)]
+
+    select.columns = select.columns.remove_unused_levels()
+
+    select.columns = select.columns.set_levels(map_names_to_labels(select.columns.levels[1]), level=1)
+
+    select = select.reindex(['CHP', 'HOB', 'TES cen.', 'HP', 'TES dec.'], level='name', axis=1)
+
+    colors = [COLORS_BY_LABEL[i] for i in select.columns.get_level_values('name')]
 
     fig, ax = plt.subplots()
-    select.plot.bar(ax=ax, color=colors, stacked=True)
+    ax.grid(axis='y')
+    select.plot.bar(ax=ax, color=colors, stacked=True, rot=25)
     ax.set_title(title)
+    ax.set_ylabel(ylabel)
 
     handles, labels = plt.gca().get_legend_handles_labels()
 
-    handles, labels = map_label_list(handles, select.columns.get_level_values('name'))
-
     ax.legend(
         handles=handles,
-        labels=labels,
+        labels=list(select.columns.get_level_values('name')),
         loc='center left',
         bbox_to_anchor=(1.0, 0.5)
     )
@@ -142,25 +158,25 @@ def main(scenario_assumptions):
 
     # define the order of scenarios
     scenario_order = [
-        'status_quo',
-        'flexfriendly',
-        'flexfriendly_taxlevies=80',
-        'flexfriendly_taxlevies=77.5',
-        'flexfriendly_taxlevies=75',
-        'flexfriendly_taxlevies=70',
-        'flexfriendly_taxlevies=60',
+        'SQ',
+        'SQ_noHP_gastaxlevies=30',
+        'FF',
     ]
 
     slicing = idx[scenario_paths.keys(), :, :, :, :, ['capacity', 'invest']]
-    plot_stacked_bar(all_scalars, slicing, scenario_order, 'Existing and newly built capacity')
+    plot_stacked_bar(
+        all_scalars, slicing, scenario_order,
+        'Existing and newly built capacity', 'Capacity [MWth]'
+    )
     plt.savefig(os.path.join(dirs['plots'], 'capacities.pdf'))
 
     slicing = idx[scenario_paths.keys(), :, :, :, :, 'yearly_heat']
-    plot_stacked_bar(all_scalars, slicing, scenario_order, 'Yearly heat')
+    plot_stacked_bar(all_scalars, slicing, scenario_order, 'Yearly heat', 'Yearly heat [MWh]')
     plt.savefig(os.path.join(dirs['plots'], 'yearly_heat.pdf'))
 
     slicing = idx[scenario_paths.keys(), :, :, :, :, ['capacity_cost', 'carrier_cost']]
-    plot_stacked_bar(all_scalars, slicing, scenario_order, 'Costs')
+    df = all_scalars / 300000  # Normalize to heat demand
+    plot_stacked_bar(df, slicing, scenario_order, 'Costs', 'Costs [Eur/MWhth]')
     plt.savefig(os.path.join(dirs['plots'], 'costs.pdf'))
 
     plot_var_cost_assumptions(scenario_assumptions, scenario_order)
