@@ -25,12 +25,16 @@ def c_list(data):
         return [COLORS[k] for k in data.columns]
 
 
-def map_label_list(handles=None, labels=None):
+def map_names_to_labels(component_list):
+    return [LABELS[c] for c in component_list]
+
+
+def map_handles_labels(handles=None, labels=None):
     if labels is None:
         current_axis = plt.gca()
         handles, labels = current_axis.get_legend_handles_labels()
 
-    labels = [LABELS[k] for k in labels]
+    labels = map_names_to_labels(labels)
 
     l_h = {l: h for l, h in zip(labels, handles)}
 
@@ -145,7 +149,7 @@ def plot_dispatch(timeseries, demand, destination):
     ax.set_ylim(-60, 125)
     ax.set_title('Dispatch')
 
-    handles, labels = map_label_list()
+    handles, labels = map_handles_labels()
     ax.legend(
         handles=handles,
         labels=labels,
@@ -187,7 +191,7 @@ def plot_load_duration(timeseries, legend=True, plot_original=False, title=None,
     ax.set_title(title)
 
     if legend:
-        handles, labels = map_label_list()
+        handles, labels = map_handles_labels()
         ax.legend(
             handles=handles,
             labels=labels,
