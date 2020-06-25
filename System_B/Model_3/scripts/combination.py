@@ -64,7 +64,11 @@ def combine_scalars(scenario_dfs):
     return all_scalars
 
 
-def plot_stacked_bar(df, scenario_order, title=None, ylabel=None):
+def plot_stacked_bar(df_in, scenario_order, title=None, ylabel=None):
+    df = df_in.copy()
+
+    df = df.loc[(abs(df['var_value']) > 1e-9)]
+
     df.index = df.index.droplevel([2, 3, 4])
 
     df = df.unstack(level=[1, 2])
@@ -84,6 +88,7 @@ def plot_stacked_bar(df, scenario_order, title=None, ylabel=None):
 
     fig, ax = plt.subplots()
     ax.grid(axis='y')
+    ax.axhline(0)
     df.plot.bar(ax=ax, color=colors, stacked=True, rot=25)
     ax.set_title(title)
     ax.set_ylabel(ylabel)
@@ -175,10 +180,12 @@ def main(scenario_assumptions):
     plot_stacked_bar(select, scenario_order, 'Yearly heat', 'Yearly heat [MWh]')
     plt.savefig(os.path.join(dirs['plots'], 'yearly_heat.pdf'))
 
-    slicing = idx[scenario_paths.keys(), :, :, :, :, ['capacity_cost', 'carrier_cost']]
-    select = all_scalars.loc[slicing, :]
+    slicing = idx[
+              scenario_paths.keys(), :, :, :, :, ['capacity_cost', 'carrier_cost', 'marginal_cost']]
+
+    select = all_scalars.copy().loc[slicing, :]
     df = select / 300000  # Normalize to heat demand
-    plot_stacked_bar(df, scenario_order, 'Costs', 'Costs [Eur/MWhth]')
+    plot_stacked_bar(df, scenario_order, 'Costs/Revenues', 'Costs [Eur/MWhth]')
     plt.savefig(os.path.join(dirs['plots'], 'costs.pdf'))
 
     plot_var_cost_assumptions(scenario_assumptions, scenario_order)
