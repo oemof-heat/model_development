@@ -193,6 +193,14 @@ def get_capacities(es):
     return capacities
 
 
+def cap_el_to_cap_th(df):
+    df_adapted = df.copy()
+
+    df_adapted.loc['gas-chp', 'extraction', 'gas', 'chp', 'capacity'] *= 0.355/0.47
+
+    return df_adapted
+
+
 def get_flow_by_oemof_tuple(oemof_tuple):
     if isinstance(oemof_tuple[0], Bus):
         component = oemof_tuple[1]
@@ -379,6 +387,8 @@ def main(**scenario_assumptions):
     sequences = write_results(es, dirs['postprocessed'])
 
     capacities = get_capacities(es)
+
+    capacities = cap_el_to_cap_th(capacities)
 
     capacity_cost = get_capacity_cost(es)
 
