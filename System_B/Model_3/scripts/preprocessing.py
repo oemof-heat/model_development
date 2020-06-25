@@ -83,11 +83,11 @@ def calculate_fix_cost(constants):
     return fix_cost_data
 
 
-def set_heat_pump_params(ep_cost, cop_heat_pump, elements_dir):
+def set_element_params(elements_dir, element, **params):
     elements = get_elements(elements_dir)
 
-    elements['electricity-hp']['capacity_cost'] = ep_cost
-    elements['electricity-hp']['efficiency'] = cop_heat_pump
+    for key, param in params.items():
+        elements[element][key] = param
 
     save_elements(elements, elements_dir)
 
@@ -216,10 +216,24 @@ def main(**scenario_assumptions):
 
     fix_cost_data = calculate_fix_cost(constants)
 
-    set_heat_pump_params(
-        fix_cost_data.loc['electricity-hp', 'ep_cost'],
-        scenario_assumptions['cop_heat_pump'],
-        elements_dir
+    set_element_params(
+        elements_dir,
+        'electricity-hp',
+        capacity_cost=fix_cost_data.loc['electricity-hp', 'ep_cost'],
+        efficiency=scenario_assumptions['cop_heat_pump'],
+    )
+
+    set_element_params(
+        elements_dir,
+        'electricity-respth',
+        capacity_cost=fix_cost_data.loc['electricity-respth', 'ep_cost']
+    )
+
+    set_element_params(
+        elements_dir,
+        'heat-storage',
+        storage_capacity_cost=list(fix_cost_data.loc[
+        ['heat_central-storage', 'heat_decentral-storage'], 'ep_cost'])
     )
 
     prepare_heat_demand_profile(
