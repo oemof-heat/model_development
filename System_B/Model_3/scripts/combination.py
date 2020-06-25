@@ -64,28 +64,27 @@ def combine_scalars(scenario_dfs):
     return all_scalars
 
 
-def plot_stacked_bar(df, slicing, scenario_order, title=None, ylabel=None):
-    select = df.loc[slicing, :]
-    select.index = select.index.droplevel([2, 3, 4])
+def plot_stacked_bar(df, scenario_order, title=None, ylabel=None):
+    df.index = df.index.droplevel([2, 3, 4])
 
-    select = select.unstack(level=[1, 2])
+    df = df.unstack(level=[1, 2])
 
-    select = select.loc[scenario_order]
+    df = df.loc[scenario_order]
 
     # exclude values that are close to zero
-    select = select.loc[:, (abs(select) > 1e-9).any(axis=0)]
+    df = df.loc[:, (abs(df) > 1e-9).any(axis=0)]
 
-    select.columns = select.columns.remove_unused_levels()
+    df.columns = df.columns.remove_unused_levels()
 
-    select.columns = select.columns.set_levels(map_names_to_labels(select.columns.levels[1]), level=1)
+    df.columns = df.columns.set_levels(map_names_to_labels(df.columns.levels[1]), level=1)
 
-    select = select.reindex(['CHP', 'HOB', 'TES cen.', 'HP', 'TES dec.'], level='name', axis=1)
+    df = df.reindex(['CHP', 'HOB', 'TES cen.', 'HP', 'TES dec.'], level='name', axis=1)
 
-    colors = [COLORS_BY_LABEL[i] for i in select.columns.get_level_values('name')]
+    colors = [COLORS_BY_LABEL[i] for i in df.columns.get_level_values('name')]
 
     fig, ax = plt.subplots()
     ax.grid(axis='y')
-    select.plot.bar(ax=ax, color=colors, stacked=True, rot=25)
+    df.plot.bar(ax=ax, color=colors, stacked=True, rot=25)
     ax.set_title(title)
     ax.set_ylabel(ylabel)
 
@@ -93,7 +92,7 @@ def plot_stacked_bar(df, slicing, scenario_order, title=None, ylabel=None):
 
     ax.legend(
         handles=handles,
-        labels=list(select.columns.get_level_values('name')),
+        labels=list(df.columns.get_level_values('name')),
         loc='center left',
         bbox_to_anchor=(1.0, 0.5)
     )
@@ -164,19 +163,22 @@ def main(scenario_assumptions):
     ]
 
     slicing = idx[scenario_paths.keys(), :, :, :, :, ['capacity', 'invest']]
+    select = all_scalars.loc[slicing, :]
     plot_stacked_bar(
-        all_scalars, slicing, scenario_order,
+        select, scenario_order,
         'Existing and newly built capacity', 'Capacity [MWth]'
     )
     plt.savefig(os.path.join(dirs['plots'], 'capacities.pdf'))
 
     slicing = idx[scenario_paths.keys(), :, :, :, :, 'yearly_heat']
-    plot_stacked_bar(all_scalars, slicing, scenario_order, 'Yearly heat', 'Yearly heat [MWh]')
+    select = all_scalars.loc[slicing, :]
+    plot_stacked_bar(select, scenario_order, 'Yearly heat', 'Yearly heat [MWh]')
     plt.savefig(os.path.join(dirs['plots'], 'yearly_heat.pdf'))
 
     slicing = idx[scenario_paths.keys(), :, :, :, :, ['capacity_cost', 'carrier_cost']]
-    df = all_scalars / 300000  # Normalize to heat demand
-    plot_stacked_bar(df, slicing, scenario_order, 'Costs', 'Costs [Eur/MWhth]')
+    select = all_scalars.loc[slicing, :]
+    df = select / 300000  # Normalize to heat demand
+    plot_stacked_bar(df, scenario_order, 'Costs', 'Costs [Eur/MWhth]')
     plt.savefig(os.path.join(dirs['plots'], 'costs.pdf'))
 
     plot_var_cost_assumptions(scenario_assumptions, scenario_order)
