@@ -14,15 +14,17 @@ COLORS = get_config_file('colors.yml')
 
 LABELS = get_config_file('labels.yml')
 
-rcParams['font.size'] = 12
+COLORS_BY_LABEL = {LABELS[key]: value for key, value in COLORS.items()}
+
+rcParams['font.size'] = 20
 
 
-def c_list(data):
+def c_list(data, colors):
     if isinstance(data, pd.Series):
-        return [COLORS[data.name]]
+        return [colors[data.name]]
 
     if isinstance(data, pd.DataFrame):
-        return [COLORS[k] for k in data.columns]
+        return [colors[k] for k in data.columns]
 
 
 def map_names_to_labels(component_list):
@@ -75,17 +77,20 @@ def multiplot_dispatch(ts_upper, ts_lower, destination):
     -------
     None
     """
-    # resample
-    # df_resam = df_resam.resample('24H').mean()
-
-    # invert heat to storage
-    # df[storage_heat_charge] *= -1
-
-    # aggregate decentral
-
-    # prepare colors
     fig = plt.figure(figsize=(12, 9))
     gs = plt.GridSpec(4, 2)
+
+    # relabel
+    def relabel_df(df, axis, labels=LABELS):
+        if axis == 0:
+            df.index = [LABELS[c] for c in df.index]
+        elif axis == 1:
+            df.columns = [LABELS[c] for c in df.columns]
+        return df
+
+    for ts in [ts_upper, ts_lower]:
+        for t in ts:
+            relabel_df(t, axis=1)
 
     ax_upper = (fig.add_subplot(gs[:3, 0]), fig.add_subplot(gs[:3, 1]))
     ax_lower = (fig.add_subplot(gs[3, 0]), fig.add_subplot(gs[3, 1]))
@@ -94,20 +99,18 @@ def multiplot_dispatch(ts_upper, ts_lower, destination):
     ax_upper[1].set_title('Summer')
 
     for i in range(2):
-        stack_plot_with_negative_values(ts_upper[i], ax=ax_upper[i])
+        stack_plot_with_negative_values(ts_upper[i], ax=ax_upper[i], colors=COLORS_BY_LABEL)
         ax_upper[i].set_ylim(-50, 105)
         ax_upper[i].grid(axis='y')
 
-        stack_plot_with_negative_values(ts_lower[i], ax=ax_lower[i])
+        stack_plot_with_negative_values(ts_lower[i], ax=ax_lower[i], colors=COLORS_BY_LABEL)
 
     ax_upper[0].set_ylabel('Heat output [MW]')
-    ax_upper[0].set_ylabel('Electrical power \n [MW]')
+    ax_lower[0].set_ylabel('Electrical power \n [MW]')
     ax_lower[0].set_xlabel('Time')
     ax_lower[1].set_xlabel('Time')
 
     # plt.suptitle('Heat generation dispatch {}'.format(label))
-
-    ax_upper[1].legend(loc='center left', bbox_to_anchor=(1.0, 0.8))  # place legend outside of plot
 
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0)
@@ -116,14 +119,20 @@ def multiplot_dispatch(ts_upper, ts_lower, destination):
         ax_lower[i].xaxis.set_major_locator(mdates.WeekdayLocator())
         ax_lower[i].xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
 
+        ax_upper[i].legend().remove()
+        ax_lower[i].legend().remove()
+
+    # ax_upper[0].legend(loc='center left', bbox_to_anchor=(2, 0.7))  # place legend outside of plot
+
     plt.setp([a.get_xticklabels() for a in [ax_upper[0], ax_upper[1]]], visible=False)
+    [a.set_xlabel(None) for a in [ax_upper[0], ax_upper[1]]]
     plt.setp([a.get_yticklabels() for a in [ax_upper[1], ax_lower[1]]], visible=False)
 
     fig.savefig(destination, bbox_inches='tight', dpi=500)
     plt.close(fig)
 
 
-def stack_plot_with_negative_values(timeseries, ax):
+def stack_plot_with_negative_values(timeseries, ax, colors):
     timeseries_pos = timeseries.copy()
     timeseries_pos[timeseries_pos < 0] = 0
     timeseries_pos = timeseries_pos.loc[:, (timeseries_pos != 0).any(axis=0)]
@@ -133,16 +142,16 @@ def stack_plot_with_negative_values(timeseries, ax):
     timeseries_neg = timeseries_neg.loc[:, (timeseries_neg != 0).any(axis=0)]
 
     if not timeseries_pos.empty:
-        timeseries_pos.plot.area(ax=ax, color=c_list(timeseries_pos))
+        timeseries_pos.plot.area(ax=ax, color=c_list(timeseries_pos, colors))
     if not timeseries_neg.empty:
-        timeseries_neg.plot.area(ax=ax, color=c_list(timeseries_neg))
+        timeseries_neg.plot.area(ax=ax, color=c_list(timeseries_neg, colors))
     return ax
 
 
 def plot_dispatch(timeseries, demand, destination):
     fig, ax = plt.subplots(figsize=(12, 5))
 
-    stack_plot_with_negative_values(timeseries, ax)
+    stack_plot_with_negative_values(timeseries, ax, COLORS)
 
     demand.plot.line(ax=ax, c='r', linewidth=2)
 
@@ -167,7 +176,7 @@ def plot_load_duration(timeseries, legend=True, plot_original=False, title=None,
     fig, ax = plt.subplots(figsize=(5, 5))
 
     if plot_original:
-        timeseries.plot.line(ax=ax, color=c_list(timeseries), use_index=False, **kwargs)
+        timeseries.plot.line(ax=ax, color=c_list(timeseries, COLORS), use_index=False, **kwargs)
 
     # sort timeseries
     if isinstance(timeseries, pd.DataFrame):
@@ -181,7 +190,7 @@ def plot_load_duration(timeseries, legend=True, plot_original=False, title=None,
     # keep only nonzero
     sorted_ts = sorted_ts.loc[:, (sorted_ts != 0).any(axis=0)]
 
-    colors = c_list(sorted_ts)
+    colors = c_list(sorted_ts, COLORS)
     if plot_original:
         colors = darken_color(colors)
 
@@ -226,7 +235,7 @@ def main(**scenario_assumptions):
 
     electricity = pd.read_csv(
         os.path.join(dirs['postprocessed'], 'sequences', 'electricity.csv'),
-        index_col=0
+        index_col=0,
     )
 
     heat_central = pd.read_csv(
@@ -285,14 +294,16 @@ def main(**scenario_assumptions):
     )
 
 
-    winter_a = '2017-02-01'
-    winter_b = '2017-02-14'
+    winter_a = '2017-01-10'
+    winter_b = '2017-01-24'
     summer_a = '2017-06-01'
     summer_b = '2017-06-14'
 
+    electricity_chp = pd.DataFrame(electricity['gas-chp'])
+
     multiplot_dispatch(
         (supply[winter_a:winter_b], supply[summer_a:summer_b]),
-        (electricity[winter_a:winter_b], electricity[summer_a:summer_b]),
+        (electricity_chp[winter_a:winter_b], electricity_chp[summer_a:summer_b]),
         os.path.join(dirs['plots'], 'heat_el_dispatch.pdf')
     )
     # yearly_production= yearly_heat_sum.drop('heat-demand')
@@ -300,5 +311,5 @@ def main(**scenario_assumptions):
 
 
 if __name__ == '__main__':
-    scenario_assumptions = get_scenario_assumptions().loc[0]
+    scenario_assumptions = get_scenario_assumptions().loc[3]
     main(**scenario_assumptions)
