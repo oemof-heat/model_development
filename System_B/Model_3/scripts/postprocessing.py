@@ -349,8 +349,42 @@ def get_marginal_cost(es):
 
     marginal_cost = index_tuple_to_pp_format(marginal_cost, 'marginal_cost')
 
-
     return marginal_cost
+
+
+def get_full_load_hours(es):
+
+    def index_to_str(df_in):
+        df = df_in.copy()
+
+        level_names = ['level_' + str(n) for n in range(len(df.index.names))]
+        df.index.names = level_names
+
+        df = df.reset_index()
+        df[level_names] = df[level_names].astype(str)
+        df = df.set_index(level_names)
+
+        return df
+
+    capacity = pd.Series(select_from_dict(es.params, 'nominal_value')).astype(float)
+    invest = pd.Series(select_from_dict(es.results, 'invest'))
+    total_capacity = capacity.add(invest, fill_value=0)
+    total_capacity = index_tuple_to_pp_format(total_capacity, 'full_load_hours')
+
+    flow = select_from_dict(es.results, 'flow')
+    summed_flow = pd.Series({k: v.sum() for k, v in flow.items()})
+    summed_flow = index_tuple_to_pp_format(summed_flow, 'full_load_hours')
+
+    total_capacity = index_to_str(total_capacity)
+    summed_flow = index_to_str(summed_flow)
+    flh = summed_flow.divide(total_capacity)
+
+    flh.index.names = ['name', 'type', 'carrier', 'tech', 'var_name']
+
+    flh.replace([np.inf, -np.inf], np.nan, inplace=True)
+    flh.dropna(inplace=True)
+
+    return flh
 
 
 def write_total_cost(output_path):
@@ -396,10 +430,13 @@ def main(**scenario_assumptions):
 
     marginal_cost = get_marginal_cost(es)
 
+    full_load_hours = get_full_load_hours(es)
+
     heat_sequences = pd.concat([sequences['heat_central'], sequences['heat_decentral']], 1)
     yearly_sum = get_yearly_sum(heat_sequences)
 
-    scalars = pd.concat([capacities, yearly_sum, capacity_cost, carrier_cost, marginal_cost], 0)
+    scalars = pd.concat(
+        [capacities, yearly_sum, capacity_cost, carrier_cost, marginal_cost, full_load_hours], 0)
     scalars.to_csv(os.path.join(dirs['postprocessed'], 'scalars.csv'))
 
 
