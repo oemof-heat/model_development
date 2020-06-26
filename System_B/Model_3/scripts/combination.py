@@ -87,8 +87,11 @@ def plot_stacked_bar(df_in, scenario_order, title=None, ylabel=None):
     colors = [COLORS_BY_LABEL[i] for i in df.columns.get_level_values('name')]
 
     fig, ax = plt.subplots()
-    ax.grid(axis='y')
-    ax.axhline(0)
+    # ax.grid(axis='y')
+    # ax.axhline(0, c='k', lw=1)
+    # ax.axhline(35, 0, 0.33, c='r')
+    # ax.axhline(60, 0.33, 1, c='r')
+
     df.plot.bar(ax=ax, color=colors, stacked=True, rot=25)
     ax.set_title(title)
     ax.set_ylabel(ylabel)
@@ -184,6 +187,21 @@ def main(scenario_assumptions):
               scenario_paths.keys(), :, :, :, :, ['capacity_cost', 'carrier_cost', 'marginal_cost']]
 
     select = all_scalars.copy().loc[slicing, :]
+
+    def group_varom_keep_marginal_cost(df_in):
+        df = df_in.copy()
+        marginal_cost = df.copy().loc[idx[:, :, :, :, :, 'marginal_cost'], :]
+        index_names = df.index.names
+        df.reset_index(inplace=True)
+        df.loc[:, 'var_name'].replace({'carrier_cost': 'var_om', 'marginal_cost': 'var_om'}, inplace=True)
+        df.set_index(index_names, inplace=True)
+        df = pd.concat([df, marginal_cost], 0)
+
+        df= df.groupby(index_names).sum()
+
+        return df
+
+    select = group_varom_keep_marginal_cost(select)
     df = select / 300000  # Normalize to heat demand
     plot_stacked_bar(df, scenario_order, 'Costs/Revenues', 'Costs [Eur/MWhth]')
     plt.savefig(os.path.join(dirs['plots'], 'costs.pdf'))
