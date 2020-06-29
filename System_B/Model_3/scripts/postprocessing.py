@@ -387,6 +387,32 @@ def get_full_load_hours(es):
     return flh
 
 
+def get_flh(capacities, yearly_sum):
+    def index_to_str(df_in):
+        df = df_in.copy()
+
+        level_names = ['level_' + str(n) for n in range(len(df.index.names))]
+        df.index.names = level_names
+
+        df = df.reset_index()
+        df[level_names] = df[level_names].astype(str)
+        df = df.set_index(level_names)
+
+        return df
+
+    idx = pd.IndexSlice
+    cap = index_to_str(capacities)
+    heat = index_to_str(yearly_sum)
+    cap = cap.loc[idx[:,:,:,:,['capacity', 'invest']],:]
+
+    cap = cap.sum(axis=0, level=[0,1,2,3])
+    heat.index = heat.index.droplevel(4)
+
+    flh = heat.divide(cap)
+
+    return flh
+
+
 def write_total_cost(output_path):
 
     def add_index(x, name, value):
@@ -430,10 +456,10 @@ def main(**scenario_assumptions):
 
     marginal_cost = get_marginal_cost(es)
 
-    full_load_hours = get_full_load_hours(es)
-
     heat_sequences = pd.concat([sequences['heat_central'], sequences['heat_decentral']], 1)
     yearly_sum = get_yearly_sum(heat_sequences)
+
+    full_load_hours = get_flh(capacities, yearly_sum)
 
     scalars = pd.concat(
         [capacities, yearly_sum, capacity_cost, carrier_cost, marginal_cost, full_load_hours], 0)
