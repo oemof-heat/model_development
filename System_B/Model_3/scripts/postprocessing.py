@@ -459,10 +459,10 @@ def main(**scenario_assumptions):
     heat_sequences = pd.concat([sequences['heat_central'], sequences['heat_decentral']], 1)
     yearly_sum = get_yearly_sum(heat_sequences)
 
-    full_load_hours = get_flh(capacities, yearly_sum)
+    # full_load_hours = get_flh(capacities, yearly_sum)
 
     scalars = pd.concat(
-        [capacities, yearly_sum, capacity_cost, carrier_cost, marginal_cost, full_load_hours], 0)
+        [capacities, yearly_sum, capacity_cost, carrier_cost, marginal_cost], 0)
     scalars.to_csv(os.path.join(dirs['postprocessed'], 'scalars.csv'))
 
 
