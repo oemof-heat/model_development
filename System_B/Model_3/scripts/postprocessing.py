@@ -293,7 +293,7 @@ def index_tuple_to_pp_format(input_df, var_name):
     return df
 
 
-def get_yearly_sum(heat_sequences):
+def get_yearly_sum(heat_sequences, var_name):
 
     yearly_sum = heat_sequences.sum()
 
@@ -312,7 +312,7 @@ def get_yearly_sum(heat_sequences):
     yearly_sum['tech'] = [
         getattr(t, "tech", np.nan) for t in yearly_sum['name']
     ]
-    yearly_sum['var_name'] = 'yearly_heat'
+    yearly_sum['var_name'] = var_name
 
     yearly_sum = yearly_sum[['name', 'type', 'carrier', 'tech', 'var_name', 'var_value']]
 
@@ -456,13 +456,15 @@ def main(**scenario_assumptions):
 
     marginal_cost = get_marginal_cost(es)
 
+    yearly_electricity = get_yearly_sum(sequences['electricity'], var_name='yearly_electricity')
+
     heat_sequences = pd.concat([sequences['heat_central'], sequences['heat_decentral']], 1)
-    yearly_sum = get_yearly_sum(heat_sequences)
+    yearly_heat = get_yearly_sum(heat_sequences, var_name='yearly_heat')
 
     # full_load_hours = get_flh(capacities, yearly_sum)
 
     scalars = pd.concat(
-        [capacities, yearly_sum, capacity_cost, carrier_cost, marginal_cost], 0)
+        [capacities, yearly_electricity, yearly_heat, capacity_cost, carrier_cost, marginal_cost], 0)
     scalars.to_csv(os.path.join(dirs['postprocessed'], 'scalars.csv'))
 
 
