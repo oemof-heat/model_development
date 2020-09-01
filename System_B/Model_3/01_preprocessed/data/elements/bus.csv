@@ -1,5 +1,0 @@
-name;type;balanced
-gas;bus;False
-electricity;bus;False
-heat_central;bus;True
-heat_decentral;bus;True
