@@ -1,4 +1,4 @@
-;name;market_price_gas;charges_tax_levies_gas;market_price_el;charges_tax_levies_el;standard_dev_el;chp_surcharge;overnight_cost_heat_pump;cop_heat_pump;debug
+;scenario;market_price_gas;charges_tax_levies_gas;market_price_el;charges_tax_levies_el;standard_dev_el;chp_surcharge;overnight_cost_heat_pump;cop_heat_pump;debug
 0;SQ;30;5;34;120;18;0;700000;2.7;False
 1;SQ_gastaxes=30;30;30;34;120;18;0;700000;2.7;False
 2;SQ_noHP_gastaxlevies=30;30;30;34;120;18;0;7000000000;2.7;False

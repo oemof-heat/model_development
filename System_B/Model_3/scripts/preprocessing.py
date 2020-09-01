@@ -199,7 +199,7 @@ def main(**scenario_assumptions):
     if scenario_assumptions['debug']:
         timeindex = timeindex[:3]
 
-    dirs = get_experiment_dirs(scenario_assumptions['name'])
+    dirs = get_experiment_dirs(scenario_assumptions['scenario'])
     elements_dir = os.path.join(dirs['preprocessed'], 'data', 'elements')
 
     copy_base_scenario(

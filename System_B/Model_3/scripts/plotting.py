@@ -226,7 +226,7 @@ def plot_yearly_production(yearly_production, destination):
 
 
 def main(**scenario_assumptions):
-    dirs = get_experiment_dirs(scenario_assumptions['name'])
+    dirs = get_experiment_dirs(scenario_assumptions['scenario'])
 
     price_el = pd.read_csv(
         os.path.join(dirs['preprocessed'], 'data', 'sequences', 'carrier_cost_profile.csv'),

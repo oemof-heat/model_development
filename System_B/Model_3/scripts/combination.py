@@ -29,7 +29,7 @@ def add_index(x, name, value):
 def get_scenario_paths(scenario_assumptions):
     scenario_paths = {}
 
-    for scenario in scenario_assumptions['name']:
+    for scenario in scenario_assumptions['scenario']:
         path = get_experiment_dirs(scenario)['postprocessed']
 
         scenario_paths.update({scenario: path})
@@ -118,9 +118,9 @@ def plot_var_cost_assumptions(df, scenarios, title=None):
 
     select = df.copy()
 
-    select.index = select['name']
+    select.index = select['scenario']
 
-    select = select.loc[select['name'].isin(scenarios)]
+    select = select.loc[select['scenario'].isin(scenarios)]
 
     select = select[
         ['charges_tax_levies_gas', 'market_price_gas', 'charges_tax_levies_el', 'market_price_el']

@@ -434,7 +434,7 @@ def write_total_cost(output_path):
 
 def main(**scenario_assumptions):
     print('Postprocessing')
-    dirs = get_experiment_dirs(scenario_assumptions['name'])
+    dirs = get_experiment_dirs(scenario_assumptions['scenario'])
 
     subdir = os.path.join(dirs['postprocessed'], 'sequences')
     if not os.path.exists(subdir):

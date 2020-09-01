@@ -54,7 +54,7 @@ def optimize(input_data_dir, results_data_dir, solver='cbc', debug=False):
 def main(**scenario_assumptions):
     logging.info('Optimisation')
 
-    dirs = get_experiment_dirs(scenario_assumptions['name'])
+    dirs = get_experiment_dirs(scenario_assumptions['scenario'])
 
     optimize(dirs['preprocessed'], dirs['optimised'], debug=scenario_assumptions['debug'])
 
