@@ -64,7 +64,7 @@ def combine_scalars(scenario_dfs):
     return all_scalars
 
 
-def plot_stacked_bar(df_in, scenario_order, title=None, ylabel=None):
+def plot_stacked_bar(df_in, scenario_order, title=None, ylabel=None, ax=None, legend=True):
     df = df_in.copy()
 
     df = df.loc[(abs(df['var_value']) > 1e-9)]
@@ -86,7 +86,10 @@ def plot_stacked_bar(df_in, scenario_order, title=None, ylabel=None):
 
     colors = [COLORS_BY_LABEL[i] for i in df.columns.get_level_values('name')]
 
-    fig, ax = plt.subplots()
+    if ax:
+        pass
+    else:
+        fig, ax = plt.subplots()
     # ax.grid(axis='y')
     # ax.axhline(0, c='k', lw=1)
     # ax.axhline(35, 0, 0.33, c='r')
@@ -96,6 +99,13 @@ def plot_stacked_bar(df_in, scenario_order, title=None, ylabel=None):
     ax.set_title(title)
     ax.set_ylabel(ylabel)
 
+    ax.legend().remove()
+
+    if legend:
+        draw_legend(ax, df)
+
+
+def draw_legend(ax, df):
     handles, labels = plt.gca().get_legend_handles_labels()
 
     ax.legend(
@@ -165,9 +175,15 @@ def main(scenario_assumptions):
 
     # define the order of scenarios
     scenario_order = [
-        'SQ',
-        'SQ_noHP_gastaxlevies=30',
-        'FF',
+        'scenario_field_0',
+        'scenario_field_1',
+        'scenario_field_2',
+        'scenario_field_3',
+        'scenario_field_4',
+        'scenario_field_5',
+        # 'SQ',
+        # 'SQ_noHP_gastaxlevies=30',
+        # 'FF',
     ]
 
     slicing = idx[scenario_paths.keys(), :, :, :, :, ['capacity', 'invest']]
@@ -182,6 +198,15 @@ def main(scenario_assumptions):
     select = all_scalars.loc[slicing, :]
     plot_stacked_bar(select, scenario_order, 'Yearly heat', 'Yearly heat [MWh]')
     plt.savefig(os.path.join(dirs['plots'], 'yearly_heat.pdf'))
+
+    fig, axs = plt.subplots(2, 1)
+    slicing = idx[scenario_paths.keys(), :, :, :, :, ['yearly_heat', 'yearly']]
+    select = all_scalars.loc[slicing, :]
+    plot_stacked_bar(select, scenario_order, 'Yearly heat', 'Yearly energy [MWh]', ax=axs[0], legend=False)
+    slicing = idx[scenario_paths.keys(), 'gas-chp', :, :, :, ['yearly_electricity', 'yearly']]
+    select = all_scalars.loc[slicing, :]
+    plot_stacked_bar(select, scenario_order, 'Yearly electricity', 'Yearly energy [MWh]', ax=axs[1], legend=False)
+    plt.savefig(os.path.join(dirs['plots'], 'yearly_energy.pdf'))
 
     slicing = idx[
               scenario_paths.keys(), :, :, :, :, ['capacity_cost', 'carrier_cost', 'marginal_cost']]
