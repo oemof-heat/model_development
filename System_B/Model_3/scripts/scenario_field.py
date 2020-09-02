@@ -72,15 +72,15 @@ def plot_scenario_field(scalars, scenario_assumptions):
     fig, ax = plt.subplots()
 
     image = ax.imshow(
-        np.array(var_value['var_value']).reshape(n, m).T[::-1, :],
+        np.array(var_value['var_value']).reshape(n, m)[::-1,:],
         cmap='Blues'
     )
 
     labels = var_value.index
 
-    xticklabels = [l[1] for l in labels[0::m]]
+    xticklabels = [round(l[0]*100) for l in labels[0:n + 2]]
 
-    yticklabels = [l[0] for l in labels[0:n + 2]]
+    yticklabels = [l[1] for l in labels[0::m]]
 
     print(len(xticklabels), yticklabels)
 
@@ -94,9 +94,9 @@ def plot_scenario_field(scalars, scenario_assumptions):
 
     ax.set_title('Investment in heat pump capacity [MW_th]')
 
-    ax.set_xlabel('Standard deviation of electricity prices')
+    ax.set_xlabel('Taxes, charges and levies ratio gas/electricity [%]')
 
-    ax.set_ylabel('Taxes, charges and levies ratio gas/electricity')
+    ax.set_ylabel('Standard deviation of electricity prices')
 
     # colorbar_ax = fig.add_axes([0.7, 0.1, 0.05, 0.8])
     fig.colorbar(image)
